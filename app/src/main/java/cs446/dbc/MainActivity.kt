@@ -12,18 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import cs446.dbc.ui.theme.DBCTheme
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.widget.Toast
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-
+import cs446.dbc.bluetooth.Bluetooth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +28,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
+        val bluetooth = Bluetooth(this)
     }
 }
 
