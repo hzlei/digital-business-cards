@@ -2,48 +2,36 @@ package cs446.dbc
 
 import android.Manifest
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import cs446.dbc.ui.theme.DBCTheme
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import cs446.dbc.bluetooth.Bluetooth
 
-class MainActivity : ComponentActivity() {
+interface NavigationHost {
+    fun navigateTo(fragment: Fragment, addToBackstack: Boolean)
+}
+class MainActivity : AppCompatActivity(), NavigationHost {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            DBCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
+        setContentView(R.layout.dbc_main_activity)
+        
+        supportFragmentManager
+            .beginTransaction()
+            .add(R.id.container, MainMenuFragment())
+            .commit()
+
         val bluetooth = Bluetooth(this)
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun navigateTo(fragment: Fragment, addToBackstack: Boolean) {
+        val transaction = supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.container, fragment)
 
-@Preview(showBackground = true, apiLevel = 33)
-@Composable
-fun GreetingPreview() {
-    DBCTheme {
-        Greeting("Android")
+        if (addToBackstack) {
+            transaction.addToBackStack(null)
+        }
+
+        transaction.commit()
     }
 }
