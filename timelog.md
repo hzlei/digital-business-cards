@@ -8,4 +8,4 @@
 | 2024/02/22 | 2 | 2 | 2 | 2 | 2 | 2 | Online Meeting - Architecture |
 | 2024/02/25 | 4 | 4 | 4 | 4 | 4 | 4 | Online Meeting - Archtiecture & Feature Planning |
 | 2024/02/25 | 0 | 7 | 0 | 0 | 0 | 0 | Bluetooth Sharing Setup |
-| 2024/02/27 | 0 | 5 | 0 | 5 | 0 | 5 | Bluetooth Sharing Search |
+| 2024/02/28 | 0 | 5 | 0 | 5 | 0 | 5 | Bluetooth Sharing Search |
