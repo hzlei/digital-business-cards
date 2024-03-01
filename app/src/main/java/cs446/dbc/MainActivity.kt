@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    @Preview
+    @Preview(showSystemUi = true, showBackground = true)
     @Composable
     private fun AppScaffold() {
         Scaffold(
