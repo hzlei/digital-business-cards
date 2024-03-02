@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity() {
                     NavHost(navController, startDestination = Screen.MyCards.route) {
                         composable(Screen.MyCards.route) {}
                         composable(Screen.SharedCards.route) {}
+                        composable(Screen.Settings.route) {}
                     }
                 }
             }
@@ -93,12 +96,19 @@ class MainActivity : AppCompatActivity() {
             ) {
                 Icon(Icons.Outlined.Share, "Shared Cards")
             }
+            IconButton(
+                onClick = { navController.navigate(Screen.Settings.route) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Outlined.Settings, "Settings")
+            }
         }
     }
 
     sealed class Screen(val route: String) {
         object MyCards : Screen("my-cards")
         object SharedCards : Screen("shared-cards")
+        object Settings : Screen("settings")
     }
 }
 
