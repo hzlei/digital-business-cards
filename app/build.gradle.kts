@@ -71,4 +71,7 @@ dependencies {
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     implementation("androidx.compose.material:material-icons-core:1.6.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
+
 }
