@@ -1,5 +1,11 @@
 package cs446.dbc.components
 
-class BusinessCard {
+import androidx.compose.material3.Card
+import androidx.compose.runtime.Composable
 
+@Composable
+fun BusinessCard() {
+    Card {
+
+    }
 }

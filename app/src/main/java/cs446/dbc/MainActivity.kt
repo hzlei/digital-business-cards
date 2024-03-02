@@ -68,9 +68,8 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     private fun BottomAppBar(navController: NavHostController) {
-        Row(
+        androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IconButton(
                 onClick = { navController.navigate(Screen.MyCards.route) },
