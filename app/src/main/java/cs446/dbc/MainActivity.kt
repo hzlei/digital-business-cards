@@ -1,5 +1,6 @@
 package cs446.dbc
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +31,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
+import androidx.core.view.KeyEventDispatcher.Component
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import cs446.dbc.components.ShareDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -39,7 +47,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     @Preview(showSystemUi = true, showBackground = true)
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @Composable
     private fun App() {
         val navController = rememberNavController()
@@ -56,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                     bottomBar = {
                         BottomAppBar(navController)
                     }
-                ) { innerPadding ->
+                ) { _ ->
                     NavHost(navController, startDestination = Screen.MyCards.route) {
                         composable(Screen.MyCards.route) {}
                         composable(Screen.SharedCards.route) {}
