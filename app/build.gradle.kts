@@ -76,4 +76,8 @@ dependencies {
 
     // For the flip animation
     implementation("com.github.PratikFagadiya:JetpackCompose-Flippingview:1.0")
+
+    // For the QR Codes
+    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 }
