@@ -54,9 +54,7 @@ fun ShareDialog(onDismissRequest: () -> Unit) {
                     .wrapContentSize(Alignment.Center),
                 horizontalAlignment = Alignment.End
             ) {
-                ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {
-                    Toast.makeText(this as Context, "Bluetooth", Toast.LENGTH_SHORT).show()
-                }
+                ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
                 ShareButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {}
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
                 Spacer(modifier = Modifier.height(2.dp))

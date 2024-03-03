@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -15,39 +18,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import cs446.dbc.components.BusinessCard
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cs446.dbc.MainActivity
+import cs446.dbc.viewmodels.AppViewModel
 
 @Composable
-fun UserCardsScreen(cardsList: List<Any>/*, appViewModel: AppViewModel*/) {
-    //appViewModel.updateScreenTitle("My Cards")
+fun UserCardsScreen(appViewModel: AppViewModel) {
+    appViewModel.updateScreenTitle("My Cards")
     Column (
         modifier = Modifier
             .fillMaxSize()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier.weight(0.9f)
+//        LazyColumn(
+//        ) {
+//            items(4) {
+//                Box(modifier = Modifier.fillMaxWidth()) {
+//                    BusinessCardContainer()
+//                }
+//            }
+//        }
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { /*TODO: Go to business card creation screen*/ }
         ) {
-            LazyColumn(
-            ) {
-                items(cardsList) { card ->
-                    println(card)
-                    BusinessCard()
-                }
-            }
-        }
-        Box(modifier = Modifier.weight(0.1f)
-        ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                OutlinedButton(
-                    onClick = { /*TODO: Go to business card creation screen*/ }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AddCircleOutline,
-                        contentDescription = "Add Cards"
-                    )
-                }
-            }
+            Icon(
+                imageVector = Icons.Outlined.AddCircleOutline,
+                contentDescription = "Add Cards"
+            )
         }
     }
 }
@@ -55,5 +55,6 @@ fun UserCardsScreen(cardsList: List<Any>/*, appViewModel: AppViewModel*/) {
 @Preview(showSystemUi = true)
 @Composable
 fun UserCardsScreenPreview() {
-    UserCardsScreen(cardsList = listOf())
+    val appViewModel: AppViewModel = viewModel()
+    UserCardsScreen(appViewModel)
 }

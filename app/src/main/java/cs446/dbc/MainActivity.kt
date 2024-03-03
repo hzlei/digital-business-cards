@@ -41,19 +41,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            App()
+            App(appActivity = this)
         }
     }
 
 
-    @Preview(showSystemUi = true, showBackground = true)
+   // @Preview(showSystemUi = true, showBackground = true)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
-    private fun App(appViewModel: AppViewModel = viewModel()) {
+    private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
         val navController = rememberNavController()
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
-
 
         AppTheme {
             Surface(
@@ -85,11 +84,11 @@ class MainActivity : AppCompatActivity() {
                 ) { _ ->
                     NavHost(navController, startDestination = Screen.UserCards.route) {
                         composable(Screen.UserCards.route) {
-                            UserCardsScreen(cardsList = listOf("test")/*, appViewModel*/)
+                            UserCardsScreen(appViewModel)
                         }
                         //composable(Screen.SharedCards.route) {}
                         composable(Screen.Home.route) {
-                            appViewModel.updateScreenTitle("My Cards")
+                            appViewModel.updateScreenTitle("Shared Cards")
                         }
                         // TODO: change to actual settings, for now using to test ShareDialog
                         composable(Screen.Settings.route) { shareMenu(appViewModel) }
