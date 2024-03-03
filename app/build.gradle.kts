@@ -74,4 +74,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
 
+    // For the flip animation
+    implementation("com.github.PratikFagadiya:JetpackCompose-Flippingview:1.0")
 }

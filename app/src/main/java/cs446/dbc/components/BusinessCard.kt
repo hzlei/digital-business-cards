@@ -1,38 +1,169 @@
 package cs446.dbc.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Flip
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Preview
 @Composable
 fun BusinessCard() {
-    val front = @Composable {
-        Box(
-            modifier = Modifier
-                .aspectRatio(5f / 3f)
-                .background(Color.Red)
-                .wrapContentSize(Alignment.Center)
+    var selected by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var cardFace by rememberSaveable {
+        mutableStateOf(CardFace.Front)
+    }
+    val toggleSelected = { selected = !selected }
+    val animatedPadding by animateDpAsState(
+        if (selected) {
+            16.dp
+        } else {
+            0.dp
+        },
+        label = "padding"
+    )
+
+    Card(
+        modifier = Modifier.animateContentSize(
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = LinearOutSlowInEasing,
+            )
+        ),
+        shape = if (selected) CardDefaults.shape else RectangleShape,
+        onClick = toggleSelected
+    ) {
+        Box(modifier = Modifier.padding(animatedPadding)) {
+            FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
+                front = {
+                    Face(Color.Red, "A")
+                },
+                back = {
+                    Face(Color.Blue, "B")
+                }
+            )
+        }
+        AnimatedVisibility(
+            selected,
         ) {
-            Text("A", fontSize = 30.sp)
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = {
+                    cardFace = cardFace.next
+                }, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Outlined.Flip, "Flip")
+                }
+                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Outlined.Share, "Share")
+                }
+                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Outlined.Star, "Favorite")
+                }
+                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Outlined.Edit, "Edit")
+                }
+            }
         }
     }
-    val back = @Composable {
-        Box(modifier = Modifier
+}
+
+@Composable
+fun Face(background: Color, text: String) {
+    Box(
+        modifier = Modifier
             .aspectRatio(5f / 3f)
-            .background(Color.Blue)
+            .background(background)
             .wrapContentSize(Alignment.Center)
-        ) {
-            Text("B", fontSize = 30.sp)
+    ) {
+        Text(text, fontSize = 30.sp)
+    }
+}
+
+enum class CardFace(val angle: Float) {
+    Front(0f) {
+        override val next: CardFace
+            get() = Back
+    },
+    Back(180f) {
+        override val next: CardFace
+            get() = Front
+    };
+
+    abstract val next: CardFace
+}
+
+@Composable
+fun FlipCard(
+    cardFace: CardFace,
+    onClick: (CardFace) -> Unit,
+    modifier: Modifier = Modifier,
+    back: @Composable () -> Unit = {},
+    front: @Composable () -> Unit = {},
+) {
+    val rotation = animateFloatAsState(
+        targetValue = cardFace.angle,
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = FastOutSlowInEasing,
+        ), label = "businessCardFlip"
+    )
+    Card(
+        onClick = {
+            onClick(cardFace)
+        },
+        modifier = modifier
+            .graphicsLayer {
+                rotationY = rotation.value
+                cameraDistance = 12f * density
+            },
+        shape = RectangleShape
+    ) {
+        if (rotation.value <= 90f) {
+            Box {
+                front()
+            }
+        } else {
+            Box(modifier = Modifier.graphicsLayer {
+                rotationY = 180f
+            }) {
+                back()
+            }
         }
     }
-    front()
 }

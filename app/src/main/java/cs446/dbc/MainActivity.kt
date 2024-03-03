@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
                 ) { _ ->
                     NavHost(navController, startDestination = Screen.UserCards.route) {
                         composable(Screen.UserCards.route) {
-                            UserCardsScreen(cardsList = listOf()/*, appViewModel*/)
+                            UserCardsScreen(cardsList = listOf("test")/*, appViewModel*/)
                         }
                         //composable(Screen.SharedCards.route) {}
                         composable(Screen.Home.route) {
