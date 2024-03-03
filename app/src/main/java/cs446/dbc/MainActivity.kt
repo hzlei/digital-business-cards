@@ -82,8 +82,9 @@ class MainActivity : AppCompatActivity() {
                         composable(Screen.Home.route) {
                             appViewModel.updateScreenTitle("Home")
                         }
-                        composable(Screen.Settings.route) {}
-                        composable(Screen.ShareCards.route) { shareMenu(appViewModel) }
+                        // TODO: change to actual settings, for now using to test ShareDialog
+                        composable(Screen.Settings.route) { shareMenu(appViewModel) }
+                        composable(Screen.SavedCards.route) { }
                     }
                 }
             }
@@ -114,7 +115,7 @@ class MainActivity : AppCompatActivity() {
                 Icon(Icons.Outlined.Home, "Home")
             }
             IconButton(
-                onClick = { navController.navigate(Screen.ShareCards.route) },
+                onClick = { navController.navigate(Screen.SavedCards.route) },
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Outlined.Share, "Share Cards")
@@ -129,11 +130,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     sealed class Screen(val route: String) {
+        // Stores and displays our own business cards
         object MyCards : Screen("my-cards")
 //        object SharedCards : Screen("shared-cards")
-        // Should display shared cards
+        // Stores and displays received cards
         object Home : Screen("home")
-        object ShareCards : Screen("share-menu")
+        object SavedCards : Screen("saved-cards")
         object Settings : Screen("settings")
     }
 }
