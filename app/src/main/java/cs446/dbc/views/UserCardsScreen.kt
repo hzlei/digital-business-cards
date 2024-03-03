@@ -27,10 +27,11 @@ import cs446.dbc.components.BusinessCard
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.MainActivity
+import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.viewmodels.AppViewModel
 
 @Composable
-fun UserCardsScreen(appViewModel: AppViewModel) {
+fun UserCardsScreen(appViewModel: AppViewModel, cardList: List<BusinessCardModel>) {
     appViewModel.updateScreenTitle("My Cards")
     Column (
         modifier = Modifier
@@ -43,7 +44,7 @@ fun UserCardsScreen(appViewModel: AppViewModel) {
         ) {
             LazyColumn(
             ) {
-                items(4) {
+                items(cardList) {card ->
                     Box(modifier = Modifier.fillMaxWidth()) {
                         BusinessCard()
                     }
@@ -76,5 +77,6 @@ fun UserCardsScreen(appViewModel: AppViewModel) {
 @Composable
 fun UserCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
-    UserCardsScreen(appViewModel)
+    val cardList: List<BusinessCardModel> = listOf()
+    UserCardsScreen(appViewModel, cardList)
 }

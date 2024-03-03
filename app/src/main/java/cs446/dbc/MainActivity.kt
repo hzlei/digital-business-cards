@@ -34,8 +34,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
-import cs446.dbc.views.shareMenu
-
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         NavHost(navController, startDestination = Screen.UserCards.route) {
                             composable(Screen.UserCards.route) {
-                                UserCardsScreen(appViewModel)
+                                UserCardsScreen(appViewModel, listOf())
                             }
                             //composable(Screen.SharedCards.route) {}
                             composable(Screen.Home.route) {
