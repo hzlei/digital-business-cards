@@ -31,7 +31,7 @@ import cs446.dbc.viewmodels.AppViewModel
 
 @Composable
 fun UserCardsScreen(appViewModel: AppViewModel) {
-//    appViewModel.updateScreenTitle("My Cards")
+    appViewModel.updateScreenTitle("My Cards")
     Column (
         modifier = Modifier
             .fillMaxSize()
