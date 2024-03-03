@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("plugin.serialization") version "1.5.0"
 }
 
 android {
@@ -80,4 +81,7 @@ dependencies {
     // For the QR Codes
     implementation("com.google.zxing:core:3.4.1")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    // To digest JSON data for the cards
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
 }

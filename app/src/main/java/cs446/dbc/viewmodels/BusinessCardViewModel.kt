@@ -1,5 +1,6 @@
 package cs446.dbc.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.Field
@@ -7,6 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 class BusinessCardViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(BusinessCardModel("", "", false, mutableListOf<Field>()))
@@ -61,7 +65,13 @@ class BusinessCardViewModel: ViewModel() {
         insertCardField(newField)
     }
 
-
-
-
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun digestCardJSON(cardJSON: String) {
+        try {
+            val cardModel = Json.decodeFromString<BusinessCardModel>(cardJSON)
+            _uiState.value = cardModel
+        } catch (e: Exception) {
+            Log.e("BusinessCardViewModel", "Error parsing JSON", e)
+        }
+    }
 }
