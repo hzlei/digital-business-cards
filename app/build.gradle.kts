@@ -73,4 +73,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
+
+    // For the QR Codes
+    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 }
