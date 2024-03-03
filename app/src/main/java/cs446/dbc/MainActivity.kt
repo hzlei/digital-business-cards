@@ -12,30 +12,27 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.viewmodels.AppViewModel
+import cs446.dbc.views.UserCardsScreen
 import cs446.dbc.views.shareMenu
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -55,10 +52,8 @@ class MainActivity : AppCompatActivity() {
     @Composable
     private fun App(appViewModel: AppViewModel = viewModel()) {
         val navController = rememberNavController()
-        val homeUiState by appViewModel.uiState.collectAsState()
-        appViewModel.updateScreenTitle("Home")
+        val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
-//        val uiState: MainScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         AppTheme {
             Surface(
@@ -66,23 +61,35 @@ class MainActivity : AppCompatActivity() {
             ) {
                 Scaffold(
                     topBar = {
-                        TopAppBar(
-                            title = { Text(text = homeUiState.screenTitle) },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Red
-                            )
-
+                        CenterAlignedTopAppBar(
+                            title = {
+                                Text(
+                                    text = homeUiState.screenTitle
+                                )
+                            },
+//                            colors = TopAppBarDefaults.topAppBarColors(
+//                                containerColor = Color.LightGray
+//                            ),
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = { navController.navigate(Screen.Settings.route) },
+                                ) {
+                                    Icon(Icons.Outlined.Settings, "Settings")
+                                }
+                            }
                         )
                     },
                     bottomBar = {
                         BottomAppBar(navController)
                     }
                 ) { _ ->
-                    NavHost(navController, startDestination = Screen.MyCards.route) {
-                        composable(Screen.MyCards.route) {}
+                    NavHost(navController, startDestination = Screen.UserCards.route) {
+                        composable(Screen.UserCards.route) {
+                            UserCardsScreen(cardsList = listOf()/*, appViewModel*/)
+                        }
                         //composable(Screen.SharedCards.route) {}
                         composable(Screen.Home.route) {
-                            appViewModel.updateScreenTitle("Home")
+                            appViewModel.updateScreenTitle("My Cards")
                         }
                         // TODO: change to actual settings, for now using to test ShareDialog
                         composable(Screen.Settings.route) { shareMenu(appViewModel) }
@@ -97,9 +104,10 @@ class MainActivity : AppCompatActivity() {
     private fun BottomAppBar(navController: NavHostController) {
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
+//            containerColor = Color(0xff454545)
         ) {
             IconButton(
-                onClick = { navController.navigate(Screen.MyCards.route) },
+                onClick = { navController.navigate(Screen.UserCards.route) },
                 modifier = Modifier
                     .weight(1f)
             ) {
@@ -128,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
     sealed class Screen(val route: String) {
         // Stores and displays our own business cards
-        object MyCards : Screen("my-cards")
+        object UserCards : Screen("my-cards")
 //        object SharedCards : Screen("shared-cards")
         // Stores and displays received cards
         object Home : Screen("home")
@@ -136,4 +144,3 @@ class MainActivity : AppCompatActivity() {
         object Settings : Screen("settings")
     }
 }
-
