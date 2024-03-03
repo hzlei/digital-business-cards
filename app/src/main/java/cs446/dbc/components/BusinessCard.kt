@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flip
@@ -37,10 +38,21 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.Field
+import cs446.dbc.models.FieldType
 
+val example = BusinessCardModel(
+    front = "A",
+    back = "B",
+    favorite = false,
+    fields = mutableListOf(
+        Field("First Name", "Mihran", FieldType.TEXT)
+    )
+)
 @Preview
 @Composable
-fun BusinessCard() {
+fun BusinessCard(card: BusinessCardModel = example) {
     var selected by rememberSaveable {
         mutableStateOf(false)
     }
@@ -152,7 +164,7 @@ fun FlipCard(
                 rotationY = rotation.value
                 cameraDistance = 12f * density
             },
-        shape = RectangleShape
+        shape = RoundedCornerShape(8.dp)
     ) {
         if (rotation.value <= 90f) {
             Box {
