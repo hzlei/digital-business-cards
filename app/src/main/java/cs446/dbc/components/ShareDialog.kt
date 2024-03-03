@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.view.Gravity
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +45,10 @@ import com.google.zxing.EncodeHintType
 import org.json.JSONObject
 import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 
 @Composable
@@ -89,6 +93,7 @@ fun ShareDialog(onDismissRequest: () -> Unit) {
                     showQRCode = true
                 }
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
+                TestQRCodeReader()
                 Spacer(modifier = Modifier.height(2.dp))
                 TextButton(onClick = { onDismissRequest() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.hsl(206.0F, 0.8F, 0.55F))) {
@@ -118,6 +123,37 @@ private fun ShareButton(text: String, icon: ImageVector, iconDescription: String
         )
         Spacer(modifier = Modifier.size(5.dp))
         Text(text = text)
+    }
+}
+
+// Move this elsewhere
+@Composable
+private fun TestQRCodeReader() {
+    var qrCodeResult by rememberSaveable { mutableStateOf("") }
+
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) {
+            qrCodeResult = result.contents
+            // we now have the QR code data
+        }
+    }
+
+    Column {
+        FilledTonalButton(onClick = {
+            // Configure scan options
+            val options = ScanOptions()
+            options.setPrompt("Scan a QR code")
+            options.setBeepEnabled(true)
+            options.setOrientationLocked(true)
+            options.setBarcodeImageEnabled(true)
+            scanLauncher.launch(options)
+        }) {
+            Text("Scan QR Code")
+        }
+
+        if (qrCodeResult.isNotEmpty()) {
+            Text("Scanned QR Code: $qrCodeResult")
+        }
     }
 }
 
