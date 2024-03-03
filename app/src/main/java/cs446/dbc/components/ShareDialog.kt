@@ -144,7 +144,7 @@ private fun TestQRCodeReader() {
             val options = ScanOptions()
             options.setPrompt("Scan a QR code")
             options.setBeepEnabled(true)
-            options.setOrientationLocked(true)
+            options.setOrientationLocked(false)
             options.setBarcodeImageEnabled(true)
             scanLauncher.launch(options)
         }) {
