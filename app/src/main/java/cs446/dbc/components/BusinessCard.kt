@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,6 +54,12 @@ val example = BusinessCardModel(
 @Preview
 @Composable
 fun BusinessCard(card: BusinessCardModel = example) {
+    // This will only toggle the dialog
+    // TODO: We need to reference the specific card's data to share
+    // TODO: maybe add a StateFlow for data, holds currently sharing card data
+    var showDialogState by rememberSaveable {
+        mutableStateOf(false)
+    }
     var selected by rememberSaveable {
         mutableStateOf(false)
     }
@@ -101,7 +108,7 @@ fun BusinessCard(card: BusinessCardModel = example) {
                 }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Flip, "Flip")
                 }
-                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                TextButton(onClick = { showDialogState = true }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Share, "Share")
                 }
                 TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
@@ -113,7 +120,13 @@ fun BusinessCard(card: BusinessCardModel = example) {
             }
         }
     }
+    if (showDialogState) {
+        ShareDialog {
+            showDialogState = false
+        }
+    }
 }
+
 
 @Composable
 fun Face(background: Color, text: String) {

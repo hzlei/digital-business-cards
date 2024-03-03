@@ -10,18 +10,4 @@ import cs446.dbc.viewmodels.AppViewModel
 
 @Composable
 fun shareMenu(appViewModel: AppViewModel) {
-
-    // TODO: delete title update
-    appViewModel.updateScreenTitle("Share Menu")
-
-    var showDialog by rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    if (showDialog) {
-        ShareDialog() {
-            showDialog = false
-        }
-    }
-
 }

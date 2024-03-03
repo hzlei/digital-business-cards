@@ -5,8 +5,10 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
@@ -81,18 +83,23 @@ class MainActivity : AppCompatActivity() {
                     bottomBar = {
                         BottomAppBar(navController)
                     }
-                ) { _ ->
-                    NavHost(navController, startDestination = Screen.UserCards.route) {
-                        composable(Screen.UserCards.route) {
-                            UserCardsScreen(appViewModel)
+                ) { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                    ) {
+                        NavHost(navController, startDestination = Screen.UserCards.route) {
+                            composable(Screen.UserCards.route) {
+                                UserCardsScreen(appViewModel)
+                            }
+                            //composable(Screen.SharedCards.route) {}
+                            composable(Screen.Home.route) {
+                                appViewModel.updateScreenTitle("Shared Cards")
+                            }
+                            // TODO: change to actual settings, for now using to test ShareDialog
+                            composable(Screen.Settings.route) { }
+                            composable(Screen.SavedCards.route) { }
                         }
-                        //composable(Screen.SharedCards.route) {}
-                        composable(Screen.Home.route) {
-                            appViewModel.updateScreenTitle("Shared Cards")
-                        }
-                        // TODO: change to actual settings, for now using to test ShareDialog
-                        composable(Screen.Settings.route) { shareMenu(appViewModel) }
-                        composable(Screen.SavedCards.route) { }
                     }
                 }
             }
