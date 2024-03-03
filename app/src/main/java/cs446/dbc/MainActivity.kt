@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -98,7 +100,8 @@ class MainActivity : AppCompatActivity() {
         ) {
             IconButton(
                 onClick = { navController.navigate(Screen.MyCards.route) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
             ) {
                 Icon(Icons.Outlined.Person, "My Cards")
             }
@@ -119,12 +122,6 @@ class MainActivity : AppCompatActivity() {
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Outlined.Share, "Share Cards")
-            }
-            IconButton(
-                onClick = { navController.navigate(Screen.Settings.route) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Outlined.Settings, "Settings")
             }
         }
     }
