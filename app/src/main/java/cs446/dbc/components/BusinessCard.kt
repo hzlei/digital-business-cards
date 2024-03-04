@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flip
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -39,16 +40,12 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.models.BusinessCardModel
-import cs446.dbc.models.Field
-import cs446.dbc.viewmodels.BusinessCardViewModel
+import cs446.dbc.viewmodels.BusinessCardAction
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel?) {
+fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     // TODO: We need to reference the specific card's data to share
     // TODO: maybe add a StateFlow for data, holds currently sharing card data
@@ -70,26 +67,7 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
         label = "padding"
     )
 
-    val toggleSelected = { selected = !selected }
-
-    val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(
-            front = cardModel?.front ?: "",
-            back = cardModel?.back ?: "",
-            favorite = cardModel?.favorite ?: false,
-            fields = cardModel?.fields ?: mutableListOf<Field>(),
-            savedStateHandle = createSavedStateHandle()
-        )
-    }
-
-//        factory = BusinessCardViewModel(
-//
-//    ),
-//    )
-    val cardFront by cardViewModel.front.collectAsStateWithLifecycle()
-    val cardBack by cardViewModel.back.collectAsStateWithLifecycle()
-    val cardFavorite by cardViewModel.favorite.collectAsStateWithLifecycle()
-    val cardFields by cardViewModel.fields.collectAsStateWithLifecycle()
+    val toggleSelected = { selected = !selected}
 
     Card(
         modifier = Modifier
@@ -111,10 +89,10 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
         ) {
             FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
                 front = {
-                    Face(MaterialTheme.colorScheme.surfaceTint, cardFront)
+                    Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front)
                 },
                 back = {
-                    Face(MaterialTheme.colorScheme.surfaceBright, cardBack)
+                    Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back)
                 }
             )
         }
@@ -134,9 +112,9 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
                     Icon(Icons.Outlined.Share, "Share")
                 }
                 TextButton(onClick = {
-                    cardViewModel.updateCardFavourite(!cardFavorite)
+                    onAction(BusinessCardAction.ToggleFavorite(cardModel.id))
                 }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Star, "Favorite")
+                    Icon(if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline, "Favorite")
                 }
                 // TODO: need to show fields
                 TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
@@ -147,7 +125,6 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
     }
     if (showDialogState) {
         ShareDialog {
-            println("Favourite = ${cardFavorite}")
             showDialogState = false
         }
     }

@@ -6,7 +6,7 @@ data class BusinessCardModel(
     val id: UUID,
     val front: String,
     val back: String,
-    val favorite: Boolean,
+    var favorite: Boolean,
     val fields: MutableList<Field>
 )
 

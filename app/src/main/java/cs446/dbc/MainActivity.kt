@@ -44,6 +44,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.Field
+import cs446.dbc.models.FieldType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
 import java.util.UUID
@@ -121,11 +123,37 @@ class MainActivity : AppCompatActivity() {
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
-                                        front = "A",
-                                        back = "B",
-                                        favorite = false,
+                                        front = "C",
+                                        back = "D",
+                                        favorite = true,
                                         fields = mutableListOf()
                                     ),
+                                    BusinessCardModel(
+                                        id = UUID.randomUUID(),
+                                        front = "E",
+                                        back = "F",
+                                        favorite = false,
+                                        fields = mutableListOf(
+                                            Field(
+                                                "Full Name",
+                                                "Hanz Zimmer",
+                                                FieldType.TEXT
+                                            )
+                                        )
+                                    ),
+                                    BusinessCardModel(
+                                        id = UUID.randomUUID(),
+                                        front = "G",
+                                        back = "H",
+                                        favorite = false,
+                                        fields = mutableListOf(
+                                            Field(
+                                                "Phone Number",
+                                                "416-111-2222",
+                                                FieldType.PHONE_NUMBER
+                                            )
+                                        )
+                                    )
                                 ))
                             }
                             composable(Screen.Settings.route) {
