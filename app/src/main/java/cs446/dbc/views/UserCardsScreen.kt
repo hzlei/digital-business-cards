@@ -17,10 +17,12 @@ import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import cs446.dbc.components.BusinessCard
 import androidx.compose.ui.unit.dp
@@ -34,6 +36,13 @@ import cs446.dbc.viewmodels.AppViewModel
 @Composable
 fun UserCardsScreen(appViewModel: AppViewModel) {
     val cardList by appViewModel.cards.collectAsState()
+    val context = LocalContext.current
+
+    val directoryName = "businessCards"
+
+    LaunchedEffect(key1 = true) {
+        appViewModel.loadCardsFromDirectory(context, directoryName)
+    }
 
     appViewModel.updateScreenTitle("My Cards")
 
@@ -76,6 +85,7 @@ fun UserCardsScreen(appViewModel: AppViewModel) {
                             Field("Example Field", "Example Value", FieldType.TEXT)
                         )
                     )
+                    appViewModel.saveCardToLocalStorage(exampleCard, context, directoryName)
                     appViewModel.addCard(exampleCard)
                 }
             ) {

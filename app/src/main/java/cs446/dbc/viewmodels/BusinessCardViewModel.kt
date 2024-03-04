@@ -1,16 +1,22 @@
 package cs446.dbc.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.Field
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import java.io.File
 
 class BusinessCardViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(BusinessCardModel("", "", false, mutableListOf<Field>()))
