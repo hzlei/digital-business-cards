@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,25 +44,35 @@ import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 
 val example = BusinessCardModel(
-    front = "John Doe",
-    back = "Software Engineer",
+    front = "A",
+    back = "B",
     favorite = false,
     fields = mutableListOf(
-        Field("First Name", "John", FieldType.TEXT),
-        Field("Last Name", "Doe", FieldType.TEXT),
-        Field("Occupation", "Software Engineer", FieldType.TEXT)
+        Field("First Name", "Mihran", FieldType.TEXT)
     )
 )
-
 @Preview
 @Composable
 fun BusinessCard(card: BusinessCardModel = example) {
-    var showDialogState by rememberSaveable { mutableStateOf(false) }
-    var selected by rememberSaveable { mutableStateOf(false) }
-    var cardFace by rememberSaveable { mutableStateOf(CardFace.Front) }
+    // This will only toggle the dialog
+    // TODO: We need to reference the specific card's data to share
+    // TODO: maybe add a StateFlow for data, holds currently sharing card data
+    var showDialogState by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var selected by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var cardFace by rememberSaveable {
+        mutableStateOf(CardFace.Front)
+    }
     val toggleSelected = { selected = !selected }
     val animatedPadding by animateDpAsState(
-        if (selected) 16.dp else 0.dp,
+        if (selected) {
+            16.dp
+        } else {
+            0.dp
+        },
         label = "padding"
     )
 
@@ -76,16 +87,18 @@ fun BusinessCard(card: BusinessCardModel = example) {
         onClick = toggleSelected
     ) {
         Box(modifier = Modifier.padding(animatedPadding)) {
-            FlipCard(cardFace = cardFace, onClick = { cardFace = cardFace.next },
+            FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
                 front = {
-                    Face(Color.Red, card.front)
+                    Face(Color.Red, "A")
                 },
                 back = {
-                    Face(Color.Blue, card.back)
+                    Face(Color.Blue, "B")
                 }
             )
         }
-        AnimatedVisibility(selected) {
+        AnimatedVisibility(
+            selected,
+        ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
