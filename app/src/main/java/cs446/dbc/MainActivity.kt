@@ -341,7 +341,7 @@ class MainActivity : AppCompatActivity() {
                                 cardType = CardType.PERSONAL,
                             )
 
-                            appViewModel.saveCardToLocalStorage(exampleCard, context, "businessCards")
+//                            appViewModel.saveCardToLocalStorage(exampleCard, context, "businessCards")
                             appViewModel.addCard(exampleCard)
                         }
                     ) {
