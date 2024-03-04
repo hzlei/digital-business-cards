@@ -43,8 +43,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
+import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -104,7 +106,15 @@ class MainActivity : AppCompatActivity() {
                         NavHost(navController, startDestination = Screen.Home.route) {
                             composable(Screen.UserCards.route) {
                                 appViewModel.updateScreenTitle("My Cards")
-                                UserCardsScreen(appViewModel, listOf())
+                                UserCardsScreen(appViewModel, listOf(
+                                    BusinessCardModel(
+                                        id = UUID.randomUUID(),
+                                        front = "A",
+                                        back = "B",
+                                        favorite = false,
+                                        fields = mutableListOf()
+                                    )
+                                ))
                             }
                             composable(Screen.Home.route) {
                                 appViewModel.updateScreenTitle("Saved Cards")

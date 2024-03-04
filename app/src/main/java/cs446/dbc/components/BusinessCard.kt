@@ -143,7 +143,7 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
     }
     if (showDialogState) {
         ShareDialog {
-            Toast.makeText(LocalContext.current, "Favourite = ${cardFavorite}", Toast.LENGTH_SHORT).show()
+            println("Favourite = ${cardFavorite}")
             showDialogState = false
         }
     }
