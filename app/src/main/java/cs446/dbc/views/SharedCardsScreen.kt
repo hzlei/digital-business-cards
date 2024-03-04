@@ -19,6 +19,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
@@ -26,27 +27,27 @@ import cs446.dbc.viewmodels.BusinessCardViewModel
 @Composable
 fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>) {
     appViewModel.updateScreenTitle("Saved Cards")
-    val sharedCards by sharedCardViewModel.businessCards.collectAsStateWithLifecycle()
+    val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-//    LaunchedEffect(key1 = "load_examples") {
-//        if (sharedCards.size < 1) {
-//            origCardList.forEach { card ->
-//                sharedCardViewModel.performAction(
-//                    BusinessCardAction.PopulateCard(
-//                        front = card.front,
-//                        back = card.back,
-//                        favorite = card.favorite,
-//                        fields = card.fields,
-//                        cardType = card.cardType
-//                    )
-//                )
-//            }
-//        }
-//    }
+    LaunchedEffect(key1 = "load_examples") {
+        if (sharedCards.size < 1) {
+            origCardList.forEach { card ->
+                sharedCardViewModel.performAction(
+                    BusinessCardAction.PopulateCard(
+                        front = card.front,
+                        back = card.back,
+                        favorite = card.favorite,
+                        fields = card.fields,
+                        cardType = card.cardType
+                    )
+                )
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -68,7 +69,7 @@ fun SharedCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(savedStateHandle = createSavedStateHandle())
+        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
     }
     UserCardsScreen(appViewModel, cardViewModel, cardList)
 }

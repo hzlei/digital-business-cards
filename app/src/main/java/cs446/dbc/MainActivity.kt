@@ -1,8 +1,6 @@
 package cs446.dbc
 
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.widget.TextView.SavedState
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +13,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,11 +32,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,23 +69,14 @@ class MainActivity : AppCompatActivity() {
 
 
     @OptIn(ExperimentalAnimationApi::class)
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
     private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
         val navController = rememberNavController()
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
-        val cardSavedStateHandle: SavedStateHandle = SavedStateHandle()
-        val sharedCardSavedStateHandle: SavedStateHandle = SavedStateHandle()
-        // Card View Model for user's personal cards
+
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(savedStateHandle = cardSavedStateHandle)
-        }
-        // Card View Model for shared cards
-        // TODO: There's an issue, since we're making 2 view models, they are being shared together
-        //  because they have the same owner. This needs an immediate fix!!!!
-        val sharedCardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(savedStateHandle = sharedCardSavedStateHandle)
+            BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
 
         // TODO: remove after demo, we'll use this to start in the SharedCards Screen
@@ -139,8 +127,8 @@ class MainActivity : AppCompatActivity() {
             ),
             BusinessCardModel(
                 id = UUID.randomUUID(),
-                front = "G",
-                back = "H",
+                front = "I",
+                back = "J",
                 favorite = false,
                 template=TemplateType.TEMPLATE_1,
                 fields = mutableListOf(
@@ -155,7 +143,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         sharedCardsList.forEach { card ->
-            sharedCardViewModel.performAction(
+            cardViewModel.performAction(
                 BusinessCardAction.PopulateCard(
                     front = card.front,
                     back = card.back,
@@ -165,6 +153,7 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
+
 
         AppTheme {
             Surface(
@@ -202,16 +191,30 @@ class MainActivity : AppCompatActivity() {
                             .padding(innerPadding)
                     ) {
                         appViewModel.updateScreenTitle("Saved Cards")
-                        SharedCardsScreen(appViewModel, sharedCardViewModel, sharedCardsList)
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        AnimatedVisibility(
+                            visible = navBackStackEntry?.destination?.route == Screen.Home.route,
+                            enter = fadeIn() + scaleIn(),
+                            exit = fadeOut() + scaleOut(),
+                        ) {
+                            cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.SHARED))
+                                SharedCardsScreen(
+                                    appViewModel,
+                                    cardViewModel,
+                                    sharedCardsList
+                                )
+                        }
                         NavHost(
                             navController,
                             startDestination = Screen.Home.route,
                         ) {
                             composable(Screen.Home.route) {
                                 appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
-                                SharedCardsScreen(appViewModel, sharedCardViewModel, sharedCardsList)
+                                cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.SHARED))
+                                SharedCardsScreen(appViewModel, cardViewModel, sharedCardsList)
                             }
                             composable(Screen.UserCards.route) {
+                                cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.PERSONAL))
                                 // TODO: Remove the example list after
                                 UserCardsScreen(appViewModel, cardViewModel, listOf(
                                     BusinessCardModel(
@@ -220,7 +223,7 @@ class MainActivity : AppCompatActivity() {
                                         back = "B",
                                         favorite = false,
                                         fields = mutableListOf(),
-                                        cardType = CardType.SHARED
+                                        cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -228,7 +231,7 @@ class MainActivity : AppCompatActivity() {
                                         back = "D",
                                         favorite = true,
                                         fields = mutableListOf(),
-                                        cardType = CardType.SHARED
+                                        cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -242,7 +245,7 @@ class MainActivity : AppCompatActivity() {
                                                 FieldType.TEXT
                                             )
                                         ),
-                                        cardType = CardType.SHARED
+                                        cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -256,12 +259,12 @@ class MainActivity : AppCompatActivity() {
                                                 FieldType.PHONE_NUMBER
                                             )
                                         ),
-                                        cardType = CardType.SHARED
+                                        cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
-                                        front = "G",
-                                        back = "H",
+                                        front = "I",
+                                        back = "J",
                                         favorite = false,
                                         template=TemplateType.TEMPLATE_1,
                                         fields = mutableListOf(
@@ -271,12 +274,20 @@ class MainActivity : AppCompatActivity() {
                                                 FieldType.TEXT,
                                             )
                                         ),
-                                        cardType = CardType.SHARED
+                                        cardType = CardType.PERSONAL
                                     ),
                                 ))
                             }
                             composable(Screen.Settings.route) {
                                 appViewModel.updateScreenTitle("Settings") // TODO: Replace with SettingsScreen
+                                // TODO: Remove after, for now just creating a new composable so we
+                                // don't get the home page showing up
+                                Column (
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
+
+                                }
                             }
                         }
                     }

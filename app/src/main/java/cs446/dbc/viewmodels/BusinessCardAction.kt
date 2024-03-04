@@ -14,4 +14,5 @@ sealed class BusinessCardAction {
     data class UpdateAllFields (val cardId: UUID, val fields: MutableList<Field>): BusinessCardAction()
     data class UpdateField (val cardId: UUID, val oldField: Field, val newField: Field): BusinessCardAction()
     data class UpdateCardType (val cardId: UUID, val newCardType: CardType): BusinessCardAction()
+    data class UpdateCardContext (val newContext: CardType): BusinessCardAction()
 }

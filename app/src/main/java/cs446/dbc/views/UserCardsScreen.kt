@@ -19,6 +19,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
@@ -26,7 +27,7 @@ import cs446.dbc.viewmodels.BusinessCardViewModel
 @Composable
 fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>) {
     appViewModel.updateScreenTitle("My Cards")
-    val cards by myCardViewModel.businessCards.collectAsStateWithLifecycle()
+    val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
@@ -68,7 +69,7 @@ fun UserCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(savedStateHandle = createSavedStateHandle())
+        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.PERSONAL)
     }
     UserCardsScreen(appViewModel, cardViewModel, cardList)
 }

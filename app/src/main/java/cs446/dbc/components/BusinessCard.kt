@@ -143,8 +143,8 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                         "Favorite"
                     )
                 }
-                if (cardModel.cardType == CardType.PERSONAL) {
-                    // TODO: need to show fields
+                // TODO: need to show fields
+                AnimatedVisibility(visible = cardModel.cardType == CardType.PERSONAL) {
                     TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.Edit, "Edit")
                     }
