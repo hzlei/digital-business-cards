@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.BusinessCardAction
 
@@ -48,8 +49,6 @@ import cs446.dbc.viewmodels.BusinessCardAction
 @Composable
 fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
-    // TODO: We need to reference the specific card's data to share
-    // TODO: maybe add a StateFlow for data, holds currently sharing card data
     var showDialogState by rememberSaveable {
         mutableStateOf(false)
     }
@@ -144,9 +143,11 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                         "Favorite"
                     )
                 }
-                // TODO: need to show fields
-                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Edit, "Edit")
+                if (cardModel.cardType == CardType.PERSONAL) {
+                    // TODO: need to show fields
+                    TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.Edit, "Edit")
+                    }
                 }
             }
         }

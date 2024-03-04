@@ -26,6 +26,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.UpdateBack -> TODO()
             is BusinessCardAction.UpdateField -> TODO()
             is BusinessCardAction.UpdateFront -> TODO()
+            is BusinessCardAction.UpdateCardType -> TODO()
         }
     }
 
@@ -47,8 +48,4 @@ class BusinessCardViewModel @Inject constructor(
         currCards?.add(newCard)
         savedStateHandle["businessCards"] = currCards
     }
-
-
-
-
 }

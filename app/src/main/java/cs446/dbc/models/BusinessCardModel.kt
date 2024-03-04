@@ -8,7 +8,8 @@ data class BusinessCardModel(
     val back: String,
     var favorite: Boolean,
     val fields: MutableList<Field>,
-    val template: TemplateType=TemplateType.DEFAULT
+    val template: TemplateType=TemplateType.DEFAULT,
+    val cardType: CardType = CardType.PERSONAL // TODO: figure out how card types will change during sharing
 )
 
 data class Field(
@@ -25,6 +26,11 @@ enum class FieldType {
     PHONE_NUMBER,
     GITHUB_USERNAME, // open Github Page
     LINKEDIN_ID // open LinkedIn Profile
+}
+
+enum class CardType {
+    PERSONAL, // representing cards in my cards screen
+    SHARED
 }
 
 enum class TemplateType {

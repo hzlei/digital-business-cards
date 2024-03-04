@@ -2,6 +2,7 @@ package cs446.dbc
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.widget.TextView.SavedState
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -32,9 +33,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,11 +48,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
+import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
 import java.util.UUID
 
@@ -72,8 +78,92 @@ class MainActivity : AppCompatActivity() {
     private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
         val navController = rememberNavController()
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
+        val cardSavedStateHandle: SavedStateHandle = SavedStateHandle()
+        val sharedCardSavedStateHandle: SavedStateHandle = SavedStateHandle()
+        // Card View Model for user's personal cards
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(savedStateHandle = createSavedStateHandle())
+            BusinessCardViewModel(savedStateHandle = cardSavedStateHandle)
+        }
+        // Card View Model for shared cards
+        // TODO: There's an issue, since we're making 2 view models, they are being shared together
+        //  because they have the same owner. This needs an immediate fix!!!!
+        val sharedCardViewModel: BusinessCardViewModel = viewModel() {
+            BusinessCardViewModel(savedStateHandle = sharedCardSavedStateHandle)
+        }
+
+        // TODO: remove after demo, we'll use this to start in the SharedCards Screen
+        val sharedCardsList = listOf(
+            BusinessCardModel(
+                id = UUID.randomUUID(),
+                front = "A",
+                back = "B",
+                favorite = false,
+                fields = mutableListOf(),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID(),
+                front = "C",
+                back = "D",
+                favorite = true,
+                fields = mutableListOf(),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID(),
+                front = "E",
+                back = "F",
+                favorite = false,
+                fields = mutableListOf(
+                    Field(
+                        "Full Name",
+                        "Hanz Zimmer",
+                        FieldType.TEXT
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID(),
+                front = "G",
+                back = "H",
+                favorite = false,
+                fields = mutableListOf(
+                    Field(
+                        "Phone Number",
+                        "416-111-2222",
+                        FieldType.PHONE_NUMBER
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID(),
+                front = "G",
+                back = "H",
+                favorite = false,
+                template=TemplateType.TEMPLATE_1,
+                fields = mutableListOf(
+                    Field(
+                        "Full Name",
+                        "John Doe",
+                        FieldType.TEXT,
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+        )
+
+        sharedCardsList.forEach { card ->
+            sharedCardViewModel.performAction(
+                BusinessCardAction.PopulateCard(
+                    front = card.front,
+                    back = card.back,
+                    favorite = card.favorite,
+                    fields = card.fields,
+                    cardType = card.cardType
+                )
+            )
         }
 
         AppTheme {
@@ -111,12 +201,15 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                     ) {
+                        appViewModel.updateScreenTitle("Saved Cards")
+                        SharedCardsScreen(appViewModel, sharedCardViewModel, sharedCardsList)
                         NavHost(
                             navController,
                             startDestination = Screen.Home.route,
                         ) {
                             composable(Screen.Home.route) {
                                 appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
+                                SharedCardsScreen(appViewModel, sharedCardViewModel, sharedCardsList)
                             }
                             composable(Screen.UserCards.route) {
                                 // TODO: Remove the example list after
@@ -126,14 +219,16 @@ class MainActivity : AppCompatActivity() {
                                         front = "A",
                                         back = "B",
                                         favorite = false,
-                                        fields = mutableListOf()
+                                        fields = mutableListOf(),
+                                        cardType = CardType.SHARED
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
                                         front = "C",
                                         back = "D",
                                         favorite = true,
-                                        fields = mutableListOf()
+                                        fields = mutableListOf(),
+                                        cardType = CardType.SHARED
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -146,7 +241,8 @@ class MainActivity : AppCompatActivity() {
                                                 "Hanz Zimmer",
                                                 FieldType.TEXT
                                             )
-                                        )
+                                        ),
+                                        cardType = CardType.SHARED
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -159,7 +255,8 @@ class MainActivity : AppCompatActivity() {
                                                 "416-111-2222",
                                                 FieldType.PHONE_NUMBER
                                             )
-                                        )
+                                        ),
+                                        cardType = CardType.SHARED
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -173,7 +270,8 @@ class MainActivity : AppCompatActivity() {
                                                 "John Doe",
                                                 FieldType.TEXT,
                                             )
-                                        )
+                                        ),
+                                        cardType = CardType.SHARED
                                     ),
                                 ))
                             }
@@ -209,6 +307,7 @@ class MainActivity : AppCompatActivity() {
                 NavButton(Screen.Home, Icons.Outlined.People,  "Saved Cards")
                 NavButton(Screen.UserCards, Icons.Outlined.Person, "My Cards")
             },
+            // TODO: Make sure to add parameters that we don't directly make (e.g. CardType)
             floatingActionButton = {
                 AnimatedVisibility(
                     visible = navBackStackEntry?.destination?.route == Screen.UserCards.route,

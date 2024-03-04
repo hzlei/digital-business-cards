@@ -24,38 +24,38 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>) {
-    appViewModel.updateScreenTitle("My Cards")
-    val cards by myCardViewModel.businessCards.collectAsStateWithLifecycle()
+fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>) {
+    appViewModel.updateScreenTitle("Saved Cards")
+    val sharedCards by sharedCardViewModel.businessCards.collectAsStateWithLifecycle()
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-    LaunchedEffect(key1 = "load_examples") {
-        if (cards.size < 1) {
-            origCardList.forEach { card ->
-                myCardViewModel.performAction(
-                    BusinessCardAction.PopulateCard(
-                        front = card.front,
-                        back = card.back,
-                        favorite = card.favorite,
-                        fields = card.fields,
-                        cardType = card.cardType // TODO: Modify to Shared type when sharing!!!
-                    )
-                )
-            }
-        }
-    }
+//    LaunchedEffect(key1 = "load_examples") {
+//        if (sharedCards.size < 1) {
+//            origCardList.forEach { card ->
+//                sharedCardViewModel.performAction(
+//                    BusinessCardAction.PopulateCard(
+//                        front = card.front,
+//                        back = card.back,
+//                        favorite = card.favorite,
+//                        fields = card.fields,
+//                        cardType = card.cardType
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     LazyColumn(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        items(cards) { card ->
+        items(sharedCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, myCardViewModel::performAction)
+                BusinessCard(card, sharedCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -64,7 +64,7 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
 
 @Preview(showSystemUi = true)
 @Composable
-fun UserCardsScreenPreview() {
+fun SharedCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
