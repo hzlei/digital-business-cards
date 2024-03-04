@@ -194,19 +194,22 @@ class MainActivity : AppCompatActivity() {
                             .padding(innerPadding)
                     ) {
                         appViewModel.updateScreenTitle("Saved Cards")
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        AnimatedVisibility(
-                            visible = navBackStackEntry?.destination?.route == Screen.Home.route,
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut(),
-                        ) {
-                            cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.SHARED))
-                                SharedCardsScreen(
-                                    appViewModel,
-                                    cardViewModel,
-                                    sharedCardsList
-                                )
-                        }
+//                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+//                        AnimatedVisibility(
+//                            visible = navBackStackEntry?.destination?.route == Screen.Home.route,
+//                            enter = fadeIn() + scaleIn(),
+//                            exit = fadeOut() + scaleOut(),
+//                        ) {
+//                            cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.SHARED))
+//                                SharedCardsScreen(
+//                                    appViewModel,
+//                                    cardViewModel,
+//                                    sharedCardsList
+//                                )
+//                        }
+                        // TODO: If we navigate to the same route, we shouldn't be updating the
+                        //  route (cuz otherwise we got the the previous stacked route when we hit
+                        //  back button --> refers to the same page though)
                         NavHost(
                             navController,
                             startDestination = Screen.Home.route,
