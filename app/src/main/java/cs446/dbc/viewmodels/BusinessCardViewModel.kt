@@ -1,10 +1,13 @@
 package cs446.dbc.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
 
@@ -44,21 +47,19 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle["cardContext"] = if (newContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext
     }
 
-    private fun toggleFavorite(cardId: UUID) {
+    private fun toggleFavorite(cardId: String) {
         val cardList = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value) ?: return
         val updatedList = cardList.map { if (it.id == cardId) it.copy(favorite = !it.favorite) else it }
         savedStateHandle[currContext.value] = updatedList
     }
 
-
-
-
     fun getContext(): String {
         return currContext.value
     }
+
     private fun populateCard(action: BusinessCardAction.PopulateCard) {
         val newCard = BusinessCardModel(
-            id = UUID.randomUUID(),
+            id = UUID.randomUUID().toString(),
             front = action.front,
             back = action.back,
             favorite = action.favorite,

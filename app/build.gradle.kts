@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 android {
@@ -83,4 +84,7 @@ dependencies {
     // For Hilt
     implementation("com.google.dagger:hilt-android:2.40")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // To digest JSON data for the cards
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 }

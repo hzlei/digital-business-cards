@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,10 +67,11 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
 @Preview(showSystemUi = true)
 @Composable
 fun SharedCardsScreenPreview() {
+    val appContext = LocalContext.current
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
         BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
     }
-    UserCardsScreen(appViewModel, cardViewModel, cardList)
+    UserCardsScreen(appViewModel, cardViewModel, cardList, appContext)
 }

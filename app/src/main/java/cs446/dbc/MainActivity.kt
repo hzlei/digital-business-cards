@@ -1,5 +1,6 @@
 package cs446.dbc
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,6 +74,7 @@ class MainActivity : AppCompatActivity() {
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
     private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
+        val appContext = LocalContext.current
         val navController = rememberNavController()
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -82,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         // TODO: remove after demo, we'll use this to start in the SharedCards Screen
         val sharedCardsList = listOf(
             BusinessCardModel(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 front = "A",
                 back = "B",
                 favorite = false,
@@ -90,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 cardType = CardType.SHARED
             ),
             BusinessCardModel(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 front = "C",
                 back = "D",
                 favorite = true,
@@ -98,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                 cardType = CardType.SHARED
             ),
             BusinessCardModel(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 front = "E",
                 back = "F",
                 favorite = false,
@@ -112,7 +115,7 @@ class MainActivity : AppCompatActivity() {
                 cardType = CardType.SHARED
             ),
             BusinessCardModel(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 front = "G",
                 back = "H",
                 favorite = false,
@@ -126,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                 cardType = CardType.SHARED
             ),
             BusinessCardModel(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 front = "I",
                 back = "J",
                 favorite = false,
@@ -183,7 +186,7 @@ class MainActivity : AppCompatActivity() {
                         )
                     },
                     bottomBar = {
-                        BottomAppBar(navController)
+                        BottomAppBar(navController, appViewModel, appContext)
                     }
                 ) { innerPadding ->
                     Box(
@@ -218,7 +221,7 @@ class MainActivity : AppCompatActivity() {
                                 // TODO: Remove the example list after
                                 UserCardsScreen(appViewModel, cardViewModel, listOf(
                                     BusinessCardModel(
-                                        id = UUID.randomUUID(),
+                                        id = UUID.randomUUID().toString(),
                                         front = "A",
                                         back = "B",
                                         favorite = false,
@@ -226,7 +229,7 @@ class MainActivity : AppCompatActivity() {
                                         cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
-                                        id = UUID.randomUUID(),
+                                        id = UUID.randomUUID().toString(),
                                         front = "C",
                                         back = "D",
                                         favorite = true,
@@ -234,7 +237,7 @@ class MainActivity : AppCompatActivity() {
                                         cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
-                                        id = UUID.randomUUID(),
+                                        id = UUID.randomUUID().toString(),
                                         front = "E",
                                         back = "F",
                                         favorite = false,
@@ -248,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                                         cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
-                                        id = UUID.randomUUID(),
+                                        id = UUID.randomUUID().toString(),
                                         front = "G",
                                         back = "H",
                                         favorite = false,
@@ -262,7 +265,7 @@ class MainActivity : AppCompatActivity() {
                                         cardType = CardType.PERSONAL
                                     ),
                                     BusinessCardModel(
-                                        id = UUID.randomUUID(),
+                                        id = UUID.randomUUID().toString(),
                                         front = "I",
                                         back = "J",
                                         favorite = false,
@@ -276,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                                         ),
                                         cardType = CardType.PERSONAL
                                     ),
-                                ))
+                                ), appContext)
                             }
                             composable(Screen.Settings.route) {
                                 appViewModel.updateScreenTitle("Settings") // TODO: Replace with SettingsScreen
@@ -297,7 +300,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    private fun BottomAppBar(navController: NavHostController) {
+    private fun BottomAppBar(navController: NavHostController, appViewModel: AppViewModel, context: Context) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         @Composable
         fun NavButton(screen: Screen, icon: ImageVector, description: String) {
@@ -327,7 +330,20 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     FloatingActionButton(
                         modifier = Modifier,
-                        onClick = { /*TODO: Go to business card creation screen*/ }
+                        onClick = { /*TODO: Go to business card creation screen*/
+
+                            val exampleCard = BusinessCardModel(
+                                id = UUID.randomUUID().toString(),
+                                front = "Example Front",
+                                back = "Example Back",
+                                favorite = false,
+                                fields = mutableListOf(),
+                                cardType = CardType.PERSONAL,
+                            )
+
+                            appViewModel.saveCardToLocalStorage(exampleCard, context, "businessCards")
+                            appViewModel.addCard(exampleCard)
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Add,

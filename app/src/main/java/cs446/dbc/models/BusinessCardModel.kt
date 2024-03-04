@@ -1,9 +1,10 @@
 package cs446.dbc.models
 
-import java.util.UUID
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class BusinessCardModel(
-    val id: UUID,
+    val id: String,
     val front: String,
     val back: String,
     var favorite: Boolean,
@@ -12,6 +13,7 @@ data class BusinessCardModel(
     val cardType: CardType = CardType.PERSONAL // TODO: figure out how card types will change during sharing
 )
 
+@Serializable
 data class Field(
     val name: String,
     val value: String,
@@ -19,6 +21,7 @@ data class Field(
 )
 
 // TODO: Hyperlink fields to mail and web pages below
+@Serializable
 enum class FieldType {
     TEXT,
     URL, // open web page (company site, personal portfolio, etc.)
@@ -28,11 +31,13 @@ enum class FieldType {
     LINKEDIN_ID // open LinkedIn Profile
 }
 
+@Serializable
 enum class CardType {
     PERSONAL, // representing cards in my cards screen
     SHARED
 }
 
+@Serializable
 enum class TemplateType {
     DEFAULT,
     TEMPLATE_1,
