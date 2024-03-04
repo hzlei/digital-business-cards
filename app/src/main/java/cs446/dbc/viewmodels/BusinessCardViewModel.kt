@@ -1,67 +1,51 @@
 package cs446.dbc.viewmodels
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.BusinessCardModel
-import cs446.dbc.models.Field
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
+import javax.inject.Inject
 
-class BusinessCardViewModel: ViewModel() {
-    private val _uiState = MutableStateFlow(BusinessCardModel("", "", false, mutableListOf<Field>()))
-    val uiState: StateFlow<BusinessCardModel> = _uiState.asStateFlow()
+@HiltViewModel
+class BusinessCardViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle
+): ViewModel() {
 
+    // TODO: How will we handle injection of saved preferences??
+    val businessCards = savedStateHandle.getStateFlow("businessCards", mutableListOf<BusinessCardModel>())
 
-    fun updateCard(front: String, back: String, favourite: Boolean, fields: MutableList<Field>) {
-        updateCardFront(front)
-        updateCardBack(back)
-        updateCardFavourite(favourite)
-        updateCardFields(fields)
-    }
-
-    fun updateCardFront(front: String) {
-        _uiState.update { currentState ->
-            currentState.copy(front = front)
+    // TODO: Do we need a separate remove card action when removing the card?
+    fun performAction(action: BusinessCardAction) {
+        when (action) {
+            is BusinessCardAction.ToggleFavorite -> toggleFavorite(action.cardId)
+            is BusinessCardAction.InsertField -> TODO()
+            is BusinessCardAction.PopulateCard -> populateCard(action)
+            is BusinessCardAction.RemoveField -> TODO()
+            is BusinessCardAction.UpdateAllFields -> TODO()
+            is BusinessCardAction.UpdateBack -> TODO()
+            is BusinessCardAction.UpdateField -> TODO()
+            is BusinessCardAction.UpdateFront -> TODO()
+            is BusinessCardAction.UpdateCardType -> TODO()
         }
     }
 
-    fun updateCardBack(back: String) {
-        _uiState.update { currentState ->
-            currentState.copy(back = back)
-        }
+    private fun toggleFavorite(cardId: UUID) {
+        val cardList = savedStateHandle.get<MutableList<BusinessCardModel>>("businessCards") ?: return
+        val updatedList = cardList.map { if (it.id == cardId) it.copy(favorite = !it.favorite) else it }
+        savedStateHandle["businessCards"] = updatedList
     }
 
-    fun updateCardFavourite(favorite: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(favorite = favorite)
-        }
+    private fun populateCard(action: BusinessCardAction.PopulateCard) {
+        val newCard = BusinessCardModel(
+            id = UUID.randomUUID(),
+            front = action.front,
+            back = action.back,
+            favorite = action.favorite,
+            fields = action.fields
+        )
+        val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>("businessCards")
+        currCards?.add(newCard)
+        savedStateHandle["businessCards"] = currCards
     }
-
-    fun updateCardFields(fields: MutableList<Field>) {
-        _uiState.update { currentState ->
-            currentState.copy(fields = fields)
-        }
-    }
-
-    fun insertCardField(field:Field) {
-        val fields: MutableList<Field> = _uiState.value.fields
-        fields.add(field)
-        updateCardFields(fields)
-    }
-
-    fun removeCardField(field:Field) {
-        val fields: MutableList<Field> = _uiState.value.fields
-        fields.remove(field)
-        updateCardFields(fields)
-    }
-
-    fun updateCardField(oldField: Field, newField: Field) {
-        removeCardField(oldField)
-        insertCardField(newField)
-    }
-
-
-
-
 }

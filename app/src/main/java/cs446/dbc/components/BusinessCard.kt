@@ -1,6 +1,7 @@
 package cs446.dbc.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -20,13 +21,14 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flip
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,27 +38,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cs446.dbc.models.BusinessCardModel
-import cs446.dbc.models.Field
-import cs446.dbc.models.FieldType
+import cs446.dbc.models.CardType
+import cs446.dbc.models.TemplateType
+import cs446.dbc.viewmodels.BusinessCardAction
 
-val example = BusinessCardModel(
-    front = "A",
-    back = "B",
-    favorite = false,
-    fields = mutableListOf(
-        Field("First Name", "Mihran", FieldType.TEXT)
-    )
-)
-@Preview
+
 @Composable
-fun BusinessCard(card: BusinessCardModel = example) {
+fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
-    // TODO: We need to reference the specific card's data to share
-    // TODO: maybe add a StateFlow for data, holds currently sharing card data
     var showDialogState by rememberSaveable {
         mutableStateOf(false)
     }
@@ -66,35 +58,67 @@ fun BusinessCard(card: BusinessCardModel = example) {
     var cardFace by rememberSaveable {
         mutableStateOf(CardFace.Front)
     }
-    val toggleSelected = { selected = !selected }
+    val backgroundColor = animateColorAsState(
+        targetValue = if (selected) CardDefaults.cardColors().containerColor else Color.Transparent,
+        label = "BusinessCardContainerBackground",
+    )
     val animatedPadding by animateDpAsState(
-        if (selected) {
-            16.dp
-        } else {
-            0.dp
-        },
+        if (selected) 16.dp else 0.dp,
         label = "padding"
     )
 
+    val toggleSelected = { selected = !selected }
+
     Card(
-        modifier = Modifier.animateContentSize(
-            animationSpec = tween(
-                durationMillis = 300,
-                easing = LinearOutSlowInEasing,
+        modifier = Modifier
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = LinearOutSlowInEasing,
+                )
             )
-        ),
+            .graphicsLayer { clip = false },
+        colors = CardDefaults.cardColors(containerColor = backgroundColor.value),
         shape = if (selected) CardDefaults.shape else RectangleShape,
         onClick = toggleSelected
     ) {
-        Box(modifier = Modifier.padding(animatedPadding)) {
-            FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
-                front = {
-                    Face(Color.Red, "A")
-                },
-                back = {
-                    Face(Color.Blue, "B")
+        Box(modifier = Modifier
+            .padding(animatedPadding)
+            .graphicsLayer { clip = false }
+        ) {
+            var front: @Composable () -> Unit = {};
+            var back: @Composable () -> Unit = {};
+            when (cardModel.template) {
+                TemplateType.TEMPLATE_1 -> {
+                    front = {
+                        Template1(
+                            background = MaterialTheme.colorScheme.surfaceTint,
+                            card_data = cardModel,
+                            isFront = true
+                        )
+                    }
+                    back = {
+                        Template1(
+                            background = MaterialTheme.colorScheme.surfaceBright,
+                            card_data = cardModel,
+                            isFront = false
+                        )
+                    }
                 }
+
+                else -> {
+                    front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
+                    back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
+                }
+
+            }
+            FlipCard(
+                cardFace = cardFace,
+                onClick = { toggleSelected() },
+                front = front,
+                back = back
             )
+
         }
         AnimatedVisibility(
             selected,
@@ -111,11 +135,19 @@ fun BusinessCard(card: BusinessCardModel = example) {
                 TextButton(onClick = { showDialogState = true }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Share, "Share")
                 }
-                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Star, "Favorite")
+                TextButton(onClick = {
+                    onAction(BusinessCardAction.ToggleFavorite(cardModel.id))
+                }, modifier = Modifier.weight(1f)) {
+                    Icon(
+                        if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline,
+                        "Favorite"
+                    )
                 }
-                TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Edit, "Edit")
+                if (cardModel.cardType == CardType.PERSONAL) {
+                    // TODO: need to show fields
+                    TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.Edit, "Edit")
+                    }
                 }
             }
         }
