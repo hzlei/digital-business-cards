@@ -11,7 +11,6 @@ data class BusinessCardModel(
 )
 
 @Serializable
-
 data class Field(
     val name: String,
     val value: String,
@@ -19,7 +18,6 @@ data class Field(
 )
 
 @Serializable
-
 enum class FieldType {
     TEXT,
     URL,

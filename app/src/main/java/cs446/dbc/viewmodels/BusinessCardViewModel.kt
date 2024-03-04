@@ -16,7 +16,6 @@ class BusinessCardViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(BusinessCardModel("", "", false, mutableListOf<Field>()))
     val uiState: StateFlow<BusinessCardModel> = _uiState.asStateFlow()
 
-
     fun updateCard(front: String, back: String, favourite: Boolean, fields: MutableList<Field>) {
         updateCardFront(front)
         updateCardBack(back)

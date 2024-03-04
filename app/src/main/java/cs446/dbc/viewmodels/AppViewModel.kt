@@ -2,6 +2,7 @@ package cs446.dbc.viewmodels
 
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.AppModel
+import cs446.dbc.models.BusinessCardModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,10 +13,17 @@ import kotlinx.coroutines.flow.update
 class AppViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(AppModel())
     val uiState: StateFlow<AppModel> = _uiState.asStateFlow()
+    private val _cards = MutableStateFlow<List<BusinessCardModel>>(emptyList())
+    val cards: StateFlow<List<BusinessCardModel>> = _cards.asStateFlow()
 
     fun updateScreenTitle(newTitle: String) {
         _uiState.update { currentState ->
             currentState.copy(screenTitle = newTitle)
         }
+    }
+
+    fun addCard(card: BusinessCardModel) {
+        val updatedCards = _cards.value + card
+        _cards.value = updatedCards
     }
 }

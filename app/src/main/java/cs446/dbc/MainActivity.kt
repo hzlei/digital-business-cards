@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -34,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
+
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         NavHost(navController, startDestination = Screen.UserCards.route) {
                             composable(Screen.UserCards.route) {
-                                UserCardsScreen(appViewModel, listOf())
+                                UserCardsScreen(appViewModel)
                             }
                             //composable(Screen.SharedCards.route) {}
                             composable(Screen.Home.route) {
