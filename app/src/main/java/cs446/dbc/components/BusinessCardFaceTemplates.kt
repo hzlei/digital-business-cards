@@ -16,14 +16,26 @@ import cs446.dbc.models.BusinessCardModel
 // Name, email, organization <Required>
 // phone number, Linkedin, GitHub <Optional>
 @Composable
-fun Face(background: Color, business_card_data: BusinessCardModel) {
+fun Template1(background: Color, card_data: BusinessCardModel, isFront: Boolean) {
     Box(
         modifier = Modifier
             .aspectRatio(5f / 3f) // maintain aspect ratio
             .background(background)
             .wrapContentSize(Alignment.Center)
     ) {
-        Text(text, fontSize = 30.sp)
-        business_card_data.fields
+//        Text(text, fontSize = 30.sp)
+        val card_field_map = card_data.fields.associateBy{it.name}
+        card_field_map.get("Full Name")
+        card_field_map.get("Email")
+        card_field_map.get("Organization")
+        if (isFront) {
+            // front card layout
+
+        }
+        else {
+            // back card layout
+
+        }
     }
 }
+

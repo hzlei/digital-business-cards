@@ -7,7 +7,8 @@ data class BusinessCardModel(
     val front: String,
     val back: String,
     var favorite: Boolean,
-    val fields: MutableList<Field>
+    val fields: MutableList<Field>,
+    val template: TemplateType=TemplateType.DEFAULT
 )
 
 data class Field(
@@ -24,4 +25,12 @@ enum class FieldType {
     PHONE_NUMBER,
     GITHUB_USERNAME, // open Github Page
     LINKEDIN_ID // open LinkedIn Profile
+}
+
+enum class TemplateType {
+    DEFAULT,
+    TEMPLATE_1,
+    TEMPLATE_2,
+    TEMPLATE_3,
+    CUSTOM
 }

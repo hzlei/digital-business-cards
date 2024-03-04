@@ -46,6 +46,7 @@ import com.example.compose.AppTheme
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
+import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
 import java.util.UUID
@@ -153,7 +154,21 @@ class MainActivity : AppCompatActivity() {
                                                 FieldType.PHONE_NUMBER
                                             )
                                         )
-                                    )
+                                    ),
+                                    BusinessCardModel(
+                                        id = UUID.randomUUID(),
+                                        front = "G",
+                                        back = "H",
+                                        favorite = false,
+                                        template=TemplateType.TEMPLATE_1,
+                                        fields = mutableListOf(
+                                            Field(
+                                                "Full Name",
+                                                "John Doe",
+                                                FieldType.TEXT,
+                                            )
+                                        )
+                                    ),
                                 ))
                             }
                             composable(Screen.Settings.route) {

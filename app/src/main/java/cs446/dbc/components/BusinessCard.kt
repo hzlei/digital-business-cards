@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.BusinessCardAction
 
 
@@ -67,7 +68,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
         label = "padding"
     )
 
-    val toggleSelected = { selected = !selected}
+    val toggleSelected = { selected = !selected }
 
     Card(
         modifier = Modifier
@@ -77,8 +78,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     easing = LinearOutSlowInEasing,
                 )
             )
-            .graphicsLayer { clip = false }
-        ,
+            .graphicsLayer { clip = false },
         colors = CardDefaults.cardColors(containerColor = backgroundColor.value),
         shape = if (selected) CardDefaults.shape else RectangleShape,
         onClick = toggleSelected
@@ -87,14 +87,39 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
             .padding(animatedPadding)
             .graphicsLayer { clip = false }
         ) {
-            FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
-                front = {
-                    Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front)
-                },
-                back = {
-                    Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back)
+            var front: @Composable () -> Unit = {};
+            var back: @Composable () -> Unit = {};
+            when (cardModel.template) {
+                TemplateType.TEMPLATE_1 -> {
+                    front = {
+                        Template1(
+                            background = MaterialTheme.colorScheme.surfaceTint,
+                            card_data = cardModel,
+                            isFront = true
+                        )
+                    }
+                    back = {
+                        Template1(
+                            background = MaterialTheme.colorScheme.surfaceBright,
+                            card_data = cardModel,
+                            isFront = false
+                        )
+                    }
                 }
+
+                else -> {
+                    front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
+                    back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
+                }
+
+            }
+            FlipCard(
+                cardFace = cardFace,
+                onClick = { toggleSelected() },
+                front = front,
+                back = back
             )
+
         }
         AnimatedVisibility(
             selected,
@@ -114,7 +139,10 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                 TextButton(onClick = {
                     onAction(BusinessCardAction.ToggleFavorite(cardModel.id))
                 }, modifier = Modifier.weight(1f)) {
-                    Icon(if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline, "Favorite")
+                    Icon(
+                        if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline,
+                        "Favorite"
+                    )
                 }
                 // TODO: need to show fields
                 TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
