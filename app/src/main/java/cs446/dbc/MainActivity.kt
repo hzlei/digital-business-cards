@@ -5,35 +5,45 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.views.UserCardsScreen
+
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +56,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-   // @Preview(showSystemUi = true, showBackground = true)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
@@ -62,13 +71,10 @@ class MainActivity : AppCompatActivity() {
                     topBar = {
                         CenterAlignedTopAppBar(
                             title = {
-                                Text(
-                                    text = homeUiState.screenTitle
-                                )
+                                AnimatedContent(targetState = homeUiState.screenTitle, label = "TopBarTitle") {
+                                    Text(it)
+                                }
                             },
-//                            colors = TopAppBarDefaults.topAppBarColors(
-//                                containerColor = Color.LightGray
-//                            ),
                             navigationIcon = {
                                 IconButton(
                                     onClick = { navController.navigate(Screen.Settings.route) },
@@ -86,17 +92,17 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                     ) {
-                        NavHost(navController, startDestination = Screen.UserCards.route) {
+                        NavHost(navController, startDestination = Screen.Home.route) {
                             composable(Screen.UserCards.route) {
+                                appViewModel.updateScreenTitle("My Cards")
                                 UserCardsScreen(appViewModel, listOf())
                             }
-                            //composable(Screen.SharedCards.route) {}
                             composable(Screen.Home.route) {
-                                appViewModel.updateScreenTitle("Shared Cards")
+                                appViewModel.updateScreenTitle("Saved Cards")
                             }
-                            // TODO: change to actual settings, for now using to test ShareDialog
-                            composable(Screen.Settings.route) { }
-                            composable(Screen.SavedCards.route) { }
+                            composable(Screen.Settings.route) {
+                                appViewModel.updateScreenTitle("")
+                            }
                         }
                     }
                 }
@@ -106,45 +112,49 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     private fun BottomAppBar(navController: NavHostController) {
-        androidx.compose.material3.BottomAppBar(
-            modifier = Modifier.fillMaxWidth(),
-//            containerColor = Color(0xff454545)
-        ) {
-            IconButton(
-                onClick = { navController.navigate(Screen.UserCards.route) },
-                modifier = Modifier
-                    .weight(1f)
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        @Composable
+        fun NavButton(screen: Screen, icon: ImageVector, description: String) {
+            val routeSelected = navBackStackEntry?.destination?.route == screen.route
+//            val colors = if (navBackStackEntry?.destination?.route == screen.route)
+//                IconButtonDefaults.i
+//                else
+            IconToggleButton(
+                checked = routeSelected,
+                onCheckedChange = { navController.navigate(screen.route) },
             ) {
-                Icon(Icons.Outlined.Person, "My Cards")
-            }
-//            IconButton(
-//                onClick = { navController.navigate(Screen.SharedCards.route) },
-//                modifier = Modifier.weight(1f)
-//            ) {
-//                Icon(Icons.Outlined.FolderShared, "Shared Cards")
-//            }
-            IconButton(
-                onClick = { navController.navigate(Screen.Home.route) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Outlined.Home, "Home")
-            }
-            IconButton(
-                onClick = { navController.navigate(Screen.SavedCards.route) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Outlined.Share, "Share Cards")
+                Icon(icon, description)
             }
         }
+        androidx.compose.material3.BottomAppBar(
+            modifier = Modifier.fillMaxWidth(),
+            actions = {
+                NavButton(Screen.Home, Icons.Outlined.People,  "Saved Cards")
+                NavButton(Screen.UserCards, Icons.Outlined.Person, "My Cards")
+            },
+            floatingActionButton = {
+                AnimatedVisibility(
+                    visible = navBackStackEntry?.destination?.route == Screen.UserCards.route,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut(),
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier,
+                        onClick = { /*TODO: Go to business card creation screen*/ }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = "Add Cards"
+                        )
+                    }
+                }
+            }
+        )
     }
 
     sealed class Screen(val route: String) {
-        // Stores and displays our own business cards
         object UserCards : Screen("my-cards")
-//        object SharedCards : Screen("shared-cards")
-        // Stores and displays received cards
-        object Home : Screen("home")
-        object SavedCards : Screen("saved-cards")
+        object Home : Screen("saved-cards")
         object Settings : Screen("settings")
     }
 }
