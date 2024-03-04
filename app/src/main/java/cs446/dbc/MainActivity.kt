@@ -103,7 +103,10 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                     ) {
-                        NavHost(navController, startDestination = Screen.Home.route) {
+                        NavHost(
+                            navController,
+                            startDestination = Screen.Home.route,
+                        ) {
                             composable(Screen.Home.route) {
                                 appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
                             }
@@ -115,7 +118,14 @@ class MainActivity : AppCompatActivity() {
                                         back = "B",
                                         favorite = false,
                                         fields = mutableListOf()
-                                    )
+                                    ),
+                                    BusinessCardModel(
+                                        id = UUID.randomUUID(),
+                                        front = "A",
+                                        back = "B",
+                                        favorite = false,
+                                        fields = mutableListOf()
+                                    ),
                                 ))
                             }
                             composable(Screen.Settings.route) {

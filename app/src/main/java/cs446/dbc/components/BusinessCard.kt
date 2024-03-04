@@ -1,6 +1,7 @@
 package cs446.dbc.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -59,23 +61,25 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
     var cardFace by rememberSaveable {
         mutableStateOf(CardFace.Front)
     }
-    val toggleSelected = { selected = !selected }
+    val backgroundColor = animateColorAsState(
+        targetValue = if (selected) CardDefaults.cardColors().containerColor else Color.Transparent,
+        label = "BusinessCardContainerBackground",
+    )
     val animatedPadding by animateDpAsState(
-        if (selected) {
-            16.dp
-        } else {
-            0.dp
-        },
+        if (selected) 16.dp else 0.dp,
         label = "padding"
     )
 
-    val cardViewModel: BusinessCardViewModel = viewModel() { BusinessCardViewModel(
-        front = cardModel?.front ?: "",
-        back = cardModel?.back ?: "",
-        favorite = cardModel?.favorite ?: false,
-        fields = cardModel?.fields ?: mutableListOf<Field>(),
-        savedStateHandle = createSavedStateHandle()
-    )
+    val toggleSelected = { selected = !selected }
+
+    val cardViewModel: BusinessCardViewModel = viewModel() {
+        BusinessCardViewModel(
+            front = cardModel?.front ?: "",
+            back = cardModel?.back ?: "",
+            favorite = cardModel?.favorite ?: false,
+            fields = cardModel?.fields ?: mutableListOf<Field>(),
+            savedStateHandle = createSavedStateHandle()
+        )
     }
 
 //        factory = BusinessCardViewModel(
@@ -88,22 +92,29 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
     val cardFields by cardViewModel.fields.collectAsStateWithLifecycle()
 
     Card(
-        modifier = Modifier.animateContentSize(
-            animationSpec = tween(
-                durationMillis = 300,
-                easing = LinearOutSlowInEasing,
+        modifier = Modifier
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = LinearOutSlowInEasing,
+                )
             )
-        ),
+            .graphicsLayer { clip = false }
+        ,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor.value),
         shape = if (selected) CardDefaults.shape else RectangleShape,
         onClick = toggleSelected
     ) {
-        Box(modifier = Modifier.padding(animatedPadding)) {
+        Box(modifier = Modifier
+            .padding(animatedPadding)
+            .graphicsLayer { clip = false }
+        ) {
             FlipCard(cardFace = cardFace, onClick = { toggleSelected() },
                 front = {
-                    Face(Color.Red, cardFront)
+                    Face(MaterialTheme.colorScheme.surfaceTint, cardFront)
                 },
                 back = {
-                    Face(Color.Blue, cardBack)
+                    Face(MaterialTheme.colorScheme.surfaceBright, cardBack)
                 }
             )
         }
@@ -123,7 +134,7 @@ fun BusinessCard(cardModel: BusinessCardModel?) {
                     Icon(Icons.Outlined.Share, "Share")
                 }
                 TextButton(onClick = {
-                                     cardViewModel.updateCardFavourite(!cardFavorite)
+                    cardViewModel.updateCardFavourite(!cardFavorite)
                 }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Star, "Favorite")
                 }
