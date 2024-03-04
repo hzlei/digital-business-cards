@@ -57,7 +57,6 @@ import com.journeyapps.barcodescanner.ScanOptions
 )
 @Composable
 fun ShareDialog(onDismissRequest: () -> Unit = {}) {
-
     var showQRCode by remember { mutableStateOf(false) }
     var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
@@ -93,6 +92,7 @@ fun ShareDialog(onDismissRequest: () -> Unit = {}) {
                     showQRCode = true
                 }
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
+                // TODO: Move to Shared Cards View
                 TestQRCodeReader()
                 Spacer(modifier = Modifier.height(2.dp))
                 TextButton(onClick = { onDismissRequest() },

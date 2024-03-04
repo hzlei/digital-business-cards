@@ -1,6 +1,9 @@
 package cs446.dbc.models
 
+import java.util.UUID
+
 data class BusinessCardModel(
+    val id: UUID,
     val front: String,
     val back: String,
     val favorite: Boolean,

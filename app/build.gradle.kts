@@ -71,10 +71,16 @@ dependencies {
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     implementation("androidx.compose.material:material-icons-core:1.6.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
+
+    // State Management
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
 
     // For the QR Codes
     implementation("com.google.zxing:core:3.4.1")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    // For Hilt
+    implementation("com.google.dagger:hilt-android:2.40")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }
