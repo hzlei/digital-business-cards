@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -48,6 +49,7 @@ import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
+import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.views.UserCardsScreen
 import java.util.UUID
 
@@ -70,6 +72,9 @@ class MainActivity : AppCompatActivity() {
     private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
         val navController = rememberNavController()
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
+        val cardViewModel: BusinessCardViewModel = viewModel() {
+            BusinessCardViewModel(savedStateHandle = createSavedStateHandle())
+        }
 
         AppTheme {
             Surface(
@@ -114,7 +119,8 @@ class MainActivity : AppCompatActivity() {
                                 appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
                             }
                             composable(Screen.UserCards.route) {
-                                UserCardsScreen(appViewModel, listOf(
+                                // TODO: Remove the example list after
+                                UserCardsScreen(appViewModel, cardViewModel, listOf(
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
                                         front = "A",
