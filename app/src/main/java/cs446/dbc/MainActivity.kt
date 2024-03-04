@@ -7,10 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -56,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @OptIn(ExperimentalAnimationApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
@@ -71,7 +74,13 @@ class MainActivity : AppCompatActivity() {
                     topBar = {
                         CenterAlignedTopAppBar(
                             title = {
-                                AnimatedContent(targetState = homeUiState.screenTitle, label = "TopBarTitle") {
+                                AnimatedContent(
+                                    targetState = homeUiState.screenTitle,
+                                    label = "TopBarTitle",
+                                    transitionSpec = {
+                                        fadeIn() togetherWith fadeOut()
+                                    }
+                                ) {
                                     Text(it)
                                 }
                             },
@@ -101,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                                 appViewModel.updateScreenTitle("Saved Cards")
                             }
                             composable(Screen.Settings.route) {
-                                appViewModel.updateScreenTitle("")
+                                appViewModel.updateScreenTitle("Settings")
                             }
                         }
                     }
