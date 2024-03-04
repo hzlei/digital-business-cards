@@ -1,11 +1,9 @@
 package cs446.dbc.components
 
-import androidx.compose.foundation.layout.Arrangement
-import android.content.Context
 import android.graphics.Bitmap
-import android.view.Gravity
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,35 +20,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Wallpapers
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import org.json.JSONObject
-import com.google.zxing.qrcode.QRCodeWriter
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import org.json.JSONObject
 
 @Preview(
     wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE
@@ -92,13 +80,6 @@ fun ShareDialog(onDismissRequest: () -> Unit = {}) {
                     showQRCode = true
                 }
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
-                // TODO: Move to Shared Cards View
-                TestQRCodeReader()
-                Spacer(modifier = Modifier.height(2.dp))
-                TextButton(onClick = { onDismissRequest() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.hsl(206.0F, 0.8F, 0.55F))) {
-                    Text(text = "Dismiss")
-                }
             }
         },
         dismissButton = {

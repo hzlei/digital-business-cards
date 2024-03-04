@@ -104,8 +104,10 @@ class MainActivity : AppCompatActivity() {
                             .padding(innerPadding)
                     ) {
                         NavHost(navController, startDestination = Screen.Home.route) {
+                            composable(Screen.Home.route) {
+                                appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
+                            }
                             composable(Screen.UserCards.route) {
-                                appViewModel.updateScreenTitle("My Cards")
                                 UserCardsScreen(appViewModel, listOf(
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
@@ -116,11 +118,8 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 ))
                             }
-                            composable(Screen.Home.route) {
-                                appViewModel.updateScreenTitle("Saved Cards")
-                            }
                             composable(Screen.Settings.route) {
-                                appViewModel.updateScreenTitle("Settings")
+                                appViewModel.updateScreenTitle("Settings") // TODO: Replace with SettingsScreen
                             }
                         }
                     }
