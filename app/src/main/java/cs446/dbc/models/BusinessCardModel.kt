@@ -16,9 +16,12 @@ data class Field(
     val type: FieldType,
 )
 
+// TODO: Hyperlink fields to mail and web pages below
 enum class FieldType {
     TEXT,
-    URL,
-    EMAIL,
+    URL, // open web page (company site, personal portfolio, etc.)
+    EMAIL, // maito default mail app
     PHONE_NUMBER,
+    GITHUB_USERNAME, // open Github Page
+    LINKEDIN_ID // open LinkedIn Profile
 }
