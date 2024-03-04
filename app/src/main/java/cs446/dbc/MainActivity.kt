@@ -33,10 +33,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,9 +75,18 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalAnimationApi::class)
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
-    private fun App(appViewModel: AppViewModel = viewModel(), appActivity: AppCompatActivity) {
+    private fun App(appActivity: AppCompatActivity) {
+        val appViewModel: AppViewModel = viewModel(){
+            AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+
+        }
         val appContext = LocalContext.current
         val navController = rememberNavController()
+
+        LaunchedEffect(key1 = "load_cards") {
+            appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
+        }
+
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
         val cardViewModel: BusinessCardViewModel = viewModel() {
@@ -239,49 +250,6 @@ class MainActivity : AppCompatActivity() {
                                         fields = mutableListOf(),
                                         cardType = CardType.PERSONAL
                                     ),
-                                    BusinessCardModel(
-                                        id = UUID.randomUUID().toString(),
-                                        front = "E",
-                                        back = "F",
-                                        favorite = false,
-                                        fields = mutableListOf(
-                                            Field(
-                                                "Full Name",
-                                                "Hanz Zimmer",
-                                                FieldType.TEXT
-                                            )
-                                        ),
-                                        cardType = CardType.PERSONAL
-                                    ),
-                                    BusinessCardModel(
-                                        id = UUID.randomUUID().toString(),
-                                        front = "G",
-                                        back = "H",
-                                        favorite = false,
-                                        fields = mutableListOf(
-                                            Field(
-                                                "Phone Number",
-                                                "416-111-2222",
-                                                FieldType.PHONE_NUMBER
-                                            )
-                                        ),
-                                        cardType = CardType.PERSONAL
-                                    ),
-                                    BusinessCardModel(
-                                        id = UUID.randomUUID().toString(),
-                                        front = "I",
-                                        back = "J",
-                                        favorite = false,
-                                        template=TemplateType.TEMPLATE_1,
-                                        fields = mutableListOf(
-                                            Field(
-                                                "Full Name",
-                                                "John Doe",
-                                                FieldType.TEXT,
-                                            )
-                                        ),
-                                        cardType = CardType.PERSONAL
-                                    ),
                                 ), appContext)
                             }
                             composable(Screen.Settings.route) {
@@ -334,18 +302,16 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
-
-                            val exampleCard = BusinessCardModel(
+                            val newCard = BusinessCardModel(
                                 id = UUID.randomUUID().toString(),
-                                front = "Example Front",
-                                back = "Example Back",
+                                front = "New Front",
+                                back = "New Back",
                                 favorite = false,
                                 fields = mutableListOf(),
                                 cardType = CardType.PERSONAL,
                             )
+                            appViewModel.addCard(newCard, context, "businessCards", CardType.PERSONAL)
 
-//                            appViewModel.saveCardToLocalStorage(exampleCard, context, "businessCards")
-                            appViewModel.addCard(exampleCard)
                         }
                     ) {
                         Icon(

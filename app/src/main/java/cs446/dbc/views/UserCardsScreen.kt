@@ -37,22 +37,29 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-    val directoryName = "businessCards"
 
-    LaunchedEffect(key1 = directoryName) {
-        appViewModel.loadCardsFromDirectory(appContext, directoryName)
+//    LaunchedEffect(key1 = "businessCards") {
+//        appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.PERSONAL)
+//
+//        if (cards.size < 1) {
+//            origCardList.forEach { card ->
+//                myCardViewModel.performAction(
+//                    BusinessCardAction.PopulateCard(
+//                        front = card.front,
+//                        back = card.back,
+//                        favorite = card.favorite,
+//                        fields = card.fields,
+//                        cardType = card.cardType // TODO: Modify to Shared type when sharing!!!
+//                    )
+//                )
+//            }
+//        }
+//    }
 
-        if (cards.size < 1) {
+    LaunchedEffect(key1 = Unit) {
+        if (cards.isEmpty()) {
             origCardList.forEach { card ->
-                myCardViewModel.performAction(
-                    BusinessCardAction.PopulateCard(
-                        front = card.front,
-                        back = card.back,
-                        favorite = card.favorite,
-                        fields = card.fields,
-                        cardType = card.cardType // TODO: Modify to Shared type when sharing!!!
-                    )
-                )
+                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
             }
         }
     }

@@ -2,10 +2,13 @@ package cs446.dbc.viewmodels
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cs446.dbc.models.AppModel
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,57 +19,95 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.UUID
+import javax.inject.Inject
 
 // TODO: Could be renamed to app bar since we use this for the topAppBar (but could leave it if
 // we want to add more stuff for both top bar, bottom bar, and general activity
-class AppViewModel: ViewModel() {
+@HiltViewModel
+class AppViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val viewModelContext: CardType
+): ViewModel() {
+
+    private val myBusinessCardsContext = "myBusinessCards"
+    private val sharedBusinessCardsContext = "sharedBusinessCards"
 
     // TODO: change this to savedstate
     private val _uiState = MutableStateFlow(AppModel())
     val uiState: StateFlow<AppModel> = _uiState.asStateFlow()
 
-    private val _cards = MutableStateFlow<List<BusinessCardModel>>(emptyList())
-    val cards: StateFlow<List<BusinessCardModel>> = _cards.asStateFlow()
+    // duplicate logic, we should aim to have this together
+    private val currContext = savedStateHandle.getStateFlow("cardContext", if (viewModelContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext)
 
-    // this is wrong right now, the way cards are stored has changed
-    fun addCard(card: BusinessCardModel) {
-        val updatedCards = _cards.value + card
-        _cards.value = updatedCards
+    val myCards = savedStateHandle.getStateFlow(myBusinessCardsContext, mutableListOf<BusinessCardModel>())
+    val sharedCards = savedStateHandle.getStateFlow(sharedBusinessCardsContext, mutableListOf<BusinessCardModel>())
+
+    private fun updateCardContext(newContext: CardType) {
+        savedStateHandle["cardContext"] = if (newContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext
     }
 
-    fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val directory = File(context.filesDir, directoryName)
-                    if (!directory.exists()) directory.mkdirs()
+    fun getMyCards(): MutableList<BusinessCardModel>{
+        return myCards.value
+    }
 
-                    val fileName = "Card_${System.currentTimeMillis()}.json"
-                    val file = File(directory, fileName)
+    fun getSharedCards(): MutableList<BusinessCardModel>{
+        return sharedCards.value
+    }
 
-                    file.writeText(Json.encodeToString(card))
-                } catch (e: Exception) {
-                    Log.e("AppViewModel", "Error saving card to local storage", e)
-                }
+//    fun addCard(card: BusinessCardModel, context: Context, directoryName: String = "businessCards"): MutableList<BusinessCardModel>{
+    fun addCard(card: BusinessCardModel, context: Context, directoryName: String = "businessCards", cardType: CardType) {
+//        val ctx = savedStateHandle.get<String>("cardContext")!!
+//        val updatedCards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)!!.add(card)
+//        savedStateHandle[ctx] = updatedCards
+//        saveCardToLocalStorage(card, context, directoryName)
+//
+//        return if (ctx == myBusinessCardsContext) getMyCards() else getSharedCards()
+        val cardList = if (cardType == CardType.PERSONAL) myCards else sharedCards
+        val updatedList = cardList.value.toMutableList().apply {
+            add(card)
+        }
+        // Save updated list back to state handle
+        savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = updatedList
+
+        // Persist card to local storage
+        saveCardToLocalStorage(card, context, directoryName)
+
+    }
+
+    private fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directory = File(context.filesDir, directoryName)
+                if (!directory.exists()) directory.mkdirs()
+                val fileName = "Card_${UUID.randomUUID()}.json"
+                val file = File(directory, fileName)
+
+                file.writeText(Json.encodeToString(card))
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error saving card to local storage", e)
             }
         }
     }
 
-    fun loadCardsFromDirectory(context: Context, directoryName: String) {
-        viewModelScope.launch {
+    fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType) {
+//    fun loadCardsFromDirectory(context: Context, directoryName: String, type: CardType): MutableList<BusinessCardModel> {
+        viewModelScope.launch(Dispatchers.IO) {
             val directory = File(context.filesDir, directoryName)
             if (directory.exists() && directory.isDirectory) {
-                val cardFiles = withContext(Dispatchers.IO) { directory.listFiles() } ?: return@launch
+                val cardFiles = directory.listFiles() ?: return@launch
 
-                cardFiles.forEach { file ->
+                val loadedCards = cardFiles.mapNotNull { file ->
                     try {
-                        val cardJSON = withContext(Dispatchers.IO) { file.readText() }
-                        val cardModel = Json.decodeFromString<BusinessCardModel>(cardJSON)
-                        addCard(cardModel)
+                        val cardJSON = file.readText()
+                        Json.decodeFromString<BusinessCardModel>(cardJSON)
                     } catch (e: Exception) {
                         Log.e("AppViewModel", "Error reading or parsing card from file: ${file.name}", e)
+                        null
                     }
-                }
+                }.toMutableList()
+
+                savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
             }
         }
     }
