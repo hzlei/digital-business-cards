@@ -14,5 +14,5 @@
 | 2024/03/01 | 0 | 4 | 0 | 0 | 0 | 0 | Share Menu UI |
 | 2024/03/02 | 6 | 0 | 0 | 0 | 0 | 0 | Prototype Demo presentation |
 | 2024/03/2 | 0 | 9 | 0 | 0 | 0 | 0 | User Cards UI + Share Menu + View Models and Models Foundations |
-| 2024/03/2 | 1 | 9 | 0 | 3 | 1 | 0 | Github Repo and Organization Maintenance |
-| 2024/03/2 | 3 | 9 | 0 | 3 | 1 | 0 | Business Card Templates and Model UI |
+| 2024/03/2 | 1 | 0 | 0 | 0 | 0 | 0 | Github Repo and Organization Maintenance |
+| 2024/03/2 | 4 | 0 | 0 | 4 | 1 | 0 | Business Card Templates and Model UI |
