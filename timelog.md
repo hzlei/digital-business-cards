@@ -6,14 +6,15 @@
 | 2024/02/2 | 2 | 2 | 2 | 2 | 2 | 2 | Online Meeting - D1 |
 | 2024/02/13 | 2 | 2 | 2 | 2 | 2 | 2 | Online Meeting - D2 |
 | 2024/02/22 | 2 | 2 | 2 | 2 | 2 | 2 | Online Meeting - Architecture |
-| 2024/02/25 | 4 | 4 | 4 | 4 | 4 | 4 | Online Meeting - Archtiecture & Feature Planning |
+| 2024/02/25 | 4 | 4 | 4 | 4 | 4 | 4 | Online Meeting - Architecture & Feature Planning |
 | 2024/02/25 | 0 | 7 | 0 | 0 | 0 | 0 | Bluetooth Sharing Setup |
 | 2024/02/28 | 0 | 5 | 0 | 5 | 0 | 5 | Bluetooth Sharing Search |
-| 2024/02/29 | 5 | 0 | 0 | 5 | 0 | 0 | Repository setup - dependancies bug fixes |
+| 2024/02/29 | 5 | 0 | 0 | 5 | 0 | 0 | Repository setup - dependencies bug fixes |
 | 2024/03/01 | 5 | 0 | 0 | 0 | 0 | 0 | Settings Screen |
 | 2024/03/01 | 0 | 4 | 0 | 0 | 0 | 0 | Share Menu UI |
 | 2024/03/02 | 6 | 0 | 0 | 0 | 0 | 0 | Prototype Demo presentation |
 | 2024/03/2 | 0 | 9 | 0 | 0 | 0 | 0 | User Cards UI + Share Menu + View Models and Models Foundations |
 | 2024/03/2 | 1 | 0 | 0 | 0 | 0 | 0 | Github Repo and Organization Maintenance |
 | 2024/03/2 | 4 | 0 | 0 | 4 | 1 | 0 | Business Card Templates and Model UI |
-| 2024/03/3 | 0 | 11 | 0 | 0 | 0 | 0 | User Cards UI + View Model Rework + Share Cards UI + Debugging |
+| 2024/03/4 | 0 | 6 | 0 | 0 | 0 | 0 | Fixed several issues: file storage, file retrieval, render loaded files, and a few state management issues |
+
