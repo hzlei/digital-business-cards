@@ -47,14 +47,13 @@ import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.json.JSONObject
 
-@Preview(
-    wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE
-)
 @Composable
-fun ShareDialog(onDismissRequest: () -> Unit = {}) {
+fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {}) {
     var showQRCode by remember { mutableStateOf(false) }
     var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
@@ -83,17 +82,8 @@ fun ShareDialog(onDismissRequest: () -> Unit = {}) {
             ) {
                 ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
                 ShareButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
-                    val jsonData = JSONObject().apply {
-                        put("test", "value")
-                    }
-                    qrCodeBitmap = GenerateQRCode(jsonData)
+                    qrCodeBitmap = generateQRCode(Json.encodeToString(cardModel))
                     showQRCode = true
-                }
-                ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
-                Spacer(modifier = Modifier.height(2.dp))
-                TextButton(onClick = { onDismissRequest() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.hsl(206.0F, 0.8F, 0.55F))) {
-                    Text(text = "Dismiss")
                 }
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
             }
@@ -128,6 +118,7 @@ private fun ShareButton(
                     iconDescription,
                     modifier = Modifier
                         .size(20.dp)
+
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(text = text)
@@ -167,8 +158,7 @@ private fun ReadQRCode(sharedCardViewModel: BusinessCardViewModel) {
     }
 }
 
-private fun GenerateQRCode(data: JSONObject): Bitmap? {
-    val content = data.toString()
+private fun generateQRCode(content: String): Bitmap? {
 
     val qrCodeWriter = QRCodeWriter()
 
@@ -188,10 +178,3 @@ private fun GenerateQRCode(data: JSONObject): Bitmap? {
     }
     return null
 }
-
-//@Preview(showSystemUi = true)
-//@Composable
-//fun ShareDialogPreview() {
-//    ShareDialog() {
-//    }
-//}

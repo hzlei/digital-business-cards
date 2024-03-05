@@ -153,7 +153,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
         }
     }
     if (showDialogState) {
-        ShareDialog {
+        ShareDialog(cardModel) {
             showDialogState = false
         }
     }
