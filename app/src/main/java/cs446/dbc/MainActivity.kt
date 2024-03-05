@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
@@ -313,14 +314,28 @@ class MainActivity : AppCompatActivity() {
                                 cardType = CardType.PERSONAL,
                             )
 
-                            // TODO: This doesn't cause recomposition
                             appViewModel.addCard(newCard, context, "businessCards", CardType.PERSONAL)
                             cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
-
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Add,
+                            contentDescription = "Add Cards"
+                        )
+                    }
+                }
+                AnimatedVisibility(
+                    visible = navBackStackEntry?.destination?.route == Screen.Home.route,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut(),
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier,
+                        onClick = {
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Download,
                             contentDescription = "Add Cards"
                         )
                     }
