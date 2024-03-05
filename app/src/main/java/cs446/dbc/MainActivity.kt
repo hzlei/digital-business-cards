@@ -2,7 +2,6 @@ package cs446.dbc
 
 import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -37,10 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +51,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
+import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.Field
@@ -279,6 +281,10 @@ class MainActivity : AppCompatActivity() {
     @Composable
     private fun BottomAppBar(navController: NavHostController, appViewModel: AppViewModel, cardViewModel: BusinessCardViewModel, context: Context) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
+        var showReceiveDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
         @Composable
         fun NavButton(screen: Screen, icon: ImageVector, description: String) {
             val isCurrentRoute = navBackStackEntry?.destination?.route == screen.route
@@ -288,6 +294,10 @@ class MainActivity : AppCompatActivity() {
             ) {
                 Icon(icon, description)
             }
+        }
+        
+        if (showReceiveDialog) {
+            ReceiveDialog(sharedCardViewModel = cardViewModel)
         }
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
@@ -332,11 +342,12 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = {
+                            showReceiveDialog = true
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Download,
-                            contentDescription = "Add Cards"
+                            contentDescription = "Receive Card"
                         )
                     }
                 }

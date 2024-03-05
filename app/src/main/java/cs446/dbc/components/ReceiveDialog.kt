@@ -1,10 +1,14 @@
 package cs446.dbc.components
 
 import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.QrCode2
@@ -26,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -35,11 +41,15 @@ import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.viewmodels.BusinessCardAction
+import cs446.dbc.viewmodels.BusinessCardViewModel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private enum class ShareDialogViews {
+private enum class ReceiveDialogViews {
     Options,
     Bluetooth,
     QRCode,
@@ -47,51 +57,44 @@ private enum class ShareDialogViews {
 }
 
 @Composable
-fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {}) {
-    var currentView by remember { mutableStateOf(ShareDialogViews.Options) }
-    var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+fun ReceiveDialog(sharedCardViewModel: BusinessCardViewModel, onDismissRequest: () -> Unit = {}) {
+    var currentView by remember { mutableStateOf(ReceiveDialogViews.Options) }
 
     AlertDialog(
         icon = {
-            Icon(Icons.Outlined.Share, "Share Card")
+            Icon(Icons.Outlined.Download, "Receive Card")
         },
         title = {
-            Text("Share Card")
+            Text("Receive Card")
         },
         onDismissRequest = onDismissRequest,
         text = {
 
             AnimatedContent(
                 targetState = currentView,
-                label = "ShareDialogView",
+                label = "ReceiveDialogView",
             ) { view ->
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     when (view) {
-                        ShareDialogViews.Options -> {
-                            ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
-                            ShareButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
-                                qrCodeBitmap = generateQRCode(Json.encodeToString(cardModel))
-                                currentView = ShareDialogViews.QRCode
+                        ReceiveDialogViews.Options -> {
+                            ReceiveButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
+                            ReceiveButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
+                                currentView = ReceiveDialogViews.QRCode
                             }
-                            ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
+                            ReceiveButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
                         }
 
-                        ShareDialogViews.Bluetooth -> {
+                        ReceiveDialogViews.Bluetooth -> {
 
                         }
 
-                        ShareDialogViews.QRCode -> {
-                            Image(
-                                bitmap = qrCodeBitmap!!.asImageBitmap(),
-                                contentDescription = "QR Code",
-                                modifier = Modifier.size(250.dp),
-                                contentScale = ContentScale.Fit
-                            )
+                        ReceiveDialogViews.QRCode -> {
+                            ReadQRCode(sharedCardViewModel)
                         }
 
-                        ShareDialogViews.NearbyShare -> {
+                        ReceiveDialogViews.NearbyShare -> {
 
                         }
                     }
@@ -100,10 +103,10 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
         },
         dismissButton = {
             TextButton(onClick = {
-                if (currentView == ShareDialogViews.Options) {
+                if (currentView == ReceiveDialogViews.Options) {
                     onDismissRequest()
                 } else {
-                    currentView = ShareDialogViews.Options
+                    currentView = ReceiveDialogViews.Options
                 }
             }) {
                 AnimatedContent(
@@ -112,7 +115,7 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
                     transitionSpec = { fadeIn() togetherWith fadeOut() }
                 ) { view ->
                     when (view) {
-                        ShareDialogViews.Options -> {
+                        ReceiveDialogViews.Options -> {
                             Text(text = "Dismiss")
                         }
 
@@ -129,7 +132,7 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
 }
 
 @Composable
-private fun ShareButton(
+private fun ReceiveButton(
     text: String,
     icon: ImageVector,
     iconDescription: String = "",
@@ -157,29 +160,34 @@ private fun ShareButton(
     }
 }
 
-private fun generateQRCode(content: String): Bitmap? {
+@Composable
+private fun ReadQRCode(sharedCardViewModel: BusinessCardViewModel) {
+    var qrCodeResult by rememberSaveable { mutableStateOf("") }
 
-    val qrCodeWriter = QRCodeWriter()
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) {
+            qrCodeResult = result.contents
+            val card = Json.decodeFromString<BusinessCardModel>(qrCodeResult)
 
-    try {
-        val bits = qrCodeWriter.encode(
-            content, BarcodeFormat.QR_CODE, 512, 512, mapOf(
-                EncodeHintType.CHARACTER_SET to "UTF-8"
-            )
-        )
-        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-        for (x in 0 until 512) {
-            for (y in 0 until 512) {
-                bitmap.setPixel(
-                    x,
-                    y,
-                    if (bits[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-                )
-            }
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
         }
-        return bitmap
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
-    return null
+
+    Column {
+        FilledTonalButton(onClick = {
+            // Configure scan options
+            val options = ScanOptions()
+            options.setPrompt("Scan a QR code")
+            options.setBeepEnabled(true)
+            options.setOrientationLocked(false)
+            options.setBarcodeImageEnabled(true)
+            scanLauncher.launch(options)
+        }) {
+            Text("Scan QR Code")
+        }
+
+        if (qrCodeResult.isNotEmpty()) {
+            Text("Scanned QR Code: $qrCodeResult")
+        }
+    }
 }
