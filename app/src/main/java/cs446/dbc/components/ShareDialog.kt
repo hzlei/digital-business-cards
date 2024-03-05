@@ -36,11 +36,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.viewmodels.AppViewModel
+import cs446.dbc.viewmodels.BusinessCardAction
+import cs446.dbc.viewmodels.BusinessCardViewModel
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 
 @Preview(
@@ -79,11 +86,10 @@ fun ShareDialog(onDismissRequest: () -> Unit = {}) {
                     val jsonData = JSONObject().apply {
                         put("test", "value")
                     }
-                    qrCodeBitmap = QRCode(jsonData)
+                    qrCodeBitmap = GenerateQRCode(jsonData)
                     showQRCode = true
                 }
                 ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
-                TestQRCodeReader()
                 Spacer(modifier = Modifier.height(2.dp))
                 TextButton(onClick = { onDismissRequest() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.hsl(206.0F, 0.8F, 0.55F))) {
@@ -129,69 +135,16 @@ private fun ShareButton(
     }
 }
 
-// TODO: This was duplicated, @FaresAT needs to look at this and the stuff below and remove accordingly
-//// Move this elsewhere
-//@Composable
-//private fun TestQRCodeReader() {
-//    var qrCodeResult by rememberSaveable { mutableStateOf("") }
-//
-//    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
-//        if (result.contents != null) {
-//            qrCodeResult = result.contents
-//            // we now have the QR code data
-//        }
-//    }
-//
-//    Column {
-//        FilledTonalButton(onClick = {
-//            // Configure scan options
-//            val options = ScanOptions()
-//            options.setPrompt("Scan a QR code")
-//            options.setBeepEnabled(true)
-//            options.setOrientationLocked(false)
-//            options.setBarcodeImageEnabled(true)
-//            scanLauncher.launch(options)
-//        }) {
-//            Text("Scan QR Code")
-//        }
-//
-//        if (qrCodeResult.isNotEmpty()) {
-//            Text("Scanned QR Code: $qrCodeResult")
-//        }
-//    }
-//}
-//
-//private fun QRCode(data: JSONObject): Bitmap? {
-//    val content = data.toString()
-//
-//    val qrCodeWriter = QRCodeWriter()
-//
-//    try {
-//        val bits = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 512, 512, mapOf(
-//            EncodeHintType.CHARACTER_SET to "UTF-8"
-//        ))
-//        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-//        for (x in 0 until 512) {
-//            for (y in 0 until 512) {
-//                bitmap.setPixel(x, y, if(bits[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
-//            }
-//        }
-//        return bitmap
-//    } catch (e: Exception) {
-//        e.printStackTrace()
-//    }
-//    return null
-//}
-
-// Move this elsewhere
 @Composable
-private fun TestQRCodeReader() {
+private fun ReadQRCode(sharedCardViewModel: BusinessCardViewModel) {
     var qrCodeResult by rememberSaveable { mutableStateOf("") }
 
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
             qrCodeResult = result.contents
-            // we now have the QR code data
+            val card = Json.decodeFromString<BusinessCardModel>(qrCodeResult)
+
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
         }
     }
 
@@ -214,7 +167,7 @@ private fun TestQRCodeReader() {
     }
 }
 
-private fun QRCode(data: JSONObject): Bitmap? {
+private fun GenerateQRCode(data: JSONObject): Bitmap? {
     val content = data.toString()
 
     val qrCodeWriter = QRCodeWriter()

@@ -95,7 +95,6 @@ class AppViewModel @Inject constructor(
     }
 
     fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType): MutableList<BusinessCardModel> {
-//    fun loadCardsFromDirectory(context: Context, directoryName: String, type: CardType): MutableList<BusinessCardModel> {
         viewModelScope.launch(Dispatchers.IO) {
             val directory = File(context.filesDir, directoryName)
             if (directory.exists() && directory.isDirectory) {
