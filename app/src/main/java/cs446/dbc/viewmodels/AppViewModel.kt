@@ -43,6 +43,12 @@ class AppViewModel @Inject constructor(
     val myCards = savedStateHandle.getStateFlow(myBusinessCardsContext, mutableListOf<BusinessCardModel>())
     val sharedCards = savedStateHandle.getStateFlow(sharedBusinessCardsContext, mutableListOf<BusinessCardModel>())
 
+    // TODO: Change these to Enums
+    private val loadedMyCardsKey = "loadedMyCards"
+    private val loadedSavedCardsKey = "loadedSavedCards"
+    val loadedMyCards = savedStateHandle.getStateFlow(loadedMyCardsKey, false)
+    val loadedSharedCards = savedStateHandle.getStateFlow(loadedSavedCardsKey, false)
+
     private fun updateCardContext(newContext: CardType) {
         savedStateHandle["cardContext"] = if (newContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext
     }
@@ -69,10 +75,8 @@ class AppViewModel @Inject constructor(
         }
         // Save updated list back to state handle
         savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = updatedList
-
         // Persist card to local storage
         saveCardToLocalStorage(card, context, directoryName)
-
     }
 
     private fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
@@ -90,7 +94,7 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType) {
+    fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType): MutableList<BusinessCardModel> {
 //    fun loadCardsFromDirectory(context: Context, directoryName: String, type: CardType): MutableList<BusinessCardModel> {
         viewModelScope.launch(Dispatchers.IO) {
             val directory = File(context.filesDir, directoryName)
@@ -110,6 +114,16 @@ class AppViewModel @Inject constructor(
                 savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
             }
         }
+        savedStateHandle[if (cardType == CardType.PERSONAL) loadedMyCardsKey else loadedSavedCardsKey] = true
+        return savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"]!!
+    }
+
+    fun updateLoadedMyCards(hasLoaded: Boolean) {
+        savedStateHandle["loadedMyCards"] = hasLoaded
+    }
+
+    fun updateLoadedSharedCards(hasLoaded: Boolean) {
+        savedStateHandle["loadedSharedCards"] = hasLoaded
     }
 
     fun updateScreenTitle(newTitle: String) {

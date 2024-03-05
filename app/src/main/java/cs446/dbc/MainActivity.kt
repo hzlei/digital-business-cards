@@ -2,6 +2,7 @@ package cs446.dbc
 
 import android.content.Context
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -78,20 +79,24 @@ class MainActivity : AppCompatActivity() {
     private fun App(appActivity: AppCompatActivity) {
         val appViewModel: AppViewModel = viewModel(){
             AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
-
         }
-        val appContext = LocalContext.current
-        val navController = rememberNavController()
-
-        LaunchedEffect(key1 = "load_cards") {
-            appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
-        }
-
-        val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
-
         val cardViewModel: BusinessCardViewModel = viewModel() {
             BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
+        val appContext = LocalContext.current
+        val navController = rememberNavController()
+        val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
+        val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
+
+        LaunchedEffect(key1 = "load_cards") {
+            if (!loadedSharedCards) {
+                val cardList =
+                    appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
+                cardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+            }
+        }
+
+        val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
         // TODO: remove after demo, we'll use this to start in the SharedCards Screen
         val sharedCardsList = listOf(
@@ -197,7 +202,7 @@ class MainActivity : AppCompatActivity() {
                         )
                     },
                     bottomBar = {
-                        BottomAppBar(navController, appViewModel, appContext)
+                        BottomAppBar(navController, appViewModel, cardViewModel, appContext)
                     }
                 ) { innerPadding ->
                     Box(
@@ -228,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                             composable(Screen.Home.route) {
                                 appViewModel.updateScreenTitle("Saved Cards") // TODO: Replace with SavedCardsScreen
                                 cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.SHARED))
-                                SharedCardsScreen(appViewModel, cardViewModel, sharedCardsList)
+                                SharedCardsScreen(appViewModel, cardViewModel, sharedCardsList, appContext)
                             }
                             composable(Screen.UserCards.route) {
                                 cardViewModel.performAction(BusinessCardAction.UpdateCardContext(CardType.PERSONAL))
@@ -255,7 +260,7 @@ class MainActivity : AppCompatActivity() {
                             composable(Screen.Settings.route) {
                                 appViewModel.updateScreenTitle("Settings") // TODO: Replace with SettingsScreen
                                 // TODO: Remove after, for now just creating a new composable so we
-                                // don't get the home page showing up
+                                //  don't get the home page showing up
                                 Column (
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -271,17 +276,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    private fun BottomAppBar(navController: NavHostController, appViewModel: AppViewModel, context: Context) {
+    private fun BottomAppBar(navController: NavHostController, appViewModel: AppViewModel, cardViewModel: BusinessCardViewModel, context: Context) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         @Composable
         fun NavButton(screen: Screen, icon: ImageVector, description: String) {
-            val routeSelected = navBackStackEntry?.destination?.route == screen.route
-//            val colors = if (navBackStackEntry?.destination?.route == screen.route)
-//                IconButtonDefaults.i
-//                else
+            val isCurrentRoute = navBackStackEntry?.destination?.route == screen.route
             IconToggleButton(
-                checked = routeSelected,
-                onCheckedChange = { navController.navigate(screen.route) },
+                checked = isCurrentRoute,
+                onCheckedChange = { if (!isCurrentRoute) navController.navigate(screen.route) },
             ) {
                 Icon(icon, description)
             }
@@ -310,7 +312,10 @@ class MainActivity : AppCompatActivity() {
                                 fields = mutableListOf(),
                                 cardType = CardType.PERSONAL,
                             )
+
+                            // TODO: This doesn't cause recomposition
                             appViewModel.addCard(newCard, context, "businessCards", CardType.PERSONAL)
+                            cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
 
                         }
                     ) {

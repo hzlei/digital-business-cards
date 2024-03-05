@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
 import androidx.compose.ui.Modifier
@@ -32,34 +33,26 @@ import androidx.compose.ui.platform.LocalContext
 fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
     appViewModel.updateScreenTitle("My Cards")
     val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
+    val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = "load_cards") {
+        if (!loadedMyCards) {
+            val cardList =
+                appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.PERSONAL)
+            myCardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+        }
+    }
+
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-
-//    LaunchedEffect(key1 = "businessCards") {
-//        appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.PERSONAL)
-//
-//        if (cards.size < 1) {
-//            origCardList.forEach { card ->
-//                myCardViewModel.performAction(
-//                    BusinessCardAction.PopulateCard(
-//                        front = card.front,
-//                        back = card.back,
-//                        favorite = card.favorite,
-//                        fields = card.fields,
-//                        cardType = card.cardType // TODO: Modify to Shared type when sharing!!!
-//                    )
-//                )
-//            }
-//        }
-//    }
-
     LaunchedEffect(key1 = Unit) {
         if (cards.isEmpty()) {
             origCardList.forEach { card ->
                 appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
             }
         }
     }

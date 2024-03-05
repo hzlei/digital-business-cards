@@ -1,13 +1,10 @@
 package cs446.dbc.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
 
@@ -33,6 +30,8 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.ToggleFavorite -> toggleFavorite(action.cardId)
             is BusinessCardAction.InsertField -> TODO()
             is BusinessCardAction.PopulateCard -> populateCard(action)
+            is BusinessCardAction.InsertCard -> insertCard(action)
+            is BusinessCardAction.InsertCards -> insertCards(action)
             is BusinessCardAction.RemoveField -> TODO()
             is BusinessCardAction.UpdateAllFields -> TODO()
             is BusinessCardAction.UpdateBack -> TODO()
@@ -58,7 +57,7 @@ class BusinessCardViewModel @Inject constructor(
     }
 
     private fun populateCard(action: BusinessCardAction.PopulateCard) {
-        val newCard = BusinessCardModel(
+        val card = BusinessCardModel(
             id = UUID.randomUUID().toString(),
             front = action.front,
             back = action.back,
@@ -66,8 +65,20 @@ class BusinessCardViewModel @Inject constructor(
             fields = action.fields,
             cardType = action.cardType
         )
+        insertCard(BusinessCardAction.InsertCard(card))
+    }
+
+    private fun insertCard(action: BusinessCardAction.InsertCard) {
         val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value)
-        currCards?.add(newCard)
+        currCards?.add(action.card)
         savedStateHandle[currContext.value] = currCards
     }
+
+    private fun insertCards(action: BusinessCardAction.InsertCards) {
+        val ctx = currContext.value
+        val cards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
+        cards?.addAll(action.cards)
+        savedStateHandle[currContext.value] = cards
+    }
+
 }

@@ -1,5 +1,6 @@
 package cs446.dbc.views
 
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,14 +27,35 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>) {
+fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
     appViewModel.updateScreenTitle("Saved Cards")
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
+    val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
+
+    // First load the cards
+    LaunchedEffect(key1 = "load_cards") {
+        if (!loadedSharedCards) {
+            val cardList =
+                appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+        }
+    }
+
+    // TODO: Remove this later, we add examples
+    LaunchedEffect(key1 = Unit) {
+        if (sharedCards.isEmpty()) {
+            origCardList.forEach { card ->
+                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+                sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+            }
+        }
+    }
+
     LaunchedEffect(key1 = "load_examples") {
         if (sharedCards.size < 1) {
             origCardList.forEach { card ->
