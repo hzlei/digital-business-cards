@@ -86,38 +86,34 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
             .padding(animatedPadding)
             .graphicsLayer { clip = false }
         ) {
-            var front: @Composable () -> Unit = {};
-            var back: @Composable () -> Unit = {};
             when (cardModel.template) {
-                TemplateType.TEMPLATE_1 -> {
-                    front = {
-                        Template1(
-                            background = MaterialTheme.colorScheme.surfaceTint,
-                            card_data = cardModel,
-                            isFront = true
-                        )
-                    }
-                    back = {
-                        Template1(
-                            background = MaterialTheme.colorScheme.surfaceBright,
-                            card_data = cardModel,
-                            isFront = false
-                        )
-                    }
-                }
+//                TemplateType.TEMPLATE_1 -> {
+//                    front = {
+//                        Template1(
+//                            background = MaterialTheme.colorScheme.surfaceTint,
+//                            card_data = cardModel,
+//                            isFront = true
+//                        )
+//                    }
+//                    back = {
+//                        Template1(
+//                            background = MaterialTheme.colorScheme.surfaceBright,
+//                            card_data = cardModel,
+//                            isFront = false
+//                        )
+//                    }
+//                }
 
-                else -> {
-                    front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
-                    back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
-                }
+                else ->
+                    FlipCard(
+                        cardFace = cardFace,
+                        onClick = { toggleSelected() },
+                        front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) },
+                        back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
+                    )
+
 
             }
-            FlipCard(
-                cardFace = cardFace,
-                onClick = { toggleSelected() },
-                front = front,
-                back = back
-            )
 
         }
         AnimatedVisibility(

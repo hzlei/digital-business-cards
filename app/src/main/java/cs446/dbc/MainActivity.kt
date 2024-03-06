@@ -258,6 +258,7 @@ class MainActivity : AppCompatActivity() {
                                         ),
                                         cardType = CardType.SHARED
                                     ),
+<<<<<<< Updated upstream
                                     BusinessCardModel(
                                         id = UUID.randomUUID(),
                                         front = "G",
@@ -273,6 +274,22 @@ class MainActivity : AppCompatActivity() {
                                         ),
                                         cardType = CardType.SHARED
                                     ),
+=======
+//                                    BusinessCardModel(
+//                                        id = UUID.randomUUID(),
+//                                        front = "G",
+//                                        back = "H",
+//                                        favorite = false,
+//                                        template=TemplateType.TEMPLATE_1,
+//                                        fields = mutableListOf(
+//                                            Field(
+//                                                "Full Name",
+//                                                "John Doe",
+//                                                FieldType.TEXT,
+//                                            )
+//                                        )
+//                                    ),
+>>>>>>> Stashed changes
                                 ))
                             }
                             composable(Screen.Settings.route) {
