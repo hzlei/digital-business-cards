@@ -247,8 +247,25 @@ class MainActivity : AppCompatActivity() {
                                         front = "A",
                                         back = "B",
                                         favorite = false,
-                                        fields = mutableListOf(),
-                                        cardType = CardType.PERSONAL
+                                        fields = mutableListOf(
+                                            Field(
+                                                "Full Name",
+                                                "John Doe",
+                                                FieldType.TEXT,
+                                            ),
+                                            Field(
+                                                "Email",
+                                                "john@example.com",
+                                                FieldType.TEXT,
+                                            ),
+                                            Field(
+                                                "Organization",
+                                                "Test Org",
+                                                FieldType.TEXT
+                                            )
+                                        ),
+                                        cardType = CardType.PERSONAL,
+                                        template = TemplateType.TEMPLATE_1
                                     ),
                                     BusinessCardModel(
                                         id = UUID.randomUUID().toString(),

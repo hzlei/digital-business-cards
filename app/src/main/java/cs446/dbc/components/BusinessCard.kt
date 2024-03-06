@@ -93,14 +93,14 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     front = {
                         Template1(
                             background = MaterialTheme.colorScheme.surfaceTint,
-                            card_data = cardModel,
+                            cardData = cardModel,
                             isFront = true
                         )
                     }
                     back = {
                         Template1(
                             background = MaterialTheme.colorScheme.surfaceBright,
-                            card_data = cardModel,
+                            cardData = cardModel,
                             isFront = false
                         )
                     }
