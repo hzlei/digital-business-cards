@@ -91,13 +91,13 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
 
-        LaunchedEffect(key1 = "load_cards") {
-            if (!loadedSharedCards) {
-                val cardList =
-                    appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
-                cardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
-            }
-        }
+//        LaunchedEffect(key1 = "load_cards") {
+//            if (!loadedSharedCards) {
+//                val cardList =
+//                    appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
+//                cardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+//            }
+//        }
 
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -111,14 +111,14 @@ class MainActivity : AppCompatActivity() {
                 fields = mutableListOf(),
                 cardType = CardType.SHARED
             ),
-            BusinessCardModel(
-                id = UUID.randomUUID().toString(),
-                front = "C",
-                back = "D",
-                favorite = true,
-                fields = mutableListOf(),
-                cardType = CardType.SHARED
-            ),
+//            BusinessCardModel(
+//                id = UUID.randomUUID().toString(),
+//                front = "C",
+//                back = "D",
+//                favorite = true,
+//                fields = mutableListOf(),
+//                cardType = CardType.SHARED
+//            ),
             BusinessCardModel(
                 id = UUID.randomUUID().toString(),
                 front = "E",
@@ -164,17 +164,17 @@ class MainActivity : AppCompatActivity() {
             ),
         )
 
-        sharedCardsList.forEach { card ->
-            cardViewModel.performAction(
-                BusinessCardAction.PopulateCard(
-                    front = card.front,
-                    back = card.back,
-                    favorite = card.favorite,
-                    fields = card.fields,
-                    cardType = card.cardType
-                )
-            )
-        }
+//        sharedCardsList.forEach { card ->
+//            cardViewModel.performAction(
+//                BusinessCardAction.PopulateCard(
+//                    front = card.front,
+//                    back = card.back,
+//                    favorite = card.favorite,
+//                    fields = card.fields,
+//                    cardType = card.cardType
+//                )
+//            )
+//        }
 
 
         AppTheme {
@@ -314,7 +314,9 @@ class MainActivity : AppCompatActivity() {
         }
         
         if (showReceiveDialog) {
-            ReceiveDialog(sharedCardViewModel = cardViewModel)
+            ReceiveDialog(sharedCardViewModel = cardViewModel) {
+                showReceiveDialog = false
+            }
         }
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
@@ -341,8 +343,8 @@ class MainActivity : AppCompatActivity() {
                                 cardType = CardType.PERSONAL,
                             )
 
-                            appViewModel.addCard(newCard, context, "businessCards", CardType.PERSONAL)
-                            cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
+                            //appViewModel.addCard(newCard, context, "businessCards", CardType.PERSONAL)
+                            //cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
                         }
                     ) {
                         Icon(

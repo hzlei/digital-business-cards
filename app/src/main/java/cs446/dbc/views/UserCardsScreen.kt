@@ -48,14 +48,14 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-    LaunchedEffect(key1 = Unit) {
-        if (cards.isEmpty()) {
-            origCardList.forEach { card ->
-                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
-                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
-            }
-        }
-    }
+//    LaunchedEffect(key1 = Unit) {
+//        if (cards.isEmpty()) {
+//            origCardList.forEach { card ->
+//                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+//                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+//            }
+//        }
+//    }
 
     LazyColumn(
         modifier = Modifier
