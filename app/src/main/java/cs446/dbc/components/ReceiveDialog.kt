@@ -25,12 +25,14 @@ import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -46,6 +48,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -57,8 +60,20 @@ private enum class ReceiveDialogViews {
 }
 
 @Composable
-fun ReceiveDialog(sharedCardViewModel: BusinessCardViewModel, onDismissRequest: () -> Unit = {}) {
+fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: BusinessCardViewModel, onDismissRequest: () -> Unit = {}) {
     var currentView by remember { mutableStateOf(ReceiveDialogViews.Options) }
+    val scope = rememberCoroutineScope()
+
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) {
+            val card = Json.decodeFromString<BusinessCardModel>(result.contents)
+
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+            scope.launch {
+                snackbarHostState.showSnackbar("Card Received Successfully!")
+            }
+        }
+    }
 
     AlertDialog(
         icon = {
@@ -81,7 +96,14 @@ fun ReceiveDialog(sharedCardViewModel: BusinessCardViewModel, onDismissRequest: 
                         ReceiveDialogViews.Options -> {
                             ReceiveButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
                             ReceiveButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
-                                currentView = ReceiveDialogViews.QRCode
+
+                                // Configure scan options
+                                val options = ScanOptions()
+                                options.setPrompt("Scan a QR code")
+                                options.setBeepEnabled(true)
+                                options.setOrientationLocked(false)
+                                options.setBarcodeImageEnabled(true)
+                                scanLauncher.launch(options)
                             }
                             ReceiveButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
                         }
@@ -91,7 +113,6 @@ fun ReceiveDialog(sharedCardViewModel: BusinessCardViewModel, onDismissRequest: 
                         }
 
                         ReceiveDialogViews.QRCode -> {
-                            ReadQRCode(sharedCardViewModel)
                         }
 
                         ReceiveDialogViews.NearbyShare -> {
@@ -156,38 +177,6 @@ private fun ReceiveButton(
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(text = text)
-        }
-    }
-}
-
-@Composable
-private fun ReadQRCode(sharedCardViewModel: BusinessCardViewModel) {
-    var qrCodeResult by rememberSaveable { mutableStateOf("") }
-
-    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
-        if (result.contents != null) {
-            qrCodeResult = result.contents
-            val card = Json.decodeFromString<BusinessCardModel>(qrCodeResult)
-
-            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
-        }
-    }
-
-    Column {
-        FilledTonalButton(onClick = {
-            // Configure scan options
-            val options = ScanOptions()
-            options.setPrompt("Scan a QR code")
-            options.setBeepEnabled(true)
-            options.setOrientationLocked(false)
-            options.setBarcodeImageEnabled(true)
-            scanLauncher.launch(options)
-        }) {
-            Text("Scan QR Code")
-        }
-
-        if (qrCodeResult.isNotEmpty()) {
-            Text("Scanned QR Code: $qrCodeResult")
         }
     }
 }
