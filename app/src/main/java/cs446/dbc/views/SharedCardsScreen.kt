@@ -47,30 +47,30 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     }
 
     // TODO: Remove this later, we add examples
-//    LaunchedEffect(key1 = Unit) {
-//        if (sharedCards.isEmpty()) {
-//            origCardList.forEach { card ->
-//                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
-//                sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
-//            }
-//        }
-//    }
+    LaunchedEffect(key1 = Unit) {
+        if (sharedCards.isEmpty()) {
+            origCardList.forEach { card ->
+                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+                sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+            }
+        }
+    }
 
-//    LaunchedEffect(key1 = "load_examples") {
-//        if (sharedCards.size < 1) {
-//            origCardList.forEach { card ->
-//                sharedCardViewModel.performAction(
-//                    BusinessCardAction.PopulateCard(
-//                        front = card.front,
-//                        back = card.back,
-//                        favorite = card.favorite,
-//                        fields = card.fields,
-//                        cardType = card.cardType
-//                    )
-//                )
-//            }
-//        }
-//    }
+    LaunchedEffect(key1 = "load_examples") {
+        if (sharedCards.size < 1) {
+            origCardList.forEach { card ->
+                sharedCardViewModel.performAction(
+                    BusinessCardAction.PopulateCard(
+                        front = card.front,
+                        back = card.back,
+                        favorite = card.favorite,
+                        fields = card.fields,
+                        cardType = card.cardType
+                    )
+                )
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
