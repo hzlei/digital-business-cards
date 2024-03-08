@@ -18,4 +18,5 @@
 | 2024/03/2 | 4 | 0 | 0 | 4 | 1 | 0 | Business Card Templates and Model UI |
 | 2024/03/3 | 0 | 11 | 0 | 0 | 0 | 0 | User Cards UI + View Model Rework + Share Cards UI + Debugging |
 | 2024/03/4 | 0 | 6 | 0 | 0 | 0 | 0 | Fixed several issues: file storage, file retrieval, render loaded files, and a few state management issues |
-
+| 2024/03/5 | 0 | 2 | 0 | 0 | 0 | 0 | QR Code sharing issue (due to Parcel) |
+| 2024/03/7 | 0 | 2 | 0 | 0 | 0 | 2 | Online Meeting - D3 (Component Diagram) |
