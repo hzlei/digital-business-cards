@@ -28,7 +28,7 @@ import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
 fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
-    appViewModel.updateScreenTitle("Saved Cards")
+    appViewModel.updateScreenTitle("Shared Cards")
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
