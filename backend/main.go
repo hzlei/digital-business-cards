@@ -1,59 +1,64 @@
 package main
 
 import (
-  "context"
-  "fmt"
-  "log"
-  "net/http"
+	"context"
+	"fmt"
+	"log"
+	"net/http"
 
-  "firebase.google.com/go"
-  "firebase.google.com/go/db"
-  "github.com/gorilla/mux"
-  "google.goland.org/api/option"
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"google.golang.org/api/option"
 )
 
 const (
-  firebaseConfigFile = "path/to/our/firebaseConfig.json"
-  firebaseDbUrl = "https://our-firebase-project.firebaseio.com"
-)
-
-var (
-  ctx context.Context
-  app *firebase.App
+  firebaseConfigFile = "firebaseConfig.json"
 )
 
 func main() {
-  // Initialize Firebase
-  ctx = context.Background()
-  opt := option.WithCredentialsFile(firebaseConfigFile)
-  app, err := firebase.NewApp(ctx, nil, opt)
+  err := godotenv.Load(".env")
   if err != nil {
-    log.Fatalf("Firebase initialization error: %v\n", err)
+    log.Fatal("Error loading .env file")
   }
 
-  // Initialize Firestore
-  client, err := app.DatabaseWithURL(ctx, firebaseDbUrl)
+  // Initialize Firebase
+  opt := option.WithCredentialsFile("serviceAccountKey.json")
+  ctx := context.Background()
+  app, err := firebase.NewApp(ctx, nil, opt)
   if err != nil {
-    log.Fatalf("Firestore initialization error: %v\n", err)
+    log.Fatalln(err)
   }
+
+  client, err := app.Firestore(ctx)
+  if err != nil {
+    log.Fatalln(err)
+  }
+  defer client.Close()
 
   // Initialize Router
   router := mux.NewRouter()
 
   // Define API routes
-  router.HandleFunc("/api/createEvent", createEvents).Methods("POST")
-  router.HandleFunc("/api/getEvent", getEvent).Methods("GET")
-  router.HandleFunc("/api/joinEvent/{id}", joinEvent).Methods("PUT")
-  router.HandleFunc("/api/sendCard", sendCard).Methods("POST")
-  router.HandleFunc("/api/getCard/{id}", getCard).Methods("GET")
-  router.HandleFunc("/api/updateCard/{id}", updateCard).Methods("PUT")
-  router.HandleFunc("/api/deleteEvent/{id}", deleteEvent).Methods("DELETE")
-  router.HandleFunc("/api/deleteUser/{id}", deleteCard).Methods("DELETE")
-  router.HandleFunc("/api/postSendRequest", postSendRequest).Methods("POST")
-  router.HandleFunc("/api/postGetRequest", postGetRequest).Methods("POST")
-  router.HandleFunc("/api/deleteSendRequest", deleteSendRequest).Methods("DELETE")
-  router.HandleFunc("/api/deleteGetRequest", deleteGetRequest).Methods("DELETE")
-  router.HandleFunc("/api/getSendRequest", getSendRequest).Methods("GET")
-  router.HandleFunc("/api/getGetRequest", getGetRequest).Methods("GET")
+  // router.HandleFunc("/api/event", createEventHandler).Methods("POST")
+  // router.HandleFunc("/api/event/{id}", eventHandler).Methods("GET", "PUT", "DELETE")
 
+  router.HandleFunc("/api/card", addCardHandler(client)).Methods("POST")
+  // router.HandleFunc("/api/card/{id}", cardHandler).Methods("GET", "PUT", "DELETE")
+
+  // router.HandleFunc("/api/sendRequest", createSendRequestHandler).Methods("POST")
+  // router.HandleFunc("/api/sendRequest/{id}", sendRequestHandler).Methods("GET", "PUT", "DELETE")
+  //
+  // router.HandleFunc("/api/retrieveRequest", recieveRequestHandler).Methods("POST")
+  // router.HandleFunc("/api/retrieveRequest/{id}", recieveRequestHandler).Methods("GET", "PUT", "DELETE")
+
+  // Start the API server
+  port := ":8080"
+  fmt.Printf("Server is running on port %s...\n", port)
+  log.Fatal(http.ListenAndServe(port, router))
+}
+
+func addCardHandler(client *firestore.Client) func (w http.ResponseWriter, r *http.Request) {
+  return nil
 }
