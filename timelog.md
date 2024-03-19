@@ -20,3 +20,5 @@
 | 2024/03/4 | 0 | 6 | 0 | 0 | 0 | 0 | Fixed several issues: file storage, file retrieval, render loaded files, and a few state management issues |
 | 2024/03/5 | 0 | 2 | 0 | 0 | 0 | 0 | QR Code sharing issue (due to Parcel) |
 | 2024/03/7 | 0 | 2 | 0 | 0 | 0 | 2 | Online Meeting - D3 (Component Diagram) |
+| 2024/03/12 | 0 | 2 | 0 | 0 | 0 | 0 | Backend setup for server with Firebase + learning Go (for server-side application) |
+| 2024/03/13 | 0 | 2 | 0 | 2 | 0 | 0 | Backend setup for Firebase/Firestore + planning session for routing/auth |
