@@ -91,11 +91,12 @@ import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
-    private val bluetoothRepository : BluetoothRepository = (application as DBCApplication).container.bluetoothRepository
+    private lateinit var bluetoothRepository : BluetoothRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        bluetoothRepository = (application as DBCApplication).container.bluetoothRepository
 
         setContent {
             App(appActivity = this)

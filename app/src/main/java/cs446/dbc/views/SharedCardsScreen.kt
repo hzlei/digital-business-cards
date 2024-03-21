@@ -1,6 +1,7 @@
 package cs446.dbc.views
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,7 +94,9 @@ fun SharedCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED) {}
+        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED) {
+            Log.v("naw", "No Bluetooth sharing for this 1")
+        }
     }
     UserCardsScreen(appViewModel, cardViewModel, cardList, appContext)
 }
