@@ -1,12 +1,18 @@
 package cs446.dbc
 
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.os.Build
+import android.content.Intent
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -62,6 +68,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
+import cs446.dbc.bluetooth.BluetoothRepository
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -80,9 +87,12 @@ import cs446.dbc.views.UserCardsScreen
 import cs446.dbc.views.EventMenuScreen
 import java.util.UUID
 import kotlin.math.log
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
+    private val bluetoothRepository : BluetoothRepository = (application as DBCApplication).container.bluetoothRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -91,7 +101,6 @@ class MainActivity : AppCompatActivity() {
             App(appActivity = this)
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class)
@@ -102,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+            BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED, this@MainActivity::startSharing)
         }
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle())
@@ -540,6 +549,68 @@ class MainActivity : AppCompatActivity() {
         object Events : Screen("events")
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
+    }
 
+
+
+    // Bluetooth Stuff, Prolly don't touch
+    private var outCard : BusinessCardModel? = null
+    private var requestShare = false; // LOOKS WEIRD, PROLLY WORKS
+
+    private fun startShare() : Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        if (!locationManager.isLocationEnabled) return false
+
+        val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        bluetoothRepository.startSharing(outCard!!)
+        return true
+    }
+
+    private val enableLocationLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        startShare()
+    }
+
+    private val enableDiscoverableLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode != Activity.RESULT_CANCELED) bluetoothRepository.startReceiving()
+        }
+
+    private val enableBluetoothLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { it ->
+            if (it.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+
+            if (requestShare) {
+                if (!startShare()) {
+                    enableLocationLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+            } else {
+                enableDiscoverableLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+                    putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1800)
+                })
+            }
+        }
+
+    // Foreground perms need to be given before BG perms
+    private val bgPermLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
+        if (!bluetoothRepository.checkPermissions()) return@registerForActivityResult
+
+        enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+    }
+
+    private val fgPermLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+        // If foreground perms were not given, this launcher will auto fail
+        bgPermLauncher.launch(BluetoothRepository.backgroundPermissions[0])
+    }
+
+    fun startSharing(cardModel : BusinessCardModel) {
+        outCard = cardModel
+        requestShare = true
+        fgPermLauncher.launch(BluetoothRepository.foregroundPermissions)
+    }
+
+    fun startReceiving() {
+        requestShare = false
+        fgPermLauncher.launch(BluetoothRepository.foregroundPermissions)
     }
 }

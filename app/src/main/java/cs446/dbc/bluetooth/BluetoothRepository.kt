@@ -11,7 +11,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Parcel
 import androidx.annotation.RequiresApi
+import cs446.dbc.models.BusinessCardModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -102,7 +104,12 @@ class BluetoothRepository(private val app: Application) {
     }
 
 
-    fun startSharing(outBytes: ByteArray) {
+    fun startSharing(outCard: BusinessCardModel) {
+        val outParcel = Parcel.obtain()
+        outCard.writeToParcel(outParcel, 0)
+        val outBytes : ByteArray = outParcel.marshall()
+        outParcel.recycle()
+
         app.startForegroundService(Intent(app, BluetoothShareService::class.java).apply {
             putExtra("outBytes",  outBytes)
         })

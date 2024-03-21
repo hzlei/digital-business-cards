@@ -246,7 +246,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
         }
     }
     if (showDialogState) {
-        ShareDialog(cardModel) {
+        ShareDialog(cardModel, onAction) {
             showDialogState = false
         }
     }

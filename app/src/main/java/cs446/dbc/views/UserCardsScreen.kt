@@ -78,7 +78,7 @@ fun UserCardsScreenPreview() {
     val cardList: List<BusinessCardModel> = listOf()
     val appContext = LocalContext.current
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.PERSONAL)
+        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.PERSONAL) {}
     }
     UserCardsScreen(appViewModel, cardViewModel, cardList, appContext)
 }

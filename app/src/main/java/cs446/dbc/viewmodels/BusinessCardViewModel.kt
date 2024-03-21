@@ -12,7 +12,8 @@ import javax.inject.Inject
 @HiltViewModel
 class BusinessCardViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val viewModelContext: CardType
+    private val viewModelContext: CardType,
+    private val onBluetoothShare: (BusinessCardModel) -> Unit
 ): ViewModel() {
 
     private val myBusinessCardsContext = "myBusinessCards"
@@ -40,6 +41,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.UpdateFront -> TODO()
             is BusinessCardAction.UpdateCardType -> TODO()
             is BusinessCardAction.UpdateCardContext -> updateCardContext(action.newContext)
+            is BusinessCardAction.ShareCardBluetooth -> shareBluetoothCard(action)
         }
     }
 
@@ -90,4 +92,7 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle[currContext.value] = cards
     }
 
+    private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {
+        onBluetoothShare(action.card)
+    }
 }
