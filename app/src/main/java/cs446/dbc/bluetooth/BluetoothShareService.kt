@@ -2,6 +2,7 @@ package cs446.dbc.bluetooth
 
 import android.annotation.SuppressLint
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -24,9 +25,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import com.google.android.material.R
 import cs446.dbc.DBCApplication
 import java.io.IOException
-import java.lang.IllegalArgumentException
 import java.util.UUID
 import java.util.concurrent.Semaphore
 import java.util.concurrent.SynchronousQueue
@@ -37,13 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 data class BTRecord(
     var device: BluetoothDevice,
-    var received : AtomicBoolean = AtomicBoolean(false), // Whether this device already received the stuff
+    var received: AtomicBoolean = AtomicBoolean(false), // Whether this device already received the stuff
 )
 
 class BluetoothShareService : Service() {
     companion object {
         private val APP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         private const val NOTIF_CHANNEL = "BT"
+        private const val STOP_ACTION = "DBCSTOPSERVICE"
         private const val SERVICE_ID = 44
 
         private const val CYCLE_WAIT = 5000L // MS
@@ -81,6 +83,17 @@ class BluetoothShareService : Service() {
         }
     }
 
+    private fun createStopIntent(): PendingIntent? {
+        return PendingIntent.getService(
+            this@BluetoothShareService.application,
+            0,
+            Intent(this@BluetoothShareService.application, BluetoothShareService::class.java).apply {
+                action = STOP_ACTION
+            },
+            PendingIntent.FLAG_MUTABLE,
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cleanSelf()
@@ -89,7 +102,7 @@ class BluetoothShareService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         cleanSelf()
 
-        if (!bluetoothRepository.checkPermissions()) {
+        if (intent.action == STOP_ACTION || !bluetoothRepository.checkPermissions()) {
             stopSelf()
             return START_NOT_STICKY
         }
@@ -133,12 +146,26 @@ class BluetoothShareService : Service() {
         private val shareableDevices = HashMap<String, BTRecord>()
         private val shareCount = AtomicInteger(0)
         private lateinit var outBytes: ByteArray
+        private val notifBuilder = NotificationCompat.Builder(
+            this@BluetoothShareService, NOTIF_CHANNEL
+        )
+
+        private fun startNotification() {
+            notificationManager.notify(
+                SERVICE_ID, notifBuilder.apply {
+                    setSmallIcon(cs446.dbc.R.drawable.placeholder_notif)
+                    setContentTitle("Sharing a Business Card")
+                    setContentText("Starting Now")
+                    setDeleteIntent(createStopIntent())
+                    addAction(R.drawable.mtrl_ic_cancel, "Stop", createStopIntent())
+                    setOnlyAlertOnce(true)
+                }.build()
+            )
+        }
 
         private fun updateNotification() {
             notificationManager.notify(
-                SERVICE_ID, NotificationCompat.Builder(this@BluetoothShareService, NOTIF_CHANNEL).apply {
-                    setSmallIcon(cs446.dbc.R.drawable.placeholder_notif)
-                    setContentTitle("Sharing a Business Card")
+                SERVICE_ID, notifBuilder.apply {
                     setContentText("Shared Card ${shareCount.get()} Times")
                 }.build()
             )
@@ -161,15 +188,7 @@ class BluetoothShareService : Service() {
                 outBytes = msg.data.getByteArray("outBytes")!!
                 shareCount.set(0)
 
-                notificationManager.notify(
-                    SERVICE_ID, NotificationCompat.Builder(this@BluetoothShareService,
-                        NOTIF_CHANNEL
-                    ).apply {
-                        setSmallIcon(cs446.dbc.R.drawable.placeholder_notif)
-                        setContentTitle("Sharing a Business Card")
-                        setContentText("Starting Now")
-                    }.build()
-                )
+                startNotification()
 
                 sendMessage(newMsg)
             }
@@ -184,7 +203,9 @@ class BluetoothShareService : Service() {
             // Still discovering? Just skip first discovery
             if (bluetoothAdapter.isDiscovering) return
 
-            if (!bluetoothAdapter.startDiscovery()) this@BluetoothShareService.stopSelf()
+            if (!bluetoothAdapter.startDiscovery()) {
+                this@BluetoothShareService.stopSelf()
+            }
         }
 
         @SuppressLint("MissingPermission")
