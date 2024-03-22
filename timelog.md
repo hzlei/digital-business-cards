@@ -22,3 +22,4 @@
 | 2024/03/7 | 0 | 2 | 0 | 0 | 0 | 2 | Online Meeting - D3 (Component Diagram) |
 | 2024/03/12 | 0 | 2 | 0 | 0 | 0 | 0 | Backend setup for server with Firebase + learning Go (for server-side application) |
 | 2024/03/13 | 0 | 2 | 0 | 2 | 0 | 0 | Backend setup for Firebase/Firestore + planning session for routing/auth |
+| 2024/03/22 | 0 | 2 | 2 | 2 | 0 | 2 | Online Meeting - D4: Architecture Style Diagrams & Explanations |
