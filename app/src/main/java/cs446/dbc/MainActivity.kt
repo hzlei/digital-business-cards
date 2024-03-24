@@ -1,14 +1,15 @@
 package cs446.dbc
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
@@ -57,19 +59,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.compose.AppTheme
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
+import cs446.dbc.models.EventModel
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import cs446.dbc.viewmodels.EventViewModel
+import cs446.dbc.views.CreateEventScreen
+import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
+import cs446.dbc.views.EventMenuScreen
 import java.util.UUID
+import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -83,6 +92,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class)
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
@@ -93,6 +103,10 @@ class MainActivity : AppCompatActivity() {
         val cardViewModel: BusinessCardViewModel = viewModel() {
             BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
+        val eventViewModel: EventViewModel = viewModel() {
+            EventViewModel(savedStateHandle = createSavedStateHandle())
+        }
+
         val appContext = LocalContext.current
         val navController = rememberNavController()
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
@@ -323,6 +337,19 @@ class MainActivity : AppCompatActivity() {
 
                                 }
                             }
+                            composable(Screen.Events.route
+                            ) {
+                                EventScreen(eventViewModel, appViewModel, appContext, navController)
+                            }
+                            composable(Screen.EventMenu.route,
+                                arguments = listOf(navArgument("eventId") {}))
+                            {
+                                val eventId = it.arguments?.getString("eventId")
+                                EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
+                            }
+                            composable(Screen.EventCreationMenu.route) {
+                                CreateEventScreen(eventViewModel, appViewModel, appContext, navController)
+                            }
                         }
                     }
                 }
@@ -364,6 +391,7 @@ class MainActivity : AppCompatActivity() {
             actions = {
                 NavButton(Screen.Home, Icons.Outlined.People, "Saved Cards")
                 NavButton(Screen.UserCards, Icons.Outlined.Person, "My Cards")
+                NavButton(Screen.Events, Icons.Outlined.Event, "Events")
             },
             // TODO: Make sure to add parameters that we don't directly make (e.g. CardType)
             floatingActionButton = {
@@ -416,6 +444,24 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
+                AnimatedVisibility(
+                    visible = navBackStackEntry?.destination?.route == Screen.Events.route,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut(),
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier,
+                        onClick = {
+                            // go to create event screen
+                            navController.navigate(route = "create-event")
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = "Add Event"
+                        )
+                    }
+                }
             }
         )
     }
@@ -425,6 +471,7 @@ class MainActivity : AppCompatActivity() {
             Screen.Settings.route -> 0
             Screen.Home.route -> 1
             Screen.UserCards.route -> 2
+            Screen.Events.route -> 3
             else -> Int.MAX_VALUE
         }
     }
@@ -433,6 +480,9 @@ class MainActivity : AppCompatActivity() {
         object UserCards : Screen("my-cards")
         object Home : Screen("saved-cards")
         object Settings : Screen("settings")
+        object Events : Screen("events")
+        object EventMenu : Screen("event-menu/{eventId}")
+        object EventCreationMenu : Screen("create-event")
 
     }
 }
