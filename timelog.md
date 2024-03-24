@@ -24,3 +24,4 @@
 | 2024/03/13 | 0 | 2 | 0 | 2 | 0 | 0 | Backend setup for Firebase/Firestore + planning session for routing/auth |
 | 2024/03/22 | 2 | 2 | 2 | 2 | 0 | 2 | Online Meeting - D4: Architecture Style Diagrams & Explanations |
 | 2024/03/22 | 2 | 0 | 2 | 0 | 0 | 0 | Deliverable 4 Content |
+| 2024/03/23 | 3 | 0 | 0 | 0 | 0 | 0 | Business card templates and creation |
