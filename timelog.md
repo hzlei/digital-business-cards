@@ -25,3 +25,4 @@
 | 2024/03/22 | 2 | 2 | 2 | 2 | 0 | 2 | Online Meeting - D4: Architecture Style Diagrams & Explanations |
 | 2024/03/22 | 2 | 0 | 2 | 0 | 0 | 0 | Deliverable 4 Content |
 | 2024/03/23 | 3 | 0 | 0 | 0 | 0 | 0 | Business card templates and creation |
+| 2024/03/24 | 0 | 6 | 0 | 0 | 0 | 0 | Event UI - created events list & menu screen, create events screen + event model + event view model + routing & data passing (and debugging for it) |
