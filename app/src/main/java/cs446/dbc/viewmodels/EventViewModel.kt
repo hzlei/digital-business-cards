@@ -14,7 +14,7 @@ class EventViewModel @Inject constructor(
 
     // TODO: How will we handle injection of saved preferences??
     val events = savedStateHandle.getStateFlow("events", mutableListOf<EventModel>())
-
+    val currEventViewId = savedStateHandle.getStateFlow("currEventViewId", "")
     // TODO: Do we need a separate remove card action when removing the card?
     fun performAction(action: EventAction) {
         when (action) {
