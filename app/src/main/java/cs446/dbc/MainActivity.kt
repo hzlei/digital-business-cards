@@ -240,6 +240,7 @@ class MainActivity : AppCompatActivity() {
                             navController,
                             appViewModel,
                             cardViewModel,
+                            eventViewModel,
                             snackBarHostState,
                             appContext
                         )
@@ -362,6 +363,10 @@ class MainActivity : AppCompatActivity() {
                                 arguments = listOf(navArgument("eventId") {}))
                             {
                                 val eventId = it.arguments?.getString("eventId")
+                                // TODO: Everytime we enter this screen, we need to ensure that
+                                //  we set eventId, and when we navigate away, the eventId
+                                //  is set back to ""
+
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
@@ -379,10 +384,12 @@ class MainActivity : AppCompatActivity() {
         navController: NavHostController,
         appViewModel: AppViewModel,
         cardViewModel: BusinessCardViewModel,
+        eventViewModel: EventViewModel,
         snackBarHostState: SnackbarHostState,
         context: Context
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
@@ -489,7 +496,8 @@ class MainActivity : AppCompatActivity() {
                             modifier = Modifier,
                             onClick = {
                                 // TODO: figure out how to get the eventId before we navigate
-                                navController.navigate(route = "create-event/")
+                                // ^ eventId is in the eventViewModel now... no need to worry
+                                navController.navigate(route = "create-event")
                             }
                         ) {
                             Icon(
