@@ -13,7 +13,9 @@ data class BusinessCardModel(
     var favorite: Boolean,
     val fields: MutableList<Field>,
     var template: TemplateType = TemplateType.DEFAULT,
-    val cardType: CardType = CardType.PERSONAL // TODO: figure out how card types will change during sharing
+    val cardType: CardType = CardType.PERSONAL, // TODO: figure out how card types will change during sharing
+    val eventId: String = "",
+    val eventUserId: String = ""
 ) : Parcelable
 
 @Parcelize
@@ -51,5 +53,6 @@ enum class TemplateType : Parcelable {
     TEMPLATE_1,
     TEMPLATE_2,
     TEMPLATE_3,
-    CUSTOM
+    CUSTOM,
+    EVENT_VIEW_TEMPLATE
 }

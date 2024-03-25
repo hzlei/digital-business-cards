@@ -9,14 +9,26 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flip
 import androidx.compose.material.icons.outlined.Share
@@ -24,10 +36,12 @@ import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -106,6 +121,22 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     }
                 }
 
+                TemplateType.EVENT_VIEW_TEMPLATE -> {
+                    front = {
+                        EventViewTemplate(
+                            background = MaterialTheme.colorScheme.surfaceTint,
+                            cardData = cardModel,
+                            isFront = true
+                        )
+                    }
+                    back = {
+                        EventViewTemplate(
+                            background = MaterialTheme.colorScheme.surfaceBright,
+                            cardData = cardModel,
+                            isFront = false
+                        )
+                    }
+                }
                 else -> {
                     front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
                     back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
@@ -120,11 +151,43 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
             )
 
         }
+        AnimatedVisibility(visible = selected && cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE && cardModel.fields.isNotEmpty(), modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
+            HorizontalDivider(thickness = 2.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .heightIn(0.dp, 60.dp)
+                    .padding(top = 4.dp, bottom = 4.dp)
+            ) {
+                // Card Fields
+                items(cardModel.fields) { field ->
+                    Row(
+                        modifier = Modifier
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                            .fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = field.name)
+                        VerticalDivider(thickness = 20.dp, color = Color.LightGray, modifier = Modifier.width(3.dp))
+                        Text(text = field.value)
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(visible = selected && cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE && cardModel.fields.isNotEmpty(), modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
+            HorizontalDivider(thickness = 2.dp)
+        }
+
         AnimatedVisibility(
             selected,
+            modifier = Modifier.fillMaxSize()
         ) {
+            // Business Card Toolbar
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TextButton(onClick = {
@@ -132,19 +195,49 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                 }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Flip, "Flip")
                 }
-                TextButton(onClick = { showDialogState = true }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Share, "Share")
+                AnimatedVisibility(
+                    visible = cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TextButton(
+                        onClick = { showDialogState = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Outlined.Share, "Share")
+                    }
                 }
-                TextButton(onClick = {
-                    onAction(BusinessCardAction.ToggleFavorite(cardModel.id))
-                }, modifier = Modifier.weight(1f)) {
-                    Icon(
-                        if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline,
-                        "Favorite"
-                    )
+                AnimatedVisibility(
+                    visible = cardModel.template == TemplateType.EVENT_VIEW_TEMPLATE,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TextButton(
+                        onClick = {
+                            // TODO: Send request to server for this card
+                            //   use the eventId and eventUserId within the card to locate it
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Outlined.Download, "Request")
+                    }
+                }
+                AnimatedVisibility(
+                    visible = cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TextButton(onClick = {
+                        onAction(BusinessCardAction.ToggleFavorite(cardModel.id))
+                    }, modifier = Modifier.weight(1f)) {
+                        Icon(
+                            if (cardModel.favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline,
+                            "Favorite"
+                        )
+                    }
                 }
                 // TODO: need to show fields
-                AnimatedVisibility(visible = cardModel.cardType == CardType.PERSONAL) {
+                AnimatedVisibility(
+                    visible = cardModel.cardType == CardType.PERSONAL,
+                    modifier = Modifier.weight(1f)
+                ) {
                     TextButton(onClick = {}, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.Edit, "Edit")
                     }

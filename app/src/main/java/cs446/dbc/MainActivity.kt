@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
@@ -268,19 +269,6 @@ class MainActivity : AppCompatActivity() {
                                 else it
                             } },
                         ) {
-                            composable(Screen.Home.route) {
-                                cardViewModel.performAction(
-                                    BusinessCardAction.UpdateCardContext(
-                                        CardType.SHARED
-                                    )
-                                )
-                                SharedCardsScreen(
-                                    appViewModel,
-                                    cardViewModel,
-                                    sharedCardsList,
-                                    appContext
-                                )
-                            }
                             composable(Screen.UserCards.route) {
                                 cardViewModel.performAction(
                                     BusinessCardAction.UpdateCardContext(
@@ -320,10 +308,39 @@ class MainActivity : AppCompatActivity() {
                                             front = "C",
                                             back = "D",
                                             favorite = true,
-                                            fields = mutableListOf(),
+                                            fields = mutableListOf(
+                                                Field(
+                                                    "Full Name",
+                                                    "Mary Doe",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Email",
+                                                    "mary@example.com",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Organization",
+                                                    "Test Org 2",
+                                                    FieldType.TEXT
+                                                )
+                                            ),
                                             cardType = CardType.PERSONAL
                                         ),
                                     ), appContext
+                                )
+                            }
+                            composable(Screen.Home.route) {
+                                cardViewModel.performAction(
+                                    BusinessCardAction.UpdateCardContext(
+                                        CardType.SHARED
+                                    )
+                                )
+                                SharedCardsScreen(
+                                    appViewModel,
+                                    cardViewModel,
+                                    sharedCardsList,
+                                    appContext
                                 )
                             }
                             composable(Screen.Settings.route) {
@@ -389,8 +406,8 @@ class MainActivity : AppCompatActivity() {
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
             actions = {
-                NavButton(Screen.Home, Icons.Outlined.People, "Saved Cards")
                 NavButton(Screen.UserCards, Icons.Outlined.Person, "My Cards")
+                NavButton(Screen.Home, Icons.Outlined.People, "Saved Cards")
                 NavButton(Screen.Events, Icons.Outlined.Event, "Events")
             },
             // TODO: Make sure to add parameters that we don't directly make (e.g. CardType)
@@ -452,14 +469,54 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = {
-                            // go to create event screen
-                            navController.navigate(route = "create-event")
+                            // TODO: Show dialog for what to do, host event or join event
+                            // host event will go to create event screen
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Add,
                             contentDescription = "Add Event"
                         )
+                    }
+                }
+                navBackStackEntry?.destination?.route?.let {
+                    AnimatedVisibility(
+                        visible = it.contains(Screen.EventMenu.route),
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut(),
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier,
+                            onClick = {
+                                // TODO: figure out how to get the eventId before we navigate
+                                navController.navigate(route = "create-event/")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Create,
+                                contentDescription = "Edit Event"
+                            )
+                        }
+                    }
+                }
+
+                navBackStackEntry?.destination?.route?.let {
+                    AnimatedVisibility(
+                        visible = it.contains(Screen.EventCreationMenu.route),
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut(),
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier,
+                            onClick = {
+                                // TODO: button should either create a new hosted event or update the existing one
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Create,
+                                contentDescription = "Create Event"
+                            )
+                        }
                     }
                 }
             }
@@ -469,8 +526,8 @@ class MainActivity : AppCompatActivity() {
     private fun order(route: String): Int {
         return when (route) {
             Screen.Settings.route -> 0
-            Screen.Home.route -> 1
-            Screen.UserCards.route -> 2
+            Screen.UserCards.route -> 1
+            Screen.Home.route -> 2
             Screen.Events.route -> 3
             else -> Int.MAX_VALUE
         }

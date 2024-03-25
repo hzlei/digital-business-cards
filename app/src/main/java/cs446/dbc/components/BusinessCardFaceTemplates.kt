@@ -43,3 +43,32 @@ fun Template1(background: Color, cardData: BusinessCardModel, isFront: Boolean) 
     }
 }
 
+@Composable
+fun EventViewTemplate(background: Color, cardData: BusinessCardModel, isFront: Boolean) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(5f / 3f) // maintain aspect ratio
+            .background(background)
+            .wrapContentSize(Alignment.Center)
+    ) {
+//        Text(text, fontSize = 30.sp)
+        val cardFieldMap = cardData.fields.associateBy({it.name}, {it.value})
+        val cardName = cardFieldMap.get("Full Name").toString()
+        val cardOrg = cardFieldMap.get("Organization").toString()
+        // TODO: Change to Industry or something (make it mandatory to have during card creation!)
+        //val cardEmail = cardFieldMap.get("Email").toString()
+        if (isFront) {
+            // front card layout
+            Column {
+                Text(cardName, fontSize = 30.sp)
+                Text(cardOrg, fontSize = 20.sp)
+                //Text(cardEmail, fontSize = 20.sp)
+            }
+        }
+        else {
+            // back card layout
+            Text(cardName, fontSize = 30.sp)
+        }
+    }
+}
+

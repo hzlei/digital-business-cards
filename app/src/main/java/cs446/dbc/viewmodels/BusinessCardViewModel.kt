@@ -1,5 +1,6 @@
 package cs446.dbc.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import cs446.dbc.models.BusinessCardModel
@@ -71,6 +72,11 @@ class BusinessCardViewModel @Inject constructor(
 
     private fun insertCard(action: BusinessCardAction.InsertCard) {
         val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value)
+        Log.d("INSERT ADD", currContext.value)
+        Log.d("INSERT ADD - Cards List", currCards.toString())
+        if (currCards != null) {
+            Log.d("INSERT ADD - Cards List Size", currCards.size.toString())
+        }
         currCards?.add(action.card)
         currCards?.sortWith(compareBy({ !it.favorite }, { it.front}))
         savedStateHandle[currContext.value] = currCards
