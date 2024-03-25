@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization") version "1.9.22"
+    id("kotlin-parcelize")
 }
 
 android {
@@ -40,6 +41,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
@@ -72,15 +74,17 @@ dependencies {
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     implementation("androidx.compose.material:material-icons-core:1.6.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
 
-    // For the flip animation
-    implementation("com.github.PratikFagadiya:JetpackCompose-Flippingview:1.0")
+    // State Management
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // For the QR Codes
     implementation("com.google.zxing:core:3.4.1")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    // For Hilt
+    implementation("com.google.dagger:hilt-android:2.40")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // To digest JSON data for the cards
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
