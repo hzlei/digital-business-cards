@@ -1,0 +1,34 @@
+meta {
+  name: Get Card
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{api_url}}/user/{{user}}/card/{{card}}
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "randomtestid",
+    "front": "djsklfjasl;dkfjkl;jk",
+    "back": "dsjkfl;ajskdfj;ksladjfl;",
+    "favorite": false,
+    "fields": [
+      {
+        "name": "First Name",
+        "value": "Bob",
+        "type": "TEXT"
+      }
+    ],
+    "cardType": "SHARED",
+    "template": "CUSTOM"
+  }
+}
+
+vars:pre-request {
+  user: DE711C9RXVnj9i1W5Gh3
+  card: randomtestid
+}

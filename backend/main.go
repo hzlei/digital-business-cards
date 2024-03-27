@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -18,10 +17,7 @@ import (
 	"google.golang.org/api/option"
 
 	handlers "github.com/dbc/handlers"
-)
-
-var (
-  Client *firestore.Client
+	middlewares "github.com/dbc/middlewares"
 )
 
 func main() {
@@ -41,31 +37,40 @@ func main() {
   // Initialize Firebase
   opt := option.WithCredentialsFile("serviceAccountKey.json")
   ctx := context.Background()
-  app, err := firebase.NewApp(ctx, nil, opt)
+  config := &firebase.Config{
+    StorageBucket: "digital-business-cards-573d8.appspot.com",
+  }
+  app, err := firebase.NewApp(ctx, config, opt)
   if err != nil {
     log.Err(err)
   }
 
-  Client, err := app.Firestore(ctx)
+  firestore, err := app.Firestore(ctx)
   if err != nil {
     log.Err(err)
   }
-  defer Client.Close()
+  defer firestore.Close()
+  log.Info().Msg("Firebase firestore client loaded successfully")
+  storage, err := app.Storage(ctx)
+  if err != nil {
+    log.Err(err)
+  }
+  log.Info().Msg("Firebase storage client loaded successfully")
 
   // Initialize Router
   router := mux.NewRouter()
 
   // Define API routes
+  router.HandleFunc("/api", handlers.Index).Methods("GET")
 
-  router.HandleFunc("/", handlers.IndexHandler).Methods("GET")
-
-  router.HandleFunc("/user", handlers.CreateUserIdHandler).Methods("POST")
+  router.HandleFunc("/api/user", handlers.CreateUserId).Methods("POST")
 
   // router.HandleFunc("/api/event", createEventHandler).Methods("POST")
   // router.HandleFunc("/api/event/{id}", eventHandler).Methods("GET", "PUT", "DELETE")
 
-  router.HandleFunc("/api/card", handlers.AddCardHandler).Methods("POST")
-  // router.HandleFunc("/api/card/{id}", cardHandler).Methods("GET", "PUT", "DELETE")
+  router.HandleFunc("/api/user/{user}/card", handlers.Card).Methods("POST", "PUT")
+  router.HandleFunc("/api/user/{user}/card/{card}", handlers.Card).Methods("GET", "DELETE")
+  router.HandleFunc("/api/user/{user}/card/{card}/upload", handlers.Card).Methods("POST")
 
   // router.HandleFunc("/api/sendRequest", createSendRequestHandler).Methods("POST")
   // router.HandleFunc("/api/sendRequest/{id}", sendRequestHandler).Methods("GET", "PUT", "DELETE")
@@ -74,8 +79,13 @@ func main() {
   // router.HandleFunc("/api/retrieveRequest/{id}", recieveRequestHandler).Methods("GET", "PUT", "DELETE")
 
   // Middleware
-  router.Use(loggingMiddleware)
-  router.Use(apiKeyAuthMiddleware)
+  router.Use(middlewares.Logging)
+  router.Use(middlewares.APIKey)
+  fwm := &middlewares.Firebase{
+    FirestoreClient: firestore,
+    StorageClient: storage,
+  }
+  router.Use(fwm.LoadContext)
 
   // Start the API server (with graceful shutdown)
   srv := &http.Server{
