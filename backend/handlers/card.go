@@ -1,26 +1,257 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/storage"
+	firebaseStorage "firebase.google.com/go/storage"
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 
 	models "github.com/dbc/models"
-	"github.com/rs/zerolog/log"
 )
 
+func Card(w http.ResponseWriter, r *http.Request) {
 
-type AddCardBody struct {
-  User string `json:"user"`
-  Card models.BusinessCard `json:"card"`
+	vars := mux.Vars(r)
+
+	userID, ok := vars["user"]
+	if !ok {
+		msg := "No user ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	cardID, ok := vars["card"]
+	if !ok && r.Method != "POST" {
+		msg := "No card ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	client := r.Context().Value("firestore").(*firestore.Client)
+
+	var err error
+	var dsnap *firestore.DocumentSnapshot
+
+	switch r.Method {
+	case "POST":
+		fallthrough
+	case "PUT":
+		var body models.BusinessCard
+		err = json.NewDecoder(r.Body).Decode(&body)
+		if err != nil {
+			break
+		}
+		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(body.Id).Set(r.Context(), body)
+
+	case "GET":
+		dsnap, err = client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Get(r.Context())
+
+	case "DELETE":
+		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Delete(r.Context())
+	}
+	if err != nil {
+		log.Err(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if r.Method == "GET" {
+		jsonData, err := json.Marshal(dsnap.Data())
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var card models.BusinessCard
+		err = json.Unmarshal(jsonData, &card)
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		str, err := json.Marshal(card)
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(str))
+	}
 }
 
-func AddCardHandler(w http.ResponseWriter, r *http.Request) {
-  var body AddCardBody
-  err := json.NewDecoder(r.Body).Decode(&body)
-  if err != nil {
-    log.Err(err)
-    http.Error(w, err.Error(), http.StatusBadRequest)
-  }
-  
-  Client.Collection("cards")
+// Takes in a user ID and card ID so that the corresponding card gets updated.
+func CardImage(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	userID, ok := vars["user"]
+	if !ok {
+		msg := "No user ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	cardID, ok := vars["card"]
+	if !ok && r.Method != "POST" {
+		msg := "No card ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	side, ok := vars["side"]
+	if !ok || (side != "front" && side != "back") {
+		msg := "No side (either \"front\" or \"back\") supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	err := r.ParseMultipartForm(4 << 20)
+	if err != nil {
+		log.Err(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	client := r.Context().Value("firestore").(*firestore.Client)
+
+	// Retrieve card
+	dsnap, err := client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Get(r.Context())
+	if err != nil {
+		log.Err(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	jsonData, err := json.Marshal(dsnap.Data())
+	if err != nil {
+		log.Err(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var card models.BusinessCard
+	if err = json.Unmarshal(jsonData, &card); err != nil {
+		log.Err(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	storageClient := r.Context().Value("storage").(*firebaseStorage.Client)
+
+	bucket, err := storageClient.DefaultBucket()
+
+	name := fmt.Sprintf("%s_%s", dsnap.Ref.Path, side)
+	name = strings.Replace(name, "/", "_", -1)
+
+	switch r.Method {
+	case "POST":
+
+		// Upload image
+		f, _, err := r.FormFile("image")
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer f.Close()
+
+		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+		defer cancel()
+
+		obj := bucket.Object(name)
+
+    // INFO: This can probably be removed. It is meant to make the object publically accessible.
+    // May not be needed because the GET Handler is exposed.
+		// acl := obj.ACL()
+		// if err := acl.Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		//   msg := "Failed to make storage object public"
+		//   log.Error().Msg(msg)
+		//   http.Error(w, msg, http.StatusInternalServerError)
+		// }
+
+		// Perform upload
+		wc := obj.NewWriter(ctx)
+		if _, err = io.Copy(wc, f); err != nil {
+			msg := "Failed to copy image to storage bucket"
+			log.Error().Msg(msg)
+			http.Error(w, msg, http.StatusInternalServerError)
+		}
+		if err := wc.Close(); err != nil {
+			msg := "Failed to close storage object writer."
+			log.Error().Msg(msg)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+		}
+		log.Info().Msg(fmt.Sprint("Finished uploading file:", name))
+
+		// Update card
+		switch side {
+		case "front":
+			card.Front = name
+		case "back":
+			card.Back = name
+		}
+		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Set(r.Context(), card)
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+	case "GET":
+		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+		defer cancel()
+
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rc, err := bucket.Object(name).NewReader(ctx)
+		if err == storage.ErrObjectNotExist {
+			msg := "Failed to find object."
+			log.Error().Msg(msg)
+			http.Error(w, msg, http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rc.Close()
+
+		data, err := ioutil.ReadAll(rc)
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = w.Write(data)
+		if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }
