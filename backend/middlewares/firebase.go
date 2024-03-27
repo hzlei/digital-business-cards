@@ -16,7 +16,7 @@ type Firebase struct {
 func (f *Firebase) LoadContext(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     ctx := context.WithValue(r.Context(), "firestore", f.FirestoreClient)
-    ctx = context.WithValue(r.Context(), "storage", f.StorageClient)
+    ctx = context.WithValue(ctx, "storage", f.StorageClient)
     r = r.WithContext(ctx)
     next.ServeHTTP(w, r)
   })

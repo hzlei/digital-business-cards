@@ -122,7 +122,7 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(4 << 20)
+	err := r.ParseMultipartForm(5 << 20)
 	if err != nil {
 		log.Err(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
