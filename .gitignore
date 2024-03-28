@@ -13,3 +13,4 @@ local.properties
 .envrc
 .env
 serviceAccountKey.json
+/backend/dbc
