@@ -27,4 +27,5 @@
 | 2024/03/23 | 3 | 0 | 0 | 0 | 0 | 0 | Business card templates and creation |
 | 2024/03/24 | 0 | 6 | 0 | 0 | 0 | 0 | Event UI - created events list & menu screen, create events screen + event model + event view model + routing & data passing (and debugging for it) |
 | 2024/03/25 | 0 | 4 | 0 | 0 | 0 | 0 | Created mock event data, reworked Business Card to incorporate events (debugging issues with displaying field data), created event card template, populated event menu screen, reworked view models and card models |
-| 2024/03/26 | 0 | 2 | 0 | 0 | 0 | 0 | Modified state handling to fix render issue with business card and events lists not being updated visually |
+| 2024/03/26 | 0 | 2 | 0 | 0 | 0 | 0 | Modified state handling to fix render issue with the business cards and events lists not being updated visually |
+| 2024/03/27 | 0 | 7 | 0 | 0 | 0 | 0 | Created events creation page (form data + date picker dialog + some issues attaching an interaction source to other composables like textfield), fixed duplication issues with the new state handling changes from yesterday, some QOL (for development) improvements as well with code structuring |
