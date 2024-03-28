@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -240,7 +239,7 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 		}
 		defer rc.Close()
 
-		data, err := ioutil.ReadAll(rc)
+		data, err := io.ReadAll(rc)
 		if err != nil {
 			log.Err(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
