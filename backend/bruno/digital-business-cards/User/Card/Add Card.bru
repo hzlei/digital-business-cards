@@ -1,11 +1,11 @@
 meta {
-  name: Replace Card
+  name: Add Card
   type: http
-  seq: 4
+  seq: 1
 }
 
-put {
-  url: {{api_url}}/user/{{user}}/card/{{card}}
+post {
+  url: {{api_url}}/user/{{user}}/card
   body: json
   auth: none
 }
@@ -16,19 +16,12 @@ body:json {
     "front": "djsklfjasl;dkfjkl;jk",
     "back": "dsjkfl;ajskdfj;ksladjfl;",
     "favorite": false,
-    "fields": [
-      {
-        "name": "First Name",
-        "value": "Bob",
-        "type": "TEXT"
-      }
-    ],
-    "cardType": "SHARED",
+    "fields": [],
+    "cardType": "PERSONAL",
     "template": "CUSTOM"
   }
 }
 
 vars:pre-request {
   user: DE711C9RXVnj9i1W5Gh3
-  card: randomtestid
 }

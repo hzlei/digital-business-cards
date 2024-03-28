@@ -1,12 +1,12 @@
 meta {
-  name: Get Card
+  name: Replace Card
   type: http
-  seq: 5
+  seq: 2
 }
 
-get {
+put {
   url: {{api_url}}/user/{{user}}/card/{{card}}
-  body: none
+  body: json
   auth: none
 }
 
