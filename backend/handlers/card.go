@@ -121,13 +121,6 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(5 << 20)
-	if err != nil {
-		log.Err(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	client := r.Context().Value("firestore").(*firestore.Client)
 
 	// Retrieve card
@@ -161,8 +154,16 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "POST":
+    // Set max size
+    var max_size_mb int64 = 32
+    err := r.ParseMultipartForm(max_size_mb << 20)
+    if err != nil {
+      log.Err(err)
+      http.Error(w, err.Error(), http.StatusBadRequest)
+      return
+    }
 
-		// Upload image
+		// Get image
 		f, _, err := r.FormFile("image")
 		if err != nil {
 			log.Err(err)
@@ -177,15 +178,6 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 
 		obj := bucket.Object(name)
 
-    // INFO: This can probably be removed. It is meant to make the object publically accessible.
-    // May not be needed because the GET Handler is exposed.
-		// acl := obj.ACL()
-		// if err := acl.Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-		//   msg := "Failed to make storage object public"
-		//   log.Error().Msg(msg)
-		//   http.Error(w, msg, http.StatusInternalServerError)
-		// }
-
 		// Perform upload
 		wc := obj.NewWriter(ctx)
 		if _, err = io.Copy(wc, f); err != nil {
@@ -199,7 +191,7 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
-		log.Info().Msg(fmt.Sprint("Finished uploading file:", name))
+		log.Info().Msg(fmt.Sprint("Finished uploading file: ", name))
 
 		// Update card
 		switch side {
@@ -214,6 +206,16 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+    // Return it back
+    str, err := json.Marshal(card)
+    if err != nil {
+			log.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(str)
 
 	case "GET":
 		ctx := context.Background()
