@@ -52,10 +52,25 @@ func Card(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			break
 		}
-		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(body.Id).Set(r.Context(), body)
+		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(body.ID).Set(r.Context(), body)
 
 	case "GET":
 		dsnap, err = client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Get(r.Context())
+		if err != nil { break }
+
+		jsonData, err := json.Marshal(dsnap.Data())
+		if err != nil { break }
+
+		var card models.BusinessCard
+		err = json.Unmarshal(jsonData, &card)
+		if err != nil { break }
+
+		resp, err := json.Marshal(card)
+		if err != nil { break }
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(resp)
+    return
 
 	case "DELETE":
 		_, err = client.Collection("users").Doc(userID).Collection("cards").Doc(cardID).Delete(r.Context())
@@ -63,32 +78,7 @@ func Card(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if r.Method == "GET" {
-		jsonData, err := json.Marshal(dsnap.Data())
-		if err != nil {
-			log.Err(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		var card models.BusinessCard
-		err = json.Unmarshal(jsonData, &card)
-		if err != nil {
-			log.Err(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		str, err := json.Marshal(card)
-		if err != nil {
-			log.Err(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(str))
+    return
 	}
 }
 

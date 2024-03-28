@@ -1,7 +1,7 @@
 package models
 
 type BusinessCard struct {
-   Id string `json:"id"`
+   ID string `json:"id"`
    Front string `json:"front"`
    Back string `json:"back"`
    Favorite bool `json:"favorite"`
