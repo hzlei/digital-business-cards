@@ -71,7 +71,7 @@ func main() {
 
   router.HandleFunc("/api/user/{user}/card", handlers.Card).Methods("POST", "PUT")
   router.HandleFunc("/api/user/{user}/card/{card}", handlers.Card).Methods("GET", "DELETE")
-  router.HandleFunc("/api/user/{user}/card/{card}/image/{side}", handlers.Card).Methods("POST", "GET")
+  router.HandleFunc("/api/user/{user}/card/{card}/image/{side}", handlers.CardImage).Methods("POST", "GET")
 
   // router.HandleFunc("/api/sendRequest", createSendRequestHandler).Methods("POST")
   // router.HandleFunc("/api/sendRequest/{id}", sendRequestHandler).Methods("GET", "PUT", "DELETE")
