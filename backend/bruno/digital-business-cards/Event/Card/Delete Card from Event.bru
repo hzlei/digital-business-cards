@@ -1,0 +1,28 @@
+meta {
+  name: Delete Card from Event
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{api_url}}/event/{{event}}/card/{{card}}
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "randomtestid",
+    "front": "djsklfjasl;dkfjkl;jk",
+    "back": "dsjkfl;ajskdfj;ksladjfl;",
+    "favorite": false,
+    "fields": [],
+    "cardType": "PERSONAL",
+    "template": "CUSTOM"
+  }
+}
+
+vars:pre-request {
+  event: aaaaaaaa
+  card: 
+}

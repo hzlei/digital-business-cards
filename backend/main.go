@@ -66,18 +66,15 @@ func main() {
   router.HandleFunc("/api/user", handlers.CreateUserId).Methods("POST")
   router.HandleFunc("/api/user/{user}", handlers.CreateUserId).Methods("GET", "DELETE")
 
-  // router.HandleFunc("/api/event", createEventHandler).Methods("POST")
-  // router.HandleFunc("/api/event/{id}", eventHandler).Methods("GET", "PUT", "DELETE")
+  router.HandleFunc("/api/event", handlers.Event).Methods("POST", "PUT")
+  router.HandleFunc("/api/event/{event}", handlers.Event).Methods("GET", "DELETE")
+  router.HandleFunc("/api/event/{event}/exists", handlers.EventExists).Methods("GET")
+  router.HandleFunc("/api/event/{event}/card", handlers.EventCards).Methods("POST", "PUT", "GET")
+  router.HandleFunc("/api/event/{event}/card/{card}", handlers.EventCards).Methods("DELETE")
 
   router.HandleFunc("/api/user/{user}/card", handlers.Card).Methods("POST", "PUT")
   router.HandleFunc("/api/user/{user}/card/{card}", handlers.Card).Methods("GET", "DELETE")
   router.HandleFunc("/api/user/{user}/card/{card}/image/{side}", handlers.CardImage).Methods("POST", "GET")
-
-  // router.HandleFunc("/api/sendRequest", createSendRequestHandler).Methods("POST")
-  // router.HandleFunc("/api/sendRequest/{id}", sendRequestHandler).Methods("GET", "PUT", "DELETE")
-  //
-  // router.HandleFunc("/api/retrieveRequest", recieveRequestHandler).Methods("POST")
-  // router.HandleFunc("/api/retrieveRequest/{id}", recieveRequestHandler).Methods("GET", "PUT", "DELETE")
 
   // Middleware
   router.Use(middlewares.Logging)

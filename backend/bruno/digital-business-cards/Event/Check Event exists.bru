@@ -1,0 +1,23 @@
+meta {
+  name: Check Event exists
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{api_url}}/event/{{event}}/exists
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "sdfkjga",
+    "location": "Brampton ON",
+    "maxUsers": 20
+  }
+}
+
+vars:pre-request {
+  event: aaaaaaaa
+}
