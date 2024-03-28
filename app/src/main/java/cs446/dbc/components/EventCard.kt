@@ -1,22 +1,38 @@
 package cs446.dbc.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Flip
+import androidx.compose.material.icons.outlined.Login
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +46,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cs446.dbc.models.EventModel
+import cs446.dbc.models.TemplateType
+import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.EventAction
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAction: () -> Unit) {
@@ -66,11 +87,12 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
             .graphicsLayer { clip = false },
         colors = CardDefaults.cardColors(containerColor = backgroundColor.value),
         shape = if (selected) CardDefaults.shape else RectangleShape,
-        onClick = onClickAction
+        onClick = toggleSelected
     ) {
-        Box(modifier = Modifier
+        Card(modifier = Modifier
             .padding(animatedPadding)
-            .graphicsLayer { clip = false }
+            .graphicsLayer { clip = false },
+            shape = RoundedCornerShape(8.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -82,10 +104,41 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                     Text(eventModel.name, fontSize = 30.sp)
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(eventModel.location, fontSize = 30.sp)
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text("Starts ${Date(eventModel.startDate.toLong()).toFormattedString()}", fontSize = 30.sp)
+                    Text("Ends ${Date(eventModel.endDate.toLong()).toFormattedString()}", fontSize = 30.sp)
                 }
-
+            }
+        }
+        AnimatedVisibility(
+            selected,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Business Card Toolbar
+            Row(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(
+                    onClick = { onAction(EventAction.RemoveEvent(eventModel)) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Outlined.Delete, "Delete", tint = Color.Red)
+                }
+                TextButton(
+                    onClick = onClickAction,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.AutoMirrored.Outlined.Login, "Enter")
+                }
             }
         }
     }
+}
 
+fun Date.toFormattedString(): String {
+    val simpleDateFormat = SimpleDateFormat("LLLL dd, yyyy", Locale.getDefault())
+    return simpleDateFormat.format(this)
 }

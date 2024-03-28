@@ -74,7 +74,7 @@ class AppViewModel @Inject constructor(
             add(card)
         }
         // Save updated list back to state handle
-        savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = updatedList
+        savedStateHandle[if (cardType == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext] = updatedList
         // Persist card to local storage
         saveCardToLocalStorage(card, context, directoryName)
     }
@@ -110,11 +110,11 @@ class AppViewModel @Inject constructor(
                     }
                 }.toMutableList()
 
-                savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
+                savedStateHandle[if (cardType == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext] = loadedCards
             }
         }
         savedStateHandle[if (cardType == CardType.PERSONAL) loadedMyCardsKey else loadedSavedCardsKey] = true
-        return savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"]!!
+        return savedStateHandle[if (cardType == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext]!!
     }
 
     fun updateLoadedMyCards(hasLoaded: Boolean) {

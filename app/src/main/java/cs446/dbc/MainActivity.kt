@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +67,7 @@ import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.EventModel
+import cs446.dbc.models.EventType
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
@@ -78,6 +80,7 @@ import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
 import cs446.dbc.views.EventMenuScreen
+import kotlinx.coroutines.flow.filterNot
 import java.util.UUID
 import kotlin.math.log
 
@@ -112,6 +115,7 @@ class MainActivity : AppCompatActivity() {
         val navController = rememberNavController()
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
+        val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
@@ -370,7 +374,7 @@ class MainActivity : AppCompatActivity() {
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
-                                CreateEventScreen(eventViewModel, appViewModel, appContext, navController)
+                                CreateEventScreen(eventViewModel, appViewModel, appContext, navController, currEventViewId)
                             }
                         }
                     }
@@ -390,6 +394,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val events by eventViewModel.events.collectAsStateWithLifecycle()
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
@@ -488,15 +493,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 navBackStackEntry?.destination?.route?.let {
                     AnimatedVisibility(
-                        visible = it.contains(Screen.EventMenu.route),
+                        visible = it.contains(Screen.EventMenu.route) &&
+                            events.find { event -> event.id == currEventViewId }?.eventType == EventType.HOSTED,
                         enter = fadeIn() + scaleIn(),
                         exit = fadeOut() + scaleOut(),
                     ) {
                         FloatingActionButton(
                             modifier = Modifier,
                             onClick = {
-                                // TODO: figure out how to get the eventId before we navigate
-                                // ^ eventId is in the eventViewModel now... no need to worry
                                 navController.navigate(route = "create-event")
                             }
                         ) {
@@ -518,10 +522,11 @@ class MainActivity : AppCompatActivity() {
                             modifier = Modifier,
                             onClick = {
                                 // TODO: button should either create a new hosted event or update the existing one
+                                //  Get eventId from server and add it here
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Create,
+                                imageVector = Icons.Outlined.Save,
                                 contentDescription = "Create Event"
                             )
                         }

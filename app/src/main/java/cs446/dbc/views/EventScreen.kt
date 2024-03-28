@@ -11,9 +11,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +27,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import cs446.dbc.components.EventCard
+import cs446.dbc.models.EventModel
 import cs446.dbc.models.EventType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.EventAction
@@ -31,9 +38,17 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
 
     appViewModel.updateScreenTitle("Events")
     val events by eventViewModel.events.collectAsStateWithLifecycle()
+    val composeEvents = remember {
+        mutableStateListOf<EventModel>()
+    }
+
+    eventViewModel.changeEventSnapshotList(composeEvents)
+    // reset event id to ensure we don't keep a stale state
+    eventViewModel.changeCurrEventViewId(null)
+
 //    val loadedEvents by appViewModel.loadedEvents.collectAsStateWithLifecycle()
 
-    // First load the events
+    // TODO: First load the events
 //    LaunchedEffect(key1 = "load_events") {
 //        if (!loadedEvents) {
 //            // TODO: Convert into loading events from storage
@@ -43,16 +58,16 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
 //        }
 //    }
 
-    LaunchedEffect(key1 = "joined_event_examples") {
+    LaunchedEffect(key1 = "event_examples") {
         if (events.isEmpty()) {
-            for (i in 0..5) {
+            for (i in 0..2) {
                 eventViewModel.performAction(EventAction.PopulateEvent(
                     name = "Joined E$i",
                     location = "Toronto - $i",
                     eventType = EventType.JOINED
                 ))
             }
-            for (i in 0..5) {
+            for (i in 0..2) {
                 eventViewModel.performAction(EventAction.PopulateEvent(
                     name = "Hosted E$i",
                     location = "Toronto - $i",
@@ -63,6 +78,10 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
         }
     }
 
+    if (composeEvents.isEmpty()) {
+        composeEvents.addAll(events)
+    }
+
     LazyColumn (
         modifier = Modifier
             .padding(16.dp)
@@ -71,6 +90,7 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
         items(events) { event ->
             Box(modifier = Modifier.fillMaxWidth()) {
                 EventCard(event, eventViewModel::performAction, onClickAction = {
+                    eventViewModel.changeCurrEventViewId(event.id)
                     // TODO: Change this to allow for API <= Ver 32
                     navController.navigate(route = "event-menu/${event.id}"
                     )}

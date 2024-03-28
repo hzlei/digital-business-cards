@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,11 +33,15 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     appViewModel.updateScreenTitle("Shared Cards")
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
+    val composeCards = remember {
+        mutableStateListOf<BusinessCardModel>()
+    }
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
+
 
     // First load the cards
     LaunchedEffect(key1 = "load_cards") {
@@ -50,11 +56,13 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     LaunchedEffect(key1 = Unit) {
         if (sharedCards.isEmpty()) {
             origCardList.forEach { card ->
-                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+//                appViewModel.addCard(card, appContext, "businessCards", CardType.SHARED)
                 sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
             }
         }
     }
+
+    sharedCardViewModel.businssCardSnapshotList = composeCards
 
     LaunchedEffect(key1 = "load_examples") {
         if (sharedCards.size < 1) {
@@ -72,12 +80,16 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
         }
     }
 
+    if (composeCards.isEmpty()) {
+        composeCards.addAll(sharedCards)
+    }
+
     LazyColumn(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        items(sharedCards) { card ->
+        items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
                 BusinessCard(card, sharedCardViewModel::performAction)
             }

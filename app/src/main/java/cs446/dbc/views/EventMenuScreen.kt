@@ -44,6 +44,8 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
         navController.popBackStack()
     }
     appViewModel.updateScreenTitle("Event: ${currEvent?.name}")
+    // Set event id for current event in view model
+    eventViewModel.changeCurrEventViewId(currEvent?.id!!)
 
     val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
         BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)

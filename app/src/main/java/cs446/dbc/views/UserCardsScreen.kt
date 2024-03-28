@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,12 +30,19 @@ import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import androidx.compose.ui.platform.LocalContext
+import cs446.dbc.models.EventModel
 
 @Composable
 fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
     appViewModel.updateScreenTitle("My Cards")
     val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
+
+    val composeCards = remember {
+        mutableStateListOf<BusinessCardModel>()
+    }
+
+    myCardViewModel.businssCardSnapshotList = composeCards
 
     LaunchedEffect(key1 = "load_cards") {
         if (!loadedMyCards) {
@@ -48,13 +57,19 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
         and do so while switching context to another screen (so we can't just check if the
         businessCards list is empty)
      */
-    LaunchedEffect(key1 = Unit) {
-        if (cards.isEmpty()) {
-            origCardList.forEach { card ->
-                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
-                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
-            }
-        }
+
+
+//    LaunchedEffect(key1 = Unit) {
+//        if (cards.isEmpty()) {
+//            origCardList.forEach { card ->
+//                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+//                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+//            }
+//        }
+//    }
+
+    if (composeCards.isEmpty()) {
+        composeCards.addAll(cards)
     }
 
     LazyColumn(
@@ -62,7 +77,7 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        items(cards) { card ->
+        items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
                 BusinessCard(card, myCardViewModel::performAction)
             }
