@@ -124,28 +124,11 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                         )
                     }
                 }
-
-                TemplateType.EVENT_VIEW_TEMPLATE -> {
-                    front = {
-                        EventViewTemplate(
-                            background = MaterialTheme.colorScheme.surfaceTint,
-                            cardData = cardModel,
-                            isFront = true
-                        )
-                    }
-                    back = {
-                        EventViewTemplate(
-                            background = MaterialTheme.colorScheme.surfaceBright,
-                            cardData = cardModel,
-                            isFront = false
-                        )
-                    }
-                }
+                // TODO: add the other templates
                 else -> {
                     front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
                     back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
                 }
-
             }
             FlipCard(
                 cardFace = cardFace,
@@ -155,7 +138,8 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
             )
 
         }
-        AnimatedVisibility(visible = selected && cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE && cardModel.fields.isNotEmpty(), modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
+        AnimatedVisibility(visible = selected && cardModel.fields.isNotEmpty(),
+            modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
             HorizontalDivider(thickness = 2.dp)
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn(
@@ -173,13 +157,15 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(text = field.name)
-                        VerticalDivider(thickness = 20.dp, color = Color.LightGray, modifier = Modifier.width(3.dp))
+                        VerticalDivider(thickness = 20.dp, color = Color.LightGray,
+                            modifier = Modifier.width(3.dp))
                         Text(text = field.value)
                     }
                 }
             }
         }
-        AnimatedVisibility(visible = selected && cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE && cardModel.fields.isNotEmpty(), modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
+        AnimatedVisibility(visible = selected && cardModel.fields.isNotEmpty(),
+            modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
             HorizontalDivider(thickness = 2.dp)
         }
 
@@ -194,7 +180,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AnimatedVisibility(visible = cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE) {
+                AnimatedVisibility(visible = cardModel.cardType != CardType.EVENT_VIEW) {
                     TextButton(
                         onClick = { showDeleteDialogState = true },
                         modifier = Modifier.weight(1f)
@@ -208,7 +194,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     Icon(Icons.Outlined.Flip, "Flip")
                 }
                 AnimatedVisibility(
-                    visible = cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE,
+                    visible = cardModel.cardType != CardType.EVENT_VIEW,
                     modifier = Modifier.weight(1f)
                 ) {
                     TextButton(
@@ -219,7 +205,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     }
                 }
                 AnimatedVisibility(
-                    visible = cardModel.template == TemplateType.EVENT_VIEW_TEMPLATE,
+                    visible = cardModel.cardType == CardType.EVENT_VIEW,
                     modifier = Modifier.weight(1f)
                 ) {
                     TextButton(
@@ -233,7 +219,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
                     }
                 }
                 AnimatedVisibility(
-                    visible = cardModel.template != TemplateType.EVENT_VIEW_TEMPLATE,
+                    visible = cardModel.cardType != CardType.EVENT_VIEW,
                     modifier = Modifier.weight(1f)
                 ) {
                     TextButton(onClick = {

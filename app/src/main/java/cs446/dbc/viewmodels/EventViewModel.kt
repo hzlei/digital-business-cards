@@ -1,6 +1,5 @@
 package cs446.dbc.viewmodels
 
-import android.media.metrics.Event
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -30,7 +29,7 @@ class EventViewModel @Inject constructor(
             is EventAction.InsertEvent -> insertEvent(action)
             is EventAction.InsertEvents -> TODO()
             is EventAction.RemoveEvent -> removeEvent(action)
-            is EventAction.UpdateEvent -> TODO()
+            is EventAction.UpdateEvent -> updateEvent(action)
             is EventAction.SortEvents -> sortEvents(action.compareBy)
             else -> TODO() // not actually, this is just to shut up the error
         }
@@ -63,20 +62,31 @@ class EventViewModel @Inject constructor(
         // TODO: retrieve event id from server
         // TODO: update event id in event
         val event = action.event
-        val events = savedStateHandle.get<MutableList<EventModel>>("events")
-        events?.add(event)
-        savedStateHandle["events"] = events
+        val eventList = savedStateHandle.get<MutableList<EventModel>>("events")
+        eventList?.add(event)
+        savedStateHandle["events"] = eventList
         eventSnapshotList?.add(event)
+        sortEvents()
+    }
+
+    private fun updateEvent(action: EventAction.UpdateEvent) {
+        val eventList = savedStateHandle.get<MutableList<EventModel>>("events")!!
+        eventList.removeIf {
+            it.id == action.currEventId
+        }
+        eventList.add(action.updatedEvent)
+        savedStateHandle["events"] = eventList
+        eventSnapshotList?.add(action.updatedEvent)
         sortEvents()
     }
 
     private fun removeEvent(action: EventAction.RemoveEvent) {
         val event = action.event
         // TODO: Remove event locally
-        val events = savedStateHandle.get<MutableList<EventModel>>("events")
-        events?.removeIf { it.id == event.id }
+        val eventList = savedStateHandle.get<MutableList<EventModel>>("events")
+        eventList?.removeIf { it.id == event.id }
         eventSnapshotList?.removeIf(Predicate { it -> it.id == event.id })
-        savedStateHandle["events"] = events
+        savedStateHandle["events"] = eventList
         // TODO: Delete from local storage as well
 
         // TODO: Remove user from event if event is joined
@@ -86,10 +96,12 @@ class EventViewModel @Inject constructor(
 
     }
 
-    private fun sortEvents(comparator: Comparator<EventModel> = compareBy<EventModel> { it.eventType }) {
-        val events = savedStateHandle.get<MutableList<EventModel>>("events")
-        events?.sortWith( comparator )
-        savedStateHandle["events"] = events
+    private fun sortEvents(comparator: Comparator<EventModel> = compareBy<EventModel> (
+        { it.eventType }, { it.startDate.toLong() }, { it.endDate.toLong() })
+    ) {
+        val eventList = savedStateHandle.get<MutableList<EventModel>>("events")
+        eventList?.sortWith( comparator )
+        savedStateHandle["events"] = eventList
         eventSnapshotList?.sortWith(comparator)
     }
 

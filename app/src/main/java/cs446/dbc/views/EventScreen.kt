@@ -36,7 +36,10 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
 
     eventViewModel.changeEventSnapshotList(composeEvents)
     // reset event id to ensure we don't keep a stale state
-    eventViewModel.changeCurrEventViewId(null)
+
+    LaunchedEffect(key1 = "SetCurrEventViewId") {
+        eventViewModel.changeCurrEventViewId("")
+    }
 
 //    val loadedEvents by appViewModel.loadedEvents.collectAsStateWithLifecycle()
 

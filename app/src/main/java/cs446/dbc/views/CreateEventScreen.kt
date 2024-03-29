@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
 import android.widget.DatePicker
+import androidx.appcompat.app.ActionBarDrawerToggle.Delegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -52,9 +53,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cs446.dbc.R
+import cs446.dbc.components.toFormattedString
+import cs446.dbc.models.EventModel
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventViewModel
+import org.jetbrains.annotations.Async.Schedule
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -66,21 +70,22 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String? = null) {
+fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String = "") {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
+    val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
 
     // TODO: ensure eventId gets set back to null afterwards
     //  even if the user leaves the page and doesn't save their changes
-    appViewModel.updateScreenTitle("${if (eventId != null) "Edit" else "Create"} Event${if (eventId != null) ": " + events.find { it.id == eventId }?.name else ""}")
+    // TODO: There seems to be an issue where after we get back to the events screen
+    //  then come back here, our data is messed up, and it seems we go back to the eventMenu or EventScreen for some reason
+    //  and rerun the code to clear our current view....
+    appViewModel.updateScreenTitle("${if (eventId != "") "Edit" else "Create"} Event${if (eventId != "") ": " + events.find { it.id == eventId }?.name else ""}")
 
     var name by remember {
         mutableStateOf(TextFieldValue(""))
     }
     var location by remember {
         mutableStateOf(TextFieldValue(""))
-    }
-    var numUsers by remember {
-        mutableIntStateOf(0)
     }
     val defaultMaxUsers = 1000
     var maxUsers by remember {
@@ -90,54 +95,36 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
         mutableStateOf(false)
     }
     var startDate by rememberSaveable {
-        mutableLongStateOf(Date().time)
+        mutableLongStateOf(if (eventId != "") events.find {
+            it.id == eventId }!!.startDate.toLong() else Date().time)
     }
     val threeDays: Long = 1000 * 60 * 60 * 24 * 3
     var endDate by rememberSaveable {
-        mutableLongStateOf(Date().time + threeDays)
+        mutableLongStateOf(if (eventId != "") events.find {
+            it.id == eventId }!!.endDate.toLong() else Date().time + threeDays)
     }
 
-    LaunchedEffect (key1 = "observeNameChange", name){
-       createEditViewModel.createEditEvent.value.name = name.text
-    }
-    LaunchedEffect (key1 = "observeLocationChange", location){
-        createEditViewModel.createEditEvent.value.location = location.text
-    }
-    LaunchedEffect (key1 = "observeNumUsersChange", numUsers){
-        createEditViewModel.createEditEvent.value.numUsers = numUsers
-    }
-    LaunchedEffect (key1 = "observeMaxUsersChange", maxUsers){
-        createEditViewModel.createEditEvent.value.maxUsers = maxUsers
-    }
-    LaunchedEffect (key1 = "observeMaxUsersSetChange", maxUsersSet){
-        if (maxUsersSet) {
-            createEditViewModel.createEditEvent.value.maxUsersSet = true
-        }
-    }
-    LaunchedEffect (key1 = "observeStartDateChange", startDate){
-        createEditViewModel.createEditEvent.value.startDate = Date(startDate).time.toString()
-        //Log.d("start date", startDate.toString())
-    }
-    LaunchedEffect (key1 = "observeEndDateChange", endDate){
-        createEditViewModel.createEditEvent.value.endDate = Date(endDate).time.toString()
-    }
-
-    //val dateFormat = SimpleDateFormat(, Locale.getDefault())
-
-    // TODO: Technically the FAB should be deciding this, right...
     LaunchedEffect(key1 = "event_examples") {
-        if (eventId != null) {
-            // TODO: create a new event
+        if (eventId != "") {
             // TODO: send cards to event (pick which ones?)
-            // TODO: Allow cards to be autoshared
+
             val currEvent = events.find { it.id == eventId }!!
+            createEditEvent.id = eventId
+            createEditEvent.name = currEvent.name
+            createEditEvent.location = currEvent.location
+            createEditEvent.startDate = currEvent.startDate
+            createEditEvent.endDate = currEvent.endDate
+            createEditEvent.numUsers = currEvent.numUsers
+            createEditEvent.maxUsers = currEvent.maxUsers
+            createEditEvent.maxUsersSet = currEvent.maxUsersSet
+            createEditEvent.eventType = currEvent.eventType
+
             name = TextFieldValue(currEvent.name)
             location = TextFieldValue(currEvent.location)
-            numUsers = currEvent.numUsers
+            startDate = currEvent.startDate.toLong()
+            endDate = currEvent.endDate.toLong()
             maxUsers = currEvent.maxUsers
-            startDate = Date(currEvent.startDate.toLong()).time
-            endDate = Date(currEvent.endDate.toLong()).time
-            // TODO: Add in the dates
+            maxUsersSet = currEvent.maxUsersSet
         }
     }
 
@@ -152,16 +139,20 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(text = "Event Name") },
+            OutlinedTextField(value = name, onValueChange = {
+                    name = it
+                    createEditEvent.name = name.text
+                }, label = { Text(text = "Event Name") },
                 placeholder = {
                 Text(text = "e.g. Deep Learning Summit")
             }, modifier = Modifier.fillMaxSize())
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text(text = "Event Location") },
+            OutlinedTextField(value = location, onValueChange = {
+                    location = it
+                    createEditEvent.location = location.text
+                }, label = { Text(text = "Event Location") },
                 placeholder = {
                     Text(text = "e.g. Toronto, Ontario")
             }, modifier = Modifier.fillMaxSize())
@@ -171,12 +162,15 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             // TODO: Don't allow end date to be longer than 3 days from start date
             DateTextField("Start Date", Date(startDate)) {
                 startDate = it
-                Log.d("startdate changed", startDate.toString())
+                createEditEvent.startDate = startDate.toString()
             }
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            DateTextField("End Date", Date(endDate)) { endDate = it }
+            DateTextField("End Date", Date(endDate)) {
+                endDate = it
+                createEditEvent.endDate = endDate.toString()
+            }
 
             Spacer(modifier = Modifier.padding(4.dp))
 
@@ -185,48 +179,33 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
                 maxUsers = if ((it.toIntOrNull() ?: 0) < 1) 1
                 else it.toIntOrNull() ?: defaultMaxUsers
                 maxUsersSet = maxUsers != defaultMaxUsers
+                createEditEvent.maxUsers = maxUsers
+                createEditEvent.maxUsersSet = maxUsersSet
                },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                 label = { Text(text = "Max Number of Participants")})
+
+            // TODO: allow user to pick which cards to be sent to the event (can only be done
+            //  the first time an event is created, after which the box goes away
+            //  can maybe make a component with checkboxes, and have those correspond to the id's to be sent
         }
     }
-
-    // TODO: now we need to put all of this information into somewhere so the save button can work!!!
 }
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalMaterial3Api
 @Composable
 fun DateTextField(textFieldLabel: String, currDate: Date, date: (Long) -> Unit) {
-    val source = remember { MutableInteractionSource() }
-    val isPressed: Boolean by source.collectIsPressedAsState()
-    val customThemeResId = R.style.CustomDatePickerDialogTheme
     var isDatePickerDialogOpen by remember {
         mutableStateOf(false)
     }
-
-
-    val currentDate = currDate.toFormattedString()
+//    val currentDate = currDate.toFormattedString()
     val calendar = Calendar.getInstance()
-    val year: Int = calendar.get(Calendar.YEAR)
-    val month: Int = calendar.get(Calendar.MONTH)
-    val day: Int = calendar.get(Calendar.DAY_OF_MONTH)
     calendar.time = Date()
+    Log.d("selected DATE",currDate.toFormattedString())
+    var selectedDate by rememberSaveable { mutableStateOf(currDate.toFormattedString()) }
 
-    val context = LocalContext.current
-    var selectedDate by rememberSaveable { mutableStateOf(currentDate) }
-
-    //val datePickerDialog =
-//        DatePickerDialog(context, customThemeResId, { _: DatePicker, yr: Int, month: Int, dayOfMonth: Int ->
-//            val newDate = Calendar.getInstance()
-//            newDate.set(yr, month, dayOfMonth)
-//            Log.d("newDate set", newDate.toString())
-//            selectedDate = "${month.toMonthName()} $dayOfMonth, $yr"
-//            Log.d("selectedDate changed", selectedDate)
-//            date(newDate.timeInMillis)
-//        }, year, month, day)
-    // TODO: we'll add the textfield as read only, and then add in the
     Row {
         OutlinedTextField(
             readOnly = true,
@@ -258,17 +237,14 @@ fun DateTextField(textFieldLabel: String, currDate: Date, date: (Long) -> Unit) 
       if (isDatePickerDialogOpen) {
           CustomDatePickerDialog(initialValue = currDate.time,
               onConfirm = { newDateLong: Long? ->
-                  val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT-5:00"))
+                  val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                   cal.time = Date(newDateLong!!)
-                  var month = cal.get(Calendar.MONTH)
-//                  var (correctedMonth, dayOfMonth) = correctDayOfMonth(month, cal.get(Calendar.DAY_OF_MONTH))
-//                  month += correctedMonth
-                  //val newDate = Date(newDateLong!!)
-                  //selectedDate = newDate.toFormattedString()
-                  //val month =
+                  val month = cal.get(Calendar.MONTH)
                   selectedDate = "${
                       month.toMonthName()
-                  } ${cal.get(Calendar.DAY_OF_MONTH)}, ${cal.get(Calendar.YEAR)}"
+                  } ${
+                      cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+                  }, ${cal.get(Calendar.YEAR)}"
                   date(newDateLong)
                   isDatePickerDialogOpen = false
               }
@@ -309,15 +285,6 @@ private fun Int.toMonthName(): String {
 
 private fun Date.toFormattedString(): String {
     val simpleDateFormat = SimpleDateFormat("LLLL dd, yyyy", Locale.getDefault())
+    simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
     return simpleDateFormat.format(this)
-}
-
-private fun correctDayOfMonth(month: Int, dayOfMonth: Int): Pair<Int, Int> {
-    // Correcting for February 29th
-    return if (month == 1 && dayOfMonth == 28) {
-        Pair<Int, Int>(1, 1)
-    }
-    else {
-        Pair<Int, Int>(0, dayOfMonth + 1)
-    }
 }

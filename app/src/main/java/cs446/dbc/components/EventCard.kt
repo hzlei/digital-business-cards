@@ -45,6 +45,7 @@ import cs446.dbc.viewmodels.EventAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAction: () -> Unit) {
@@ -152,5 +153,6 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
 
 fun Date.toFormattedString(): String {
     val simpleDateFormat = SimpleDateFormat("LLLL dd, yyyy", Locale.getDefault())
+    simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
     return simpleDateFormat.format(this)
 }

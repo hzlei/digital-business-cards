@@ -55,7 +55,8 @@ enum class FieldType : Parcelable {
 @Serializable
 enum class CardType : Parcelable {
     PERSONAL, // representing cards in my cards screen
-    SHARED
+    SHARED,
+    EVENT_VIEW
 }
 
 @Parcelize

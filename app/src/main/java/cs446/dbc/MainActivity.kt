@@ -374,7 +374,7 @@ class MainActivity : AppCompatActivity() {
                             composable(Screen.EventMenu.route,
                                 arguments = listOf(navArgument("eventId") {}))
                             {
-                                val eventId = it.arguments?.getString("eventId")
+                                val eventId = it.arguments?.getString("eventId")!!
                                 // TODO: Everytime we enter this screen, we need to ensure that
                                 //  we set eventId, and when we navigate away, the eventId
                                 //  is set back to ""
@@ -552,7 +552,10 @@ class MainActivity : AppCompatActivity() {
                                 // TODO: Also need to make sure if the id is blank, we generate a new id
                                 // TODO: we also need to update max users set if it was set
                                 // TODO: we also need to set event type if it's empty string
+                                // TODO: convert this to UTC again, so we have consistent time
                                 showSaveEventErrorDialog = !saveEvent(createEditEvent, eventViewModel)
+                                eventViewModel.changeCurrEventViewId("")
+                                navController.navigate(Screen.Events.route)
                             }
                         ) {
                             Icon(
@@ -587,7 +590,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel): Boolean {
+        // TODO: convert this to UTC again, so we have consistent time
         // if no id, we are creating a new event
+        // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
+        // IDs SO THEY'LL ALWAYS CREATE A NEW EVENT (EVEN IF WE ARE EDITING THEM RN)
+        // IT STILL ALL WORKS
         if (eventModel.id == "") {
             // TODO: Error check to ensure they have added a name and location
             // return if we succeed in saving the event
@@ -609,8 +616,10 @@ class MainActivity : AppCompatActivity() {
         // otherwise we are editing an event
         else {
             // TODO: send the updated event to server
-            eventViewModel.performAction(EventAction.InsertEvent(
-                event = eventModel
+            // This is wrong, this inserts a new event!!!!!
+            // we need to update an existing event!!!
+            eventViewModel.performAction(EventAction.UpdateEvent(
+                eventModel.id, eventModel
             ))
             return true
         }
