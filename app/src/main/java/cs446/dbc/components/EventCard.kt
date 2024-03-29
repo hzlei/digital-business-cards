@@ -21,12 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Flip
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -43,11 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cs446.dbc.models.EventModel
-import cs446.dbc.models.TemplateType
-import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.EventAction
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -72,7 +65,6 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
         if (selected) 16.dp else 0.dp,
         label = "padding"
     )
-
 
     val toggleSelected = { selected = !selected }
 
@@ -100,13 +92,33 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                     .background(MaterialTheme.colorScheme.surfaceTint)
                     .wrapContentSize(Alignment.Center)
             ) {
-                Column {
-                    Text(eventModel.name, fontSize = 30.sp)
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(eventModel.name,
+                        color = Color.LightGray,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        style = MaterialTheme.typography.headlineMedium,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(eventModel.location,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.LightGray,
+                        overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text(eventModel.location, fontSize = 30.sp)
+                    Text("Starts ${Date(eventModel.startDate.toLong()).toFormattedString()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.LightGray)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text("Starts ${Date(eventModel.startDate.toLong()).toFormattedString()}", fontSize = 30.sp)
-                    Text("Ends ${Date(eventModel.endDate.toLong()).toFormattedString()}", fontSize = 30.sp)
+                    Text("Ends ${Date(eventModel.endDate.toLong()).toFormattedString()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.LightGray)
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text("${eventModel.numUsers}${if (eventModel.maxUsersSet) "/${eventModel.maxUsers}" else ""} Participants",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.LightGray)
                 }
             }
         }

@@ -1,8 +1,6 @@
 package cs446.dbc.views
 
 import android.content.Context
-import android.os.Bundle
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,20 +9,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import cs446.dbc.components.EventCard
 import cs446.dbc.models.EventModel
@@ -69,9 +61,9 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
             }
             for (i in 0..2) {
                 eventViewModel.performAction(EventAction.PopulateEvent(
-                    name = "Hosted E$i",
-                    location = "Toronto - $i",
-                    eventType = EventType.HOSTED
+                    name = "Hosted Event that is really long - $i",
+                    location = "29 Westfold Ave, Toronto, Ontario, Canada - $i",
+                    eventType = EventType.HOSTED,
                 ))
             }
             eventViewModel.performAction(EventAction.SortEvents())
@@ -92,9 +84,8 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
                 EventCard(event, eventViewModel::performAction, onClickAction = {
                     eventViewModel.changeCurrEventViewId(event.id)
                     // TODO: Change this to allow for API <= Ver 32
-                    navController.navigate(route = "event-menu/${event.id}"
-                    )}
-                )
+                    navController.navigate(route = "event-menu/${event.id}")
+                })
             }
             Spacer(modifier = Modifier.height(16.dp))
         }

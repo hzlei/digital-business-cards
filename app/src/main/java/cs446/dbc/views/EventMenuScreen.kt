@@ -1,7 +1,6 @@
 package cs446.dbc.views
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -19,11 +18,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import cs446.dbc.MainActivity
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
-import cs446.dbc.models.EventModel
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType

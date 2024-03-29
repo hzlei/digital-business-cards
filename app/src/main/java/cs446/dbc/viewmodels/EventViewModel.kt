@@ -1,20 +1,15 @@
 package cs446.dbc.viewmodels
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
+import android.media.metrics.Event
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import cs446.dbc.models.EventModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import java.util.UUID
 import java.util.function.Predicate
+import javax.inject.Inject
 
 @HiltViewModel
 class EventViewModel @Inject constructor(
@@ -32,7 +27,7 @@ class EventViewModel @Inject constructor(
     fun performAction(action: EventAction) {
         when (action) {
             is EventAction.PopulateEvent -> populateEvent(action)
-            is EventAction.InsertEvent -> TODO()
+            is EventAction.InsertEvent -> insertEvent(action)
             is EventAction.InsertEvents -> TODO()
             is EventAction.RemoveEvent -> removeEvent(action)
             is EventAction.UpdateEvent -> TODO()
@@ -56,6 +51,18 @@ class EventViewModel @Inject constructor(
         // TODO: Send event creation to server
         // TODO: retrieve event id from server
         // TODO: update event id in event
+        val events = savedStateHandle.get<MutableList<EventModel>>("events")
+        events?.add(event)
+        savedStateHandle["events"] = events
+        eventSnapshotList?.add(event)
+        sortEvents()
+    }
+
+    private fun insertEvent(action: EventAction.InsertEvent) {
+        // TODO: Send event creation to server
+        // TODO: retrieve event id from server
+        // TODO: update event id in event
+        val event = action.event
         val events = savedStateHandle.get<MutableList<EventModel>>("events")
         events?.add(event)
         savedStateHandle["events"] = events

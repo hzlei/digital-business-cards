@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -53,6 +54,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,18 +77,20 @@ import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import cs446.dbc.viewmodels.CreateEditViewModel
+import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
 import cs446.dbc.views.CreateEventScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
 import cs446.dbc.views.EventMenuScreen
-import kotlinx.coroutines.flow.filterNot
 import java.util.UUID
 import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -94,7 +99,6 @@ class MainActivity : AppCompatActivity() {
             App(appActivity = this)
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class)
@@ -109,6 +113,9 @@ class MainActivity : AppCompatActivity() {
         }
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle())
+        }
+        val createEditViewModel: CreateEditViewModel = viewModel() {
+            CreateEditViewModel(savedStateHandle = createSavedStateHandle())
         }
 
         val appContext = LocalContext.current
@@ -227,7 +234,7 @@ class MainActivity : AppCompatActivity() {
                                         fadeIn() togetherWith fadeOut()
                                     }
                                 ) {
-                                    Text(it)
+                                    Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
                             navigationIcon = {
@@ -245,6 +252,7 @@ class MainActivity : AppCompatActivity() {
                             appViewModel,
                             cardViewModel,
                             eventViewModel,
+                            createEditViewModel,
                             snackBarHostState,
                             appContext
                         )
@@ -374,7 +382,7 @@ class MainActivity : AppCompatActivity() {
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
-                                CreateEventScreen(eventViewModel, appViewModel, appContext, navController, currEventViewId)
+                                CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, appContext, navController, currEventViewId)
                             }
                         }
                     }
@@ -389,6 +397,7 @@ class MainActivity : AppCompatActivity() {
         appViewModel: AppViewModel,
         cardViewModel: BusinessCardViewModel,
         eventViewModel: EventViewModel,
+        createEditViewModel: CreateEditViewModel,
         snackBarHostState: SnackbarHostState,
         context: Context
     ) {
@@ -396,6 +405,10 @@ class MainActivity : AppCompatActivity() {
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
         val events by eventViewModel.events.collectAsStateWithLifecycle()
         var showReceiveDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+        val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
+        var showSaveEventErrorDialog by rememberSaveable {
             mutableStateOf(false)
         }
 
@@ -415,6 +428,19 @@ class MainActivity : AppCompatActivity() {
                 showReceiveDialog = false
             }
         }
+
+        if (showSaveEventErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { showSaveEventErrorDialog = false},
+                confirmButton = { showSaveEventErrorDialog = false},
+                title = { Text(text = "Error") },
+                text = { Text(
+                    textAlign = TextAlign.Center,
+                    text = "One or more of your entries are incorrect.\nEnsure that you have " +
+                            "filled in the name and location of the event, and that the start " +
+                            "date is before the end date.")})
+        }
+
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
             actions = {
@@ -523,11 +549,15 @@ class MainActivity : AppCompatActivity() {
                             onClick = {
                                 // TODO: button should either create a new hosted event or update the existing one
                                 //  Get eventId from server and add it here
+                                // TODO: Also need to make sure if the id is blank, we generate a new id
+                                // TODO: we also need to update max users set if it was set
+                                // TODO: we also need to set event type if it's empty string
+                                showSaveEventErrorDialog = !saveEvent(createEditEvent, eventViewModel)
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Save,
-                                contentDescription = "Create Event"
+                                contentDescription = "Save Event"
                             )
                         }
                     }
@@ -554,5 +584,35 @@ class MainActivity : AppCompatActivity() {
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
 
+    }
+
+    private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel): Boolean {
+        // if no id, we are creating a new event
+        if (eventModel.id == "") {
+            // TODO: Error check to ensure they have added a name and location
+            // return if we succeed in saving the event
+            if (eventModel.name == "") return false
+            if (eventModel.location == "") return false
+            // check if start date is less than end date
+            if (eventModel.startDate.toLong() > eventModel.endDate.toLong()) return false
+
+            // TODO: Create event on server
+            // TODO: remove this id generation here, only temporary for local testing purposes
+            //  until we add the server code
+            eventModel.id = UUID.randomUUID().toString()
+            eventModel.eventType = EventType.HOSTED
+            eventViewModel.performAction(EventAction.InsertEvent(
+                event = eventModel
+            ))
+            return true
+        }
+        // otherwise we are editing an event
+        else {
+            // TODO: send the updated event to server
+            eventViewModel.performAction(EventAction.InsertEvent(
+                event = eventModel
+            ))
+            return true
+        }
     }
 }

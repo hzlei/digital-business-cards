@@ -1,6 +1,5 @@
 package cs446.dbc.viewmodels
 
-import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,7 +7,6 @@ import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
-import java.util.function.Predicate
 import javax.inject.Inject
 
 @HiltViewModel
