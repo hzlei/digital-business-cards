@@ -62,6 +62,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
+import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -386,6 +387,9 @@ class MainActivity : AppCompatActivity() {
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
+        var showCreateDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
 
         @Composable
         fun NavButton(screen: Screen, icon: ImageVector, description: String) {
@@ -403,6 +407,12 @@ class MainActivity : AppCompatActivity() {
                 showReceiveDialog = false
             }
         }
+        if (showCreateDialog) {
+            CreateDialog(snackBarHostState) {
+                showCreateDialog = false
+            }
+        }
+
         androidx.compose.material3.BottomAppBar(
             modifier = Modifier.fillMaxWidth(),
             actions = {
@@ -420,6 +430,8 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
+                            // HEREHEREHERE
+                            showCreateDialog = true
                             val newCard = BusinessCardModel(
                                 id = UUID.randomUUID().toString(),
                                 front = "New Front",

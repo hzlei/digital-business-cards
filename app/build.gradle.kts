@@ -88,4 +88,8 @@ dependencies {
 
     // To digest JSON data for the cards
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // For image viewing
+    implementation("io.coil-kt:coil:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
