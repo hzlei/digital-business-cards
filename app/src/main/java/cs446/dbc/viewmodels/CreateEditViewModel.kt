@@ -15,4 +15,5 @@ class CreateEditViewModel @Inject constructor(
     // business cards or events in their respect creation screens
     val createEditBusinessCard = savedStateHandle.getStateFlow("businessCard", BusinessCardModel())
     val createEditEvent = savedStateHandle.getStateFlow("eventCard", EventModel())
+    val eventBusinessCardList = savedStateHandle.getStateFlow("eventBusinessCardList", mutableListOf<BusinessCardModel>())
 }

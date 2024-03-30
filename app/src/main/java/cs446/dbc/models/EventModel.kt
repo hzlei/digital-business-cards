@@ -3,6 +3,7 @@ package cs446.dbc.models
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.util.Date
 
 
 @Parcelize
@@ -22,8 +23,8 @@ data class EventModel(
         "",
         "",
         "",
-        "",
-        "",
+        Date().time.toString(),
+        (Date().time + 3 * 24 * 60 * 60 * 1000).toString(),
         0,
         1000,
         false,

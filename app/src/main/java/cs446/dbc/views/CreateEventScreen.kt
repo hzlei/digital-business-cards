@@ -1,14 +1,7 @@
 package cs446.dbc.views
 
-import android.app.DatePickerDialog
-import android.content.Context
 import android.util.Log
-import android.widget.DatePicker
-import androidx.appcompat.app.ActionBarDrawerToggle.Delegate
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.Interaction
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,25 +9,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,23 +36,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import cs446.dbc.R
+import cs446.dbc.components.BusinessCardMultiSelect
 import cs446.dbc.components.toFormattedString
-import cs446.dbc.models.EventModel
+import cs446.dbc.models.EventType
 import cs446.dbc.viewmodels.AppViewModel
+import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventViewModel
-import org.jetbrains.annotations.Async.Schedule
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -70,8 +57,9 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String = "") {
+fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: EventViewModel, appViewModel: AppViewModel, cardViewModel: BusinessCardViewModel, navController: NavHostController, eventId: String = "") {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
+    val myCards by cardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
 
     // TODO: ensure eventId gets set back to null afterwards
@@ -104,10 +92,9 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             it.id == eventId }!!.endDate.toLong() else Date().time + threeDays)
     }
 
-    LaunchedEffect(key1 = "event_examples") {
+    LaunchedEffect(key1 = "populate_event_info") {
         if (eventId != "") {
             // TODO: send cards to event (pick which ones?)
-
             val currEvent = events.find { it.id == eventId }!!
             createEditEvent.id = eventId
             createEditEvent.name = currEvent.name
@@ -125,6 +112,17 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             endDate = currEvent.endDate.toLong()
             maxUsers = currEvent.maxUsers
             maxUsersSet = currEvent.maxUsersSet
+        }
+        else {
+            createEditEvent.id = ""
+            createEditEvent.name = name.text
+            createEditEvent.location = location.text
+            createEditEvent.startDate = startDate.toString()
+            createEditEvent.endDate = endDate.toString()
+            createEditEvent.numUsers = 0
+            createEditEvent.maxUsers = 1000
+            createEditEvent.maxUsersSet = false
+            createEditEvent.eventType = EventType.HOSTED
         }
     }
 
@@ -189,6 +187,18 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             // TODO: allow user to pick which cards to be sent to the event (can only be done
             //  the first time an event is created, after which the box goes away
             //  can maybe make a component with checkboxes, and have those correspond to the id's to be sent
+            if (eventId == "" && myCards.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(3.dp))
+                HorizontalDivider(thickness = 2.dp)
+                Spacer(modifier = Modifier.height(2.dp))
+                Box(modifier = Modifier.weight(0.3f)) {
+                    BusinessCardMultiSelect(
+                        title = "Select Business Cards to Upload to Event",
+                        cardViewModel = cardViewModel,
+                        createEditViewModel = createEditViewModel
+                    )
+                }
+            }
         }
     }
 }

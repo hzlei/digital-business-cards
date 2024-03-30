@@ -103,7 +103,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
             items(eventBusinessCardList) {card ->
                 // TODO: We may need to wrap the cards around with a box and add a toolbar underneath
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    BusinessCard(card, eventBusinessCardViewModel::performAction)
+                    BusinessCard(card, true, eventBusinessCardViewModel::performAction)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
