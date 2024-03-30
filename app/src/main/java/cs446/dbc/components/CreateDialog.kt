@@ -4,19 +4,13 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +56,7 @@ fun CreateDialog(snackbarHostState: SnackbarHostState, onDismissRequest: () -> U
                     Button(onClick = { galleryLauncher.launch("image/*") }) {
                         Text("Open Gallery")
                     }
+                    // Below is how you display an image
                     imageUri?.let { uri ->
                         Image(
                             painter = rememberImagePainter(uri),
@@ -84,6 +79,7 @@ fun CreateDialog(snackbarHostState: SnackbarHostState, onDismissRequest: () -> U
 }
 
 fun saveImageToStorage(context: Context, imageUri: Uri, onSaved: (File) -> Unit) {
+    // This function saves images to local storage for later use
     val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
     val directory = context.getExternalFilesDir(null) ?: return
     val file = File(directory, "selected_image_${System.currentTimeMillis()}.jpg")
