@@ -75,7 +75,7 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, myCardViewModel::performAction)
+                BusinessCard(card, true, myCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }

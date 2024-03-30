@@ -61,7 +61,7 @@ import cs446.dbc.viewmodels.BusinessCardAction
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) -> Unit) {
+fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     var showShareDialogState by rememberSaveable {
         mutableStateOf(false)
@@ -86,7 +86,7 @@ fun BusinessCard(cardModel: BusinessCardModel, onAction: (BusinessCardAction) ->
         label = "padding"
     )
 
-    val toggleSelected = { selected = !selected }
+    val toggleSelected = { selected = !selected && isEnabled}
 
     Card(
         modifier = Modifier

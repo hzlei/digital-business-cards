@@ -91,7 +91,7 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, sharedCardViewModel::performAction)
+                BusinessCard(card, true, sharedCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }

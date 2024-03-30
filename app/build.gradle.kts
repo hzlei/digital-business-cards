@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.6.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
 
+
     // State Management
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 

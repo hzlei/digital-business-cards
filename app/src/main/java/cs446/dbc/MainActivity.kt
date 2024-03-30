@@ -68,6 +68,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
 import cs446.dbc.components.AddEventDialog
+import cs446.dbc.components.JoinEventDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -380,7 +381,7 @@ class MainActivity : AppCompatActivity() {
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
-                                CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, appContext, navController, currEventViewId)
+                                CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, cardViewModel, navController, currEventViewId)
                             }
                         }
                     }
@@ -402,15 +403,20 @@ class MainActivity : AppCompatActivity() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
         val events by eventViewModel.events.collectAsStateWithLifecycle()
+        val myCards by cardViewModel.myBusinessCards.collectAsStateWithLifecycle()
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
         val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
+        val eventBusinessCardList by createEditViewModel.eventBusinessCardList.collectAsStateWithLifecycle()
         var showSaveEventErrorDialog by rememberSaveable {
             mutableStateOf(false)
         }
 
         var showAddEventsDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+        var showJoinEventDialog by rememberSaveable {
             mutableStateOf(false)
         }
 
@@ -433,14 +439,14 @@ class MainActivity : AppCompatActivity() {
 
         if (showSaveEventErrorDialog) {
             AlertDialog(
-                onDismissRequest = { },
+                onDismissRequest = { showSaveEventErrorDialog = false },
                 dismissButton = {
                     TextButton(onClick = { showSaveEventErrorDialog = false }) {
                         Text(text = "Dismiss")
                     }
                 },
-                confirmButton = { showSaveEventErrorDialog = false },
-                title = { Text(text = "Error") },
+                confirmButton = {  },
+                title = { Text(text = "Error", textAlign = TextAlign.Center) },
                 text = { 
                     Text(
                         textAlign = TextAlign.Center,
@@ -458,22 +464,32 @@ class MainActivity : AppCompatActivity() {
                     "Host" -> {
                         // set to blank
                         createEditEvent.id = ""
-                        createEditEvent.name = ""
-                        createEditEvent.location = ""
-                        createEditEvent.startDate = ""
-                        createEditEvent.endDate = ""
-                        createEditEvent.numUsers = 0
-                        createEditEvent.maxUsers = 1000
-                        createEditEvent.maxUsersSet = false
-                        createEditEvent.eventType = EventType.HOSTED
-
                         navController.navigate(route = "create-event")
                     }
                     "Join" -> {
-                        // TODO: Request event from server, join event, update server, add event
-                        //   to list
+                        // TODO: If user has no cards, we just join them directly to the event
+                        //  otherwise we have them pick out their cards and then join
+                        if (myCards.isNotEmpty()) {
+                            showJoinEventDialog = true
+                        }
+                        else {
+                            // Join event directly
+                        }
+                        // TODO: test interaction with join event dialog and host event one after the other
                     }
                 }
+            }
+        }
+
+        if (showJoinEventDialog) {
+            JoinEventDialog(cardViewModel = cardViewModel,
+                createEditViewModel = createEditViewModel,
+                onDismiss = { showJoinEventDialog = false }) {
+                    // TODO: Do the event joining stuff here
+                    //  with the server and all
+                    // TODO: Request event from server, join user event, update server, add event
+                    //   to list
+                // make a function so we can use it here and in the above join
             }
         }
 
@@ -590,10 +606,10 @@ class MainActivity : AppCompatActivity() {
                                 // TODO: we also need to update max users set if it was set
                                 // TODO: we also need to set event type if it's empty string
                                 // TODO: convert this to UTC again, so we have consistent time
-                                val didSave = saveEvent(createEditEvent, eventViewModel, navController)
-//                                if (!didSave) {
+                                val didSave = saveEvent(myCards, createEditEvent, eventViewModel, eventBusinessCardList, navController)
+                                if (!didSave) {
                                     showSaveEventErrorDialog = true
-//                                }
+                                }
                             }
                         ) {
                             Icon(
@@ -627,8 +643,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel, navController: NavHostController): Boolean {
-        // TODO: convert this to UTC again, so we have consistent time
+    private fun saveEvent(myCards: MutableList<BusinessCardModel>,
+                          eventModel: EventModel,
+                          eventViewModel: EventViewModel,
+                          selectedCards: MutableList<BusinessCardModel>,
+                          navController: NavHostController): Boolean
+    {
         // if no id, we are creating a new event
         // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
         // IDs SO THEY'LL ALWAYS CREATE A NEW EVENT (EVEN IF WE ARE EDITING THEM RN)
@@ -641,13 +661,29 @@ class MainActivity : AppCompatActivity() {
             // check if start date is less than end date
             if (eventModel.startDate.toLong() > eventModel.endDate.toLong()) return false
 
-            // TODO: Create event on server
+            // TODO: ensure they actually have business cards first
+            //  otherwise if they haven't made any, it's fine not to upload any
+            if (myCards.isNotEmpty() && selectedCards.isEmpty()) return false
+
+            // TODO: Create event on server, join user into event, add user's cards to event
             // TODO: remove this id generation here, only temporary for local testing purposes
             //  until we add the server code
+
             eventModel.id = UUID.randomUUID().toString()
             eventModel.eventType = EventType.HOSTED
+            val event = EventModel(
+                eventModel.id,
+                eventModel.name,
+                eventModel.location,
+                eventModel.startDate,
+                eventModel.endDate,
+                eventModel.numUsers,
+                eventModel.maxUsers,
+                eventModel.maxUsersSet,
+                eventModel.eventType
+            )
             eventViewModel.performAction(EventAction.InsertEvent(
-                event = eventModel
+                event = event
             ))
             navController.navigate(Screen.Events.route)
             eventViewModel.changeCurrEventViewId("")
@@ -656,10 +692,19 @@ class MainActivity : AppCompatActivity() {
         // otherwise we are editing an event
         else {
             // TODO: send the updated event to server
-            // This is wrong, this inserts a new event!!!!!
-            // we need to update an existing event!!!
+            val event = EventModel(
+                eventModel.id,
+                eventModel.name,
+                eventModel.location,
+                eventModel.startDate,
+                eventModel.endDate,
+                eventModel.numUsers,
+                eventModel.maxUsers,
+                eventModel.maxUsersSet,
+                eventModel.eventType
+            )
             eventViewModel.performAction(EventAction.UpdateEvent(
-                eventModel.id, eventModel
+                event.id, event
             ))
             navController.navigate(Screen.Events.route)
             eventViewModel.changeCurrEventViewId("")
