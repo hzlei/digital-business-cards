@@ -82,12 +82,15 @@ class AppViewModel @Inject constructor(
     private fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val directory = File(context.filesDir, directoryName)
-                if (!directory.exists()) directory.mkdirs()
-                val fileName = "Card_${UUID.randomUUID()}.json"
-                val file = File(directory, fileName)
+                val directory = context.getExternalFilesDir(directoryName)
 
-                file.writeText(Json.encodeToString(card))
+                directory?.let {
+                    if (!it.exists()) it.mkdirs()
+                    val fileName = "Card_${UUID.randomUUID()}.json"
+                    val file = File(it, fileName)
+
+                    file.writeText(Json.encodeToString(card))
+                }
             } catch (e: Exception) {
                 Log.e("AppViewModel", "Error saving card to local storage", e)
             }
@@ -96,25 +99,28 @@ class AppViewModel @Inject constructor(
 
     fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType): MutableList<BusinessCardModel> {
         viewModelScope.launch(Dispatchers.IO) {
-            val directory = File(context.filesDir, directoryName)
-            if (directory.exists() && directory.isDirectory) {
-                val cardFiles = directory.listFiles() ?: return@launch
+            val directory = context.getExternalFilesDir(directoryName)
 
-                val loadedCards = cardFiles.mapNotNull { file ->
-                    try {
-                        val cardJSON = file.readText()
-                        Json.decodeFromString<BusinessCardModel>(cardJSON)
-                    } catch (e: Exception) {
-                        Log.e("AppViewModel", "Error reading or parsing card from file: ${file.name}", e)
-                        null
-                    }
-                }.toMutableList()
+            directory?.let {
+                if (it.exists() && it.isDirectory) {
+                    val cardFiles = it.listFiles() ?: return@launch
 
-                savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
+                    val loadedCards = cardFiles.mapNotNull { file ->
+                        try {
+                            val cardJSON = file.readText()
+                            Json.decodeFromString<BusinessCardModel>(cardJSON)
+                        } catch (e: Exception) {
+                            Log.e("AppViewModel", "Error reading or parsing card from file: ${file.name}", e)
+                            null
+                        }
+                    }.toMutableList()
+
+                    savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
+                }
             }
         }
-        savedStateHandle[if (cardType == CardType.PERSONAL) loadedMyCardsKey else loadedSavedCardsKey] = true
-        return savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"]!!
+        savedStateHandle[if (cardType == CardType.PERSONAL) "loadedMyCardsKey" else "loadedSharedCardsKey"] = true
+        return savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] ?: mutableListOf()
     }
 
     fun updateLoadedMyCards(hasLoaded: Boolean) {
