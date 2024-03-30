@@ -1,82 +1,93 @@
 package cs446.dbc.viewmodels
 
-import android.content.Context
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import cs446.dbc.models.BusinessCardModel
-import cs446.dbc.models.Field
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import java.io.File
+import cs446.dbc.models.CardType
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
+import javax.inject.Inject
 
-class BusinessCardViewModel: ViewModel() {
-    private val _uiState = MutableStateFlow(BusinessCardModel("", "", false, mutableListOf<Field>()))
-    val uiState: StateFlow<BusinessCardModel> = _uiState.asStateFlow()
+@HiltViewModel
+class BusinessCardViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val viewModelContext: CardType
+): ViewModel() {
 
-    fun updateCard(front: String, back: String, favourite: Boolean, fields: MutableList<Field>) {
-        updateCardFront(front)
-        updateCardBack(back)
-        updateCardFavourite(favourite)
-        updateCardFields(fields)
-    }
+    private val myBusinessCardsContext = "myBusinessCards"
+    private val sharedBusinessCardsContext = "sharedBusinessCards"
 
-    fun updateCardFront(front: String) {
-        _uiState.update { currentState ->
-            currentState.copy(front = front)
+    // TODO: How will we handle injection of saved preferences??
+    val myBusinessCards = savedStateHandle.getStateFlow(myBusinessCardsContext, mutableListOf<BusinessCardModel>())
+    val sharedBusinessCards = savedStateHandle.getStateFlow(sharedBusinessCardsContext, mutableListOf<BusinessCardModel>())
+
+    private val currContext = savedStateHandle.getStateFlow("cardContext", if (viewModelContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext)
+
+
+    // TODO: Do we need a separate remove card action when removing the card?
+    fun performAction(action: BusinessCardAction) {
+        when (action) {
+            is BusinessCardAction.ToggleFavorite -> toggleFavorite(action.cardId)
+            is BusinessCardAction.InsertField -> TODO()
+            is BusinessCardAction.PopulateCard -> populateCard(action)
+            is BusinessCardAction.InsertCard -> insertCard(action)
+            is BusinessCardAction.InsertCards -> insertCards(action)
+            is BusinessCardAction.RemoveField -> TODO()
+            is BusinessCardAction.UpdateAllFields -> TODO()
+            is BusinessCardAction.UpdateBack -> TODO()
+            is BusinessCardAction.UpdateField -> TODO()
+            is BusinessCardAction.UpdateFront -> TODO()
+            is BusinessCardAction.UpdateCardType -> TODO()
+            is BusinessCardAction.UpdateCardContext -> updateCardContext(action.newContext)
         }
     }
 
-    fun updateCardBack(back: String) {
-        _uiState.update { currentState ->
-            currentState.copy(back = back)
+    private fun updateCardContext(newContext: CardType) {
+        savedStateHandle["cardContext"] = if (newContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext
+    }
+
+    private fun toggleFavorite(cardId: String) {
+        val cardList = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value) ?: return
+        var updatedList = cardList.map { if (it.id == cardId) it.copy(favorite = !it.favorite) else it }
+        updatedList = updatedList.sortedWith(compareBy({ !it.favorite }, { it.front}))
+        savedStateHandle[currContext.value] = updatedList
+    }
+
+    fun getContext(): String {
+        return currContext.value
+    }
+
+    private fun populateCard(action: BusinessCardAction.PopulateCard) {
+        val card = BusinessCardModel(
+            id = UUID.randomUUID().toString(),
+            front = action.front,
+            back = action.back,
+            favorite = action.favorite,
+            fields = action.fields,
+            cardType = action.cardType
+        )
+        insertCard(BusinessCardAction.InsertCard(card))
+    }
+
+    private fun insertCard(action: BusinessCardAction.InsertCard) {
+        val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value)
+        Log.d("INSERT ADD", currContext.value)
+        Log.d("INSERT ADD - Cards List", currCards.toString())
+        if (currCards != null) {
+            Log.d("INSERT ADD - Cards List Size", currCards.size.toString())
         }
+        currCards?.add(action.card)
+        currCards?.sortWith(compareBy({ !it.favorite }, { it.front}))
+        savedStateHandle[currContext.value] = currCards
     }
 
-    fun updateCardFavourite(favorite: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(favorite = favorite)
-        }
+    private fun insertCards(action: BusinessCardAction.InsertCards) {
+        val ctx = currContext.value
+        val cards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
+        cards?.addAll(action.cards)
+        cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
+        savedStateHandle[currContext.value] = cards
     }
 
-    fun updateCardFields(fields: MutableList<Field>) {
-        _uiState.update { currentState ->
-            currentState.copy(fields = fields)
-        }
-    }
-
-    fun insertCardField(field:Field) {
-        val fields: MutableList<Field> = _uiState.value.fields
-        fields.add(field)
-        updateCardFields(fields)
-    }
-
-    fun removeCardField(field:Field) {
-        val fields: MutableList<Field> = _uiState.value.fields
-        fields.remove(field)
-        updateCardFields(fields)
-    }
-
-    fun updateCardField(oldField: Field, newField: Field) {
-        removeCardField(oldField)
-        insertCardField(newField)
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private fun digestCardJSON(cardJSON: String) {
-        try {
-            val cardModel = Json.decodeFromString<BusinessCardModel>(cardJSON)
-            _uiState.value = cardModel
-        } catch (e: Exception) {
-            Log.e("BusinessCardViewModel", "Error parsing JSON", e)
-        }
-    }
 }
