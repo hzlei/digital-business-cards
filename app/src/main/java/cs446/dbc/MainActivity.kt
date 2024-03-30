@@ -128,6 +128,10 @@ class MainActivity : AppCompatActivity() {
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
 
+
+        // TODO: Check if we have the userid in a settings json file,
+        //  if we do, use that, if not, request server, and then save locally in settings file
+
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
                 val cardList =
