@@ -132,6 +132,10 @@ class MainActivity : AppCompatActivity() {
         // TODO: Check if we have the userid in a settings json file,
         //  if we do, use that, if not, request server, and then save locally in settings file
 
+
+        // TODO: Check if we have the userid in a settings json file,
+        //  if we do, use that, if not, request server, and then save locally in settings file
+
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
                 val cardList =
