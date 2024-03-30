@@ -44,6 +44,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +67,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
+import cs446.dbc.components.AddEventDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -375,10 +377,6 @@ class MainActivity : AppCompatActivity() {
                                 arguments = listOf(navArgument("eventId") {}))
                             {
                                 val eventId = it.arguments?.getString("eventId")!!
-                                // TODO: Everytime we enter this screen, we need to ensure that
-                                //  we set eventId, and when we navigate away, the eventId
-                                //  is set back to ""
-
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
@@ -412,6 +410,10 @@ class MainActivity : AppCompatActivity() {
             mutableStateOf(false)
         }
 
+        var showAddEventsDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
         @Composable
         fun NavButton(screen: Screen, icon: ImageVector, description: String) {
             val isCurrentRoute = navBackStackEntry?.destination?.route == screen.route
@@ -431,14 +433,48 @@ class MainActivity : AppCompatActivity() {
 
         if (showSaveEventErrorDialog) {
             AlertDialog(
-                onDismissRequest = { showSaveEventErrorDialog = false},
-                confirmButton = { showSaveEventErrorDialog = false},
+                onDismissRequest = { },
+                dismissButton = {
+                    TextButton(onClick = { showSaveEventErrorDialog = false }) {
+                        Text(text = "Dismiss")
+                    }
+                },
+                confirmButton = { showSaveEventErrorDialog = false },
                 title = { Text(text = "Error") },
-                text = { Text(
-                    textAlign = TextAlign.Center,
-                    text = "One or more of your entries are incorrect.\nEnsure that you have " +
-                            "filled in the name and location of the event, and that the start " +
-                            "date is before the end date.")})
+                text = { 
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "One or more of your entries are incorrect.\nEnsure that you have " +
+                                "filled in the name and location of the event, and that the start " +
+                                "date is before the end date.")
+                }
+            )
+        }
+
+        if (showAddEventsDialog) {
+            AddEventDialog({ showAddEventsDialog = false }){eventType ->
+                showAddEventsDialog = false
+                when (eventType) {
+                    "Host" -> {
+                        // set to blank
+                        createEditEvent.id = ""
+                        createEditEvent.name = ""
+                        createEditEvent.location = ""
+                        createEditEvent.startDate = ""
+                        createEditEvent.endDate = ""
+                        createEditEvent.numUsers = 0
+                        createEditEvent.maxUsers = 1000
+                        createEditEvent.maxUsersSet = false
+                        createEditEvent.eventType = EventType.HOSTED
+
+                        navController.navigate(route = "create-event")
+                    }
+                    "Join" -> {
+                        // TODO: Request event from server, join event, update server, add event
+                        //   to list
+                    }
+                }
+            }
         }
 
         androidx.compose.material3.BottomAppBar(
@@ -508,7 +544,8 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier,
                         onClick = {
                             // TODO: Show dialog for what to do, host event or join event
-                            // host event will go to create event screen
+                            //  host event will go to create event screen
+                            showAddEventsDialog = true
                         }
                     ) {
                         Icon(
@@ -553,9 +590,10 @@ class MainActivity : AppCompatActivity() {
                                 // TODO: we also need to update max users set if it was set
                                 // TODO: we also need to set event type if it's empty string
                                 // TODO: convert this to UTC again, so we have consistent time
-                                showSaveEventErrorDialog = !saveEvent(createEditEvent, eventViewModel)
-                                eventViewModel.changeCurrEventViewId("")
-                                navController.navigate(Screen.Events.route)
+                                val didSave = saveEvent(createEditEvent, eventViewModel, navController)
+//                                if (!didSave) {
+                                    showSaveEventErrorDialog = true
+//                                }
                             }
                         ) {
                             Icon(
@@ -589,7 +627,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel): Boolean {
+    private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel, navController: NavHostController): Boolean {
         // TODO: convert this to UTC again, so we have consistent time
         // if no id, we are creating a new event
         // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
@@ -611,6 +649,8 @@ class MainActivity : AppCompatActivity() {
             eventViewModel.performAction(EventAction.InsertEvent(
                 event = eventModel
             ))
+            navController.navigate(Screen.Events.route)
+            eventViewModel.changeCurrEventViewId("")
             return true
         }
         // otherwise we are editing an event
@@ -621,6 +661,8 @@ class MainActivity : AppCompatActivity() {
             eventViewModel.performAction(EventAction.UpdateEvent(
                 eventModel.id, eventModel
             ))
+            navController.navigate(Screen.Events.route)
+            eventViewModel.changeCurrEventViewId("")
             return true
         }
     }
