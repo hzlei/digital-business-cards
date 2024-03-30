@@ -82,6 +82,7 @@ dependencies {
     implementation ("com.google.code.gson:gson:2.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
+
     // State Management
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
