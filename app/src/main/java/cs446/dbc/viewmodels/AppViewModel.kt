@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -74,7 +73,7 @@ class AppViewModel @Inject constructor(
             add(card)
         }
         // Save updated list back to state handle
-        savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = updatedList
+        savedStateHandle[if (cardType == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext] = updatedList
         // Persist card to local storage
         saveCardToLocalStorage(card, context, directoryName)
     }
@@ -104,7 +103,6 @@ class AppViewModel @Inject constructor(
             directory?.let {
                 if (it.exists() && it.isDirectory) {
                     val cardFiles = it.listFiles() ?: return@launch
-
                     val loadedCards = cardFiles.mapNotNull { file ->
                         try {
                             val cardJSON = file.readText()

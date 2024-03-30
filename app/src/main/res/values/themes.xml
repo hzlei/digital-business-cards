@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.DBC" parent="Theme.Material3.DayNight.NoActionBar"/>
+    <style name="CustomDatePickerDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <!-- Customize your theme attributes here -->
+<!--        <item name="android:colorAccent">@color/date_picker_primary</item>-->
+<!--        <item name="colorAccent">@color/date_picker_primary</item>-->
+<!--        <item name=-->
+    </style>
 </resources>

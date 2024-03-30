@@ -16,7 +16,19 @@ data class BusinessCardModel(
     val cardType: CardType = CardType.PERSONAL, // TODO: figure out how card types will change during sharing
     val eventId: String = "",
     val eventUserId: String = ""
-) : Parcelable
+) : Parcelable {
+    constructor() : this(
+        "",
+        "",
+        "",
+        false,
+        mutableListOf<Field>(),
+        TemplateType.DEFAULT,
+        CardType.PERSONAL,
+        "",
+        ""
+    )
+}
 
 @Parcelize
 @Serializable
@@ -43,7 +55,8 @@ enum class FieldType : Parcelable {
 @Serializable
 enum class CardType : Parcelable {
     PERSONAL, // representing cards in my cards screen
-    SHARED
+    SHARED,
+    EVENT_VIEW
 }
 
 @Parcelize

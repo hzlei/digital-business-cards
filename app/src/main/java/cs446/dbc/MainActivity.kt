@@ -30,7 +30,9 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -42,6 +44,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +55,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,16 +68,20 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
 import cs446.dbc.components.CreateDialog
+import cs446.dbc.components.AddEventDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.EventModel
+import cs446.dbc.models.EventType
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
+import cs446.dbc.viewmodels.CreateEditViewModel
+import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
 import cs446.dbc.views.CreateEventScreen
 import cs446.dbc.views.EventScreen
@@ -84,6 +93,7 @@ import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -92,7 +102,6 @@ class MainActivity : AppCompatActivity() {
             App(appActivity = this)
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class)
@@ -108,11 +117,15 @@ class MainActivity : AppCompatActivity() {
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle())
         }
+        val createEditViewModel: CreateEditViewModel = viewModel() {
+            CreateEditViewModel(savedStateHandle = createSavedStateHandle())
+        }
 
         val appContext = LocalContext.current
         val navController = rememberNavController()
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
+        val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
@@ -224,7 +237,7 @@ class MainActivity : AppCompatActivity() {
                                         fadeIn() togetherWith fadeOut()
                                     }
                                 ) {
-                                    Text(it)
+                                    Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
                             navigationIcon = {
@@ -241,6 +254,8 @@ class MainActivity : AppCompatActivity() {
                             navController,
                             appViewModel,
                             cardViewModel,
+                            eventViewModel,
+                            createEditViewModel,
                             snackBarHostState,
                             appContext
                         )
@@ -362,11 +377,11 @@ class MainActivity : AppCompatActivity() {
                             composable(Screen.EventMenu.route,
                                 arguments = listOf(navArgument("eventId") {}))
                             {
-                                val eventId = it.arguments?.getString("eventId")
+                                val eventId = it.arguments?.getString("eventId")!!
                                 EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
-                                CreateEventScreen(eventViewModel, appViewModel, appContext, navController)
+                                CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, appContext, navController, currEventViewId)
                             }
                         }
                     }
@@ -380,14 +395,26 @@ class MainActivity : AppCompatActivity() {
         navController: NavHostController,
         appViewModel: AppViewModel,
         cardViewModel: BusinessCardViewModel,
+        eventViewModel: EventViewModel,
+        createEditViewModel: CreateEditViewModel,
         snackBarHostState: SnackbarHostState,
         context: Context
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val events by eventViewModel.events.collectAsStateWithLifecycle()
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
         var showCreateDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+        val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
+        var showSaveEventErrorDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
+        var showAddEventsDialog by rememberSaveable {
             mutableStateOf(false)
         }
 
@@ -407,9 +434,56 @@ class MainActivity : AppCompatActivity() {
                 showReceiveDialog = false
             }
         }
+
         if (showCreateDialog) {
             CreateDialog(snackBarHostState) {
                 showCreateDialog = false
+            }
+        }
+
+        if (showSaveEventErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { },
+                dismissButton = {
+                    TextButton(onClick = { showSaveEventErrorDialog = false }) {
+                        Text(text = "Dismiss")
+                    }
+                },
+                confirmButton = { showSaveEventErrorDialog = false },
+                title = { Text(text = "Error") },
+                text = { 
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "One or more of your entries are incorrect.\nEnsure that you have " +
+                                "filled in the name and location of the event, and that the start " +
+                                "date is before the end date.")
+                }
+            )
+        }
+
+        if (showAddEventsDialog) {
+            AddEventDialog({ showAddEventsDialog = false }){eventType ->
+                showAddEventsDialog = false
+                when (eventType) {
+                    "Host" -> {
+                        // set to blank
+                        createEditEvent.id = ""
+                        createEditEvent.name = ""
+                        createEditEvent.location = ""
+                        createEditEvent.startDate = ""
+                        createEditEvent.endDate = ""
+                        createEditEvent.numUsers = 0
+                        createEditEvent.maxUsers = 1000
+                        createEditEvent.maxUsersSet = false
+                        createEditEvent.eventType = EventType.HOSTED
+
+                        navController.navigate(route = "create-event")
+                    }
+                    "Join" -> {
+                        // TODO: Request event from server, join event, update server, add event
+                        //   to list
+                    }
+                }
             }
         }
 
@@ -482,7 +556,8 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier,
                         onClick = {
                             // TODO: Show dialog for what to do, host event or join event
-                            // host event will go to create event screen
+                            //  host event will go to create event screen
+                            showAddEventsDialog = true
                         }
                     ) {
                         Icon(
@@ -493,15 +568,15 @@ class MainActivity : AppCompatActivity() {
                 }
                 navBackStackEntry?.destination?.route?.let {
                     AnimatedVisibility(
-                        visible = it.contains(Screen.EventMenu.route),
+                        visible = it.contains(Screen.EventMenu.route) &&
+                            events.find { event -> event.id == currEventViewId }?.eventType == EventType.HOSTED,
                         enter = fadeIn() + scaleIn(),
                         exit = fadeOut() + scaleOut(),
                     ) {
                         FloatingActionButton(
                             modifier = Modifier,
                             onClick = {
-                                // TODO: figure out how to get the eventId before we navigate
-                                navController.navigate(route = "create-event/")
+                                navController.navigate(route = "create-event")
                             }
                         ) {
                             Icon(
@@ -522,11 +597,20 @@ class MainActivity : AppCompatActivity() {
                             modifier = Modifier,
                             onClick = {
                                 // TODO: button should either create a new hosted event or update the existing one
+                                //  Get eventId from server and add it here
+                                // TODO: Also need to make sure if the id is blank, we generate a new id
+                                // TODO: we also need to update max users set if it was set
+                                // TODO: we also need to set event type if it's empty string
+                                // TODO: convert this to UTC again, so we have consistent time
+                                val didSave = saveEvent(createEditEvent, eventViewModel, navController)
+//                                if (!didSave) {
+                                    showSaveEventErrorDialog = true
+//                                }
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Create,
-                                contentDescription = "Create Event"
+                                imageVector = Icons.Outlined.Save,
+                                contentDescription = "Save Event"
                             )
                         }
                     }
@@ -553,5 +637,45 @@ class MainActivity : AppCompatActivity() {
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
 
+    }
+
+    private fun saveEvent(eventModel: EventModel, eventViewModel: EventViewModel, navController: NavHostController): Boolean {
+        // TODO: convert this to UTC again, so we have consistent time
+        // if no id, we are creating a new event
+        // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
+        // IDs SO THEY'LL ALWAYS CREATE A NEW EVENT (EVEN IF WE ARE EDITING THEM RN)
+        // IT STILL ALL WORKS
+        if (eventModel.id == "") {
+            // TODO: Error check to ensure they have added a name and location
+            // return if we succeed in saving the event
+            if (eventModel.name == "") return false
+            if (eventModel.location == "") return false
+            // check if start date is less than end date
+            if (eventModel.startDate.toLong() > eventModel.endDate.toLong()) return false
+
+            // TODO: Create event on server
+            // TODO: remove this id generation here, only temporary for local testing purposes
+            //  until we add the server code
+            eventModel.id = UUID.randomUUID().toString()
+            eventModel.eventType = EventType.HOSTED
+            eventViewModel.performAction(EventAction.InsertEvent(
+                event = eventModel
+            ))
+            navController.navigate(Screen.Events.route)
+            eventViewModel.changeCurrEventViewId("")
+            return true
+        }
+        // otherwise we are editing an event
+        else {
+            // TODO: send the updated event to server
+            // This is wrong, this inserts a new event!!!!!
+            // we need to update an existing event!!!
+            eventViewModel.performAction(EventAction.UpdateEvent(
+                eventModel.id, eventModel
+            ))
+            navController.navigate(Screen.Events.route)
+            eventViewModel.changeCurrEventViewId("")
+            return true
+        }
     }
 }

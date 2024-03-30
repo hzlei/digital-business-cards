@@ -1,7 +1,6 @@
 package cs446.dbc.views
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,11 +19,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import cs446.dbc.MainActivity
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
-import cs446.dbc.models.EventModel
 import cs446.dbc.models.Field
 import cs446.dbc.models.FieldType
 import cs446.dbc.models.TemplateType
@@ -35,15 +33,18 @@ import java.util.UUID
 
 @Composable
 // TODO: rename this to something more appropriate for it's purpose
-fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String?) {
+fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String) {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
     val currEvent = events.find { event -> event.id == eventId }
 
-    if (eventId == null || currEvent == null) {
-        Toast.makeText(appContext, "ERROR: That event does not exist!", Toast.LENGTH_LONG).show()
-        navController.popBackStack()
+    LaunchedEffect("checkNonExistentEvent") {
+        if (eventId == "" || currEvent == null) {
+            Toast.makeText(appContext, "ERROR: That event does not exist!", Toast.LENGTH_LONG).show()
+            navController.popBackStack()
+        }
     }
     appViewModel.updateScreenTitle("Event: ${currEvent?.name}")
+    // Set event id for current event in view model
 
     val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
         BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
@@ -76,7 +77,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
                     ),
                     Field(
                         name = "Phone number",
-                        value = "${(1..10).map { Random().nextInt() }}",
+                        value = "${(1..10).map { (0..9).random() }}",
                         type = FieldType.PHONE_NUMBER
                     ),
                     Field(
@@ -85,14 +86,14 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
                         type = FieldType.TEXT
                     ),
                 ),
-                cardType = CardType.SHARED
+                cardType = CardType.EVENT_VIEW
             )
         )
     }
 
-    eventBusinessCardList.forEach {card ->
-        card.template = TemplateType.EVENT_VIEW_TEMPLATE
-    }
+//    eventBusinessCardList.forEach {card ->
+//        card.template = TemplateType.EVENT_VIEW_TEMPLATE
+//    }
     Box {
         LazyColumn (
             modifier = Modifier
