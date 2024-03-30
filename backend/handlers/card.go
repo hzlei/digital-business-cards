@@ -139,8 +139,7 @@ func CardImage(w http.ResponseWriter, r *http.Request) {
 
 	bucket, err := storageClient.DefaultBucket()
 
-	name := fmt.Sprintf("%s_%s", dsnap.Ref.Path, side)
-	name = strings.Replace(name, "/", "_", -1)
+   name := fmt.Sprintf("%s:%s", userID, cardID)
 
 	switch r.Method {
 	case "POST":

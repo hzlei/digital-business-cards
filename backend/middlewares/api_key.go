@@ -7,9 +7,12 @@ import (
 
 func APIKey(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    supplied_api_key := r.Header.Get("X-API-KEY")
     env_api_key := os.Getenv("API_KEY")
-    if supplied_api_key == env_api_key {
+
+    header_api_key := r.Header.Get("X-API-KEY")
+    query_key := r.URL.Query().Get("key")
+
+    if header_api_key == env_api_key || query_key == env_api_key {
       next.ServeHTTP(w, r)
     } else {
       http.Error(w, "Unauthorized", http.StatusUnauthorized)

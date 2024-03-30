@@ -71,6 +71,7 @@ func main() {
   router.HandleFunc("/api/event/{event}/exists", handlers.EventExists).Methods("GET")
   router.HandleFunc("/api/event/{event}/card", handlers.EventCards).Methods("POST", "PUT", "GET")
   router.HandleFunc("/api/event/{event}/card/{card}", handlers.EventCards).Methods("DELETE")
+  router.HandleFunc("/api/event/{event}/socket", handlers.ConnectEvent)
 
   router.HandleFunc("/api/user/{user}/card", handlers.Card).Methods("POST", "PUT")
   router.HandleFunc("/api/user/{user}/card/{card}", handlers.Card).Methods("GET", "DELETE")
