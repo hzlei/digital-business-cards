@@ -27,9 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import cs446.dbc.models.ListItem
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
@@ -101,7 +103,8 @@ fun BusinessCardMultiSelect(title: String, cardViewModel: BusinessCardViewModel,
                     Card(
                         modifier = Modifier.weight(0.75f)
                     ) {
-                        BusinessCard(myCards.find { it.id == items[idx].card.id }!!, false, cardViewModel::performAction)
+                        BusinessCard(myCards.find { it.id == items[idx].card.id }!!, false, NavHostController(
+                            LocalContext.current), cardViewModel::performAction)
                         //Text(text = items[idx].title)
                     }
                     Box (

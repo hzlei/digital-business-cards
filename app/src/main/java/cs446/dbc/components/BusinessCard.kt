@@ -52,8 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.TemplateType
@@ -61,7 +63,7 @@ import cs446.dbc.viewmodels.BusinessCardAction
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onAction: (BusinessCardAction) -> Unit) {
+fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     var showShareDialogState by rememberSaveable {
         mutableStateOf(false)
@@ -159,7 +161,8 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
                         Text(text = field.name)
                         VerticalDivider(thickness = 20.dp, color = Color.LightGray,
                             modifier = Modifier.width(3.dp))
-                        Text(text = field.value)
+                        // TODO: ensure we allow for proper wrapping
+                        Text(text = field.value, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -238,6 +241,8 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
                 ) {
                     TextButton(onClick = {
                          // TODO: Add routing to create business card screen with editing option
+                         onAction(BusinessCardAction.SetCardEditFocus(cardModel.id))
+                        navController.navigate("create-card")
                     }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.Edit, "Edit")
                     }

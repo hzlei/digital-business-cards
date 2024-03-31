@@ -26,6 +26,8 @@ class BusinessCardViewModel @Inject constructor(
 
     var businssCardSnapshotList: SnapshotStateList<BusinessCardModel>? = null
 
+    val currCardViewId = savedStateHandle.getStateFlow("currCardViewId", "")
+
 
     // TODO: Do we need a separate remove card action when removing the card?
     fun performAction(action: BusinessCardAction) {
@@ -43,6 +45,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.UpdateFront -> TODO()
             is BusinessCardAction.UpdateCardType -> TODO()
             is BusinessCardAction.UpdateCardContext -> updateCardContext(action.newContext)
+            is BusinessCardAction.SetCardEditFocus -> changeCurrCardViewId(action.cardId)
             else -> TODO() // not actually, this is just to shut up the error
         }
     }
@@ -103,6 +106,10 @@ class BusinessCardViewModel @Inject constructor(
         businssCardSnapshotList?.clear()
         businssCardSnapshotList?.addAll(cards!!)
         // TODO: Delete from local storage as well
+    }
+
+    fun changeCurrCardViewId (id: String?) {
+        savedStateHandle["currCardViewId"] = id
     }
 
 }
