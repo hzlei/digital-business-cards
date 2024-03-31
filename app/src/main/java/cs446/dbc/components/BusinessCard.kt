@@ -138,6 +138,17 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
             )
 
         }
+        AnimatedVisibility(
+            visible = cardModel.cardType == CardType.PERSONAL,
+            modifier = Modifier.weight(1f)
+        ) {
+            TextButton(onClick = {
+                // Navigation to the card creation/editing screen should be triggered here.
+                onAction(BusinessCardAction.UpdateCardContext(CardType.PERSONAL)) // Example action
+            }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Outlined.Edit, "Edit")
+            }
+        }
         AnimatedVisibility(visible = selected && cardModel.fields.isNotEmpty(),
             modifier = Modifier.padding(start = animatedPadding, end = animatedPadding)) {
             HorizontalDivider(thickness = 2.dp)
