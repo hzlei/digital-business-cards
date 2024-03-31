@@ -17,7 +17,7 @@ func Event(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
 
   eventID, ok := vars["event"]
-  if !ok && (r.Method == "GET" || r.Method == "DELETE") {
+  if !ok && (r.Method != "POST") {
     msg := "No event ID supplied."
 		log.Error().Msg(msg)
 		http.Error(w, msg, http.StatusBadRequest)
@@ -31,8 +31,6 @@ func Event(w http.ResponseWriter, r *http.Request) {
 
   switch r.Method {
   case "POST":
-    fallthrough
-  case "PUT":
     var body models.Event
     err = json.NewDecoder(r.Body).Decode(&body)
     if err != nil {
@@ -50,6 +48,17 @@ func Event(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(str))
+    return
+
+  case "PUT":
+    var body models.Event
+    err = json.NewDecoder(r.Body).Decode(&body)
+    if err != nil {
+      break
+    }
+
+    _, err = client.Collection("events").Doc(eventID).Set(r.Context(), body)
+    if err != nil { break }
     return
 
   case "GET":
