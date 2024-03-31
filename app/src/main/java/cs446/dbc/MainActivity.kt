@@ -661,17 +661,28 @@ class MainActivity : AppCompatActivity() {
                           selectedCards: MutableList<BusinessCardModel>,
                           navController: NavHostController): Boolean
     {
+        val event = EventModel(
+            eventModel.id,
+            eventModel.name,
+            eventModel.location,
+            eventModel.startDate,
+            eventModel.endDate,
+            eventModel.numUsers,
+            eventModel.maxUsers,
+            eventModel.maxUsersSet,
+            eventModel.eventType
+        )
         // if no id, we are creating a new event
         // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
         // IDs SO THEY'LL ALWAYS CREATE A NEW EVENT (EVEN IF WE ARE EDITING THEM RN)
         // IT STILL ALL WORKS
-        if (eventModel.id == "") {
+        if (event.id == "") {
             // TODO: Error check to ensure they have added a name and location
             // return if we succeed in saving the event
-            if (eventModel.name == "") return false
-            if (eventModel.location == "") return false
+            if (event.name == "") return false
+            if (event.location == "") return false
             // check if start date is less than end date
-            if (eventModel.startDate.toLong() > eventModel.endDate.toLong()) return false
+            if (event.startDate.toLong() > event.endDate.toLong()) return false
 
             // TODO: ensure they actually have business cards first
             //  otherwise if they haven't made any, it's fine not to upload any
@@ -681,19 +692,8 @@ class MainActivity : AppCompatActivity() {
             // TODO: remove this id generation here, only temporary for local testing purposes
             //  until we add the server code
 
-            eventModel.id = UUID.randomUUID().toString()
-            eventModel.eventType = EventType.HOSTED
-            val event = EventModel(
-                eventModel.id,
-                eventModel.name,
-                eventModel.location,
-                eventModel.startDate,
-                eventModel.endDate,
-                eventModel.numUsers,
-                eventModel.maxUsers,
-                eventModel.maxUsersSet,
-                eventModel.eventType
-            )
+            event.id = UUID.randomUUID().toString()
+            event.eventType = EventType.HOSTED
             eventViewModel.performAction(EventAction.InsertEvent(
                 event = event
             ))
@@ -704,17 +704,6 @@ class MainActivity : AppCompatActivity() {
         // otherwise we are editing an event
         else {
             // TODO: send the updated event to server
-            val event = EventModel(
-                eventModel.id,
-                eventModel.name,
-                eventModel.location,
-                eventModel.startDate,
-                eventModel.endDate,
-                eventModel.numUsers,
-                eventModel.maxUsers,
-                eventModel.maxUsersSet,
-                eventModel.eventType
-            )
             eventViewModel.performAction(EventAction.UpdateEvent(
                 event.id, event
             ))
