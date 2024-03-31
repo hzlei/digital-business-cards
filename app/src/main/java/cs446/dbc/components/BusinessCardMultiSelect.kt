@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
@@ -64,7 +66,9 @@ fun BusinessCardMultiSelect(title: String, cardViewModel: BusinessCardViewModel,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .weight(0.1f)
-                .fillMaxWidth())
+                .fillMaxWidth(),
+
+        )
         LazyColumn(
             modifier = Modifier
                 .weight(0.9f)
@@ -84,10 +88,8 @@ fun BusinessCardMultiSelect(title: String, cardViewModel: BusinessCardViewModel,
                                 if (i == idx) {
                                     if (item.isSelected) {
                                         eventBusinessCardList.add(item.card)
-                                        Log.d("eventBusinessCardList", eventBusinessCardList.size.toString())
                                     } else {
                                         eventBusinessCardList.remove(item.card)
-                                        Log.d("eventBusinessCardList", eventBusinessCardList.size.toString())
                                     }
                                 }
                             }
