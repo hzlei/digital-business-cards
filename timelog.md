@@ -28,8 +28,11 @@
 | 2024/03/24 | 0 | 6 | 0 | 0 | 0 | 0 | Event UI - created events list & menu screen, create events screen + event model + event view model + routing & data passing (and debugging for it) |
 | 2024/03/25 | 0 | 4 | 0 | 0 | 0 | 0 | Created mock event data, reworked Business Card to incorporate events (debugging issues with displaying field data), created event card template, populated event menu screen, reworked view models and card models |
 | 2024/03/26 | 0 | 2 | 0 | 0 | 0 | 0 | Modified state handling to fix render issue with the business cards and events lists not being updated visually |
+| 2024/03/26 | 5 | 0 | 0 | 0 | 0 | 0 | Working on business card creation functionality code
 | 2024/03/27 | 0 | 7 | 0 | 0 | 0 | 0 | Created events creation page (form data + date picker dialog + some issues attaching an interaction source to other composables like textfield), fixed duplication issues with the new state handling changes from yesterday, some QOL (for development) improvements as well with code structuring |
 | 2024/03/28 | 0 | 5 | 0 | 0 | 0 | 0 | Implemented saving for created/edited events via FAB (still some bugs), added error handling, created date picker dialog (still some bugs that need to be ironed out), added observable for form modification for create event, added overflow handling, and a few general UI changes |
 | 2024/03/28 | 0 | 1 | 0 | 0 | 0 | 0 | Deliverable 5 - worked on the Decorator pattern explanation and figure |
+| 2024/03/28 | 3 | 0 | 0 | 0 | 0 | 0 | Deliverable 5 - worked on the Factory method pattern explanation and figure, edit and submit overall document |
+| 2024/03/28 | 4 | 0 | 0 | 0 | 0 | 0 | Working on business card templates and creation process
 | 2024/03/29 | 0 | 6 | 0 | 0 | 0 | 0 | Fixed date picker dialog, render, and storage issues. Fixed event saving issue (due to state passing). Modified business cards to use event card type instead of template. Added event adding dialog for hosting/joining events. Working on fix for error check dialog for create event screen. |
 | 2024/03/30 | 0 | 6 | 0 | 2 | 0 | 0 | Created join dialog, added card selection to event creation, fixed event creation bug with information copying. Created API functions to handle http requests, looked into websocket handling. | 
