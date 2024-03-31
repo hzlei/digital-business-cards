@@ -18,4 +18,5 @@ sealed class BusinessCardAction {
     data class UpdateField (val cardId: String, val oldField: Field, val newField: Field): BusinessCardAction()
     data class UpdateCardType (val cardId: String, val newCardType: CardType): BusinessCardAction()
     data class UpdateCardContext (val newContext: CardType): BusinessCardAction()
+    data class SetCardEditFocus(val cardId: String): BusinessCardAction()
 }

@@ -7,15 +7,15 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class BusinessCardModel(
-    val id: String,
+    var id: String,
     var front: String,
     var back: String,
     var favorite: Boolean,
-    val fields: MutableList<Field>,
+    var fields: MutableList<Field>,
     var template: TemplateType = TemplateType.DEFAULT,
-    val cardType: CardType = CardType.PERSONAL, // TODO: figure out how card types will change during sharing
-    val eventId: String = "",
-    val eventUserId: String = ""
+    var cardType: CardType = CardType.PERSONAL, // TODO: figure out how card types will change during sharing
+    var eventId: String = "",
+    var eventUserId: String = ""
 ) : Parcelable {
     constructor() : this(
         "",

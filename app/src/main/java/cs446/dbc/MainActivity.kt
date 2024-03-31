@@ -84,6 +84,7 @@ import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
+import cs446.dbc.views.CreateBusinessCardScreen
 import cs446.dbc.views.CreateEventScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
@@ -127,6 +128,7 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val currCardViewId by cardViewModel.currCardViewId.collectAsStateWithLifecycle()
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
@@ -344,7 +346,9 @@ class MainActivity : AppCompatActivity() {
                                             ),
                                             cardType = CardType.PERSONAL
                                         ),
-                                    ), appContext
+                                    ),
+                                    appContext,
+                                    navController
                                 )
                             }
                             composable(Screen.Home.route) {
@@ -357,7 +361,8 @@ class MainActivity : AppCompatActivity() {
                                     appViewModel,
                                     cardViewModel,
                                     sharedCardsList,
-                                    appContext
+                                    appContext,
+                                    navController
                                 )
                             }
                             composable(Screen.Settings.route) {
@@ -383,6 +388,15 @@ class MainActivity : AppCompatActivity() {
                             }
                             composable(Screen.EventCreationMenu.route) {
                                 CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, cardViewModel, navController, currEventViewId)
+                            }
+                            composable(Screen.BusinessCardCreationMenu.route) {
+                                CreateBusinessCardScreen(
+                                    createEditViewModel = createEditViewModel,
+                                    cardViewModel = cardViewModel,
+                                    appViewModel = appViewModel,
+                                    navController = navController,
+                                    cardId = currCardViewId
+                                )
                             }
                         }
                     }
@@ -520,24 +534,8 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
-                            // HEREHEREHERE
-                            showCreateDialog = true
-                            val newCard = BusinessCardModel(
-                                id = UUID.randomUUID().toString(),
-                                front = "New Front",
-                                back = "New Back",
-                                favorite = false,
-                                fields = mutableListOf(),
-                                cardType = CardType.PERSONAL,
-                            )
-
-                            appViewModel.addCard(
-                                newCard,
-                                context,
-                                "businessCards",
-                                CardType.PERSONAL
-                            )
-                            cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
+                            cardViewModel.changeCurrCardViewId("")
+                            navController.navigate(route = "create-card")
                         }
                     ) {
                         Icon(
@@ -652,6 +650,7 @@ class MainActivity : AppCompatActivity() {
         object Events : Screen("events")
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
+        object BusinessCardCreationMenu : Screen("create-card")
 
     }
 

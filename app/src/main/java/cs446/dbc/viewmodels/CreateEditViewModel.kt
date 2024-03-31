@@ -16,4 +16,13 @@ class CreateEditViewModel @Inject constructor(
     val createEditBusinessCard = savedStateHandle.getStateFlow("businessCard", BusinessCardModel())
     val createEditEvent = savedStateHandle.getStateFlow("eventCard", EventModel())
     val eventBusinessCardList = savedStateHandle.getStateFlow("eventBusinessCardList", mutableListOf<BusinessCardModel>())
+
+    fun updateField(fieldName: String, newValue: String) {
+        val card = savedStateHandle.get<BusinessCardModel>("businessCard")!!
+        val field = card.fields.find { it.name == fieldName }!!
+        field.value = newValue
+        card.fields.removeIf { it.name == fieldName }
+        card.fields.add(field)
+        savedStateHandle["businessCard"] = card
+    }
 }
