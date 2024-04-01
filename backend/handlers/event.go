@@ -38,10 +38,9 @@ func Event(w http.ResponseWriter, r *http.Request) {
     }
 
     ref := client.Collection("events").NewDoc()
+    body.ID = ref.ID
     _, err = ref.Create(r.Context(), body)
     if err != nil { break }
-
-    body.ID = ref.ID
 
 		str, err := json.Marshal(body)
 		if err != nil { break }
@@ -119,6 +118,170 @@ func EventExists(w http.ResponseWriter, r *http.Request) {
   }
 
   resp, err := json.Marshal(exists)
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(resp)
+}
+
+func JoinEvent(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+
+  eventID, ok := vars["event"]
+  if !ok && r.Method != "POST" {
+    msg := "No event ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+  }
+
+	client := r.Context().Value("firestore").(*firestore.Client)
+
+  userID, ok := vars["user"]
+  if !ok && r.Method != "POST" {
+    msg := "No user ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+  }
+
+  dsnap, err := client.Collection("events").Doc(eventID).Get(r.Context())
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  jsonData, err := json.Marshal(dsnap.Data())
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  var event models.Event
+  err = json.Unmarshal(jsonData, &event)
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  _, err = client.Collection("events").Doc(eventID).Collection("users").Doc(userID).Get(r.Context())
+  if status.Code(err) == codes.NotFound {
+    if event.NumUsers >= event.MaxUsers {
+      msg := "Max users reached"
+      log.Info().Msg(msg)
+      http.Error(w, msg, http.StatusPreconditionFailed)
+      return
+    }
+
+    _, err := client.Collection("events").Doc(eventID).Collection("users").Doc(userID).Set(r.Context(), make(map[string]interface{}))
+    if err != nil {
+      log.Err(err)
+      http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
+    }
+    event.NumUsers += 1
+
+    _, err = client.Collection("events").Doc(eventID).Set(r.Context(), event)
+    if err != nil {
+      log.Err(err)
+      http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
+    }
+  } else if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  resp, err := json.Marshal(event)
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(resp)
+}
+
+func ExitEvent(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+
+  eventID, ok := vars["event"]
+  if !ok && r.Method != "POST" {
+    msg := "No event ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+  }
+
+	client := r.Context().Value("firestore").(*firestore.Client)
+
+  userID, ok := vars["user"]
+  if !ok && r.Method != "POST" {
+    msg := "No user ID supplied."
+		log.Error().Msg(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+  }
+
+  eventRef := client.Collection("events").Doc(eventID)
+  dsnap, err := eventRef.Get(r.Context())
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  jsonData, err := json.Marshal(dsnap.Data())
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  var event models.Event
+  err = json.Unmarshal(jsonData, &event)
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  ref := client.Collection("events").Doc(eventID).Collection("users").Doc(userID)
+  _, err = ref.Get(r.Context())
+  if status.Code(err) == codes.NotFound {
+    return
+  } else if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  _, err = ref.Delete(r.Context())
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  event.NumUsers -= 1
+  
+  _, err = eventRef.Set(r.Context(), event)
+  if err != nil {
+    log.Err(err)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  resp, err := json.Marshal(event)
   if err != nil {
     log.Err(err)
     http.Error(w, err.Error(), http.StatusInternalServerError)
