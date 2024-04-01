@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +40,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -89,17 +95,23 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
     var fullName by remember {
         mutableStateOf(TextFieldValue(""))
     }
+    var hasFullName by remember {
+        mutableStateOf(false)
+    }
     var company by remember {
         mutableStateOf(TextFieldValue(""))
+    }
+    var hasCompany by remember {
+        mutableStateOf(false)
     }
     var role by remember {
         mutableStateOf(TextFieldValue(""))
     }
     var mobilePhone by remember {
-        mutableStateOf(TextFieldValue(""))
+        mutableStateOf("")
     }
     var companyPhone by remember {
-        mutableStateOf(TextFieldValue(""))
+        mutableStateOf("")
     }
     var email by remember {
         mutableStateOf(TextFieldValue(""))
@@ -180,31 +192,32 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             // TODO: Force add full name, company/institution name, role/title
             //  They can then add information such as mobile phone number, company phone number, email,
             //  address, website, linkedin, github
-            OutlinedTextField(value = front, onValueChange = {
-                front = it
-                createEditBusinessCard.front = front.text
-            }, label = { Text(text = "Card Front Text") },
-                placeholder = {
-                    Text(text = "e.g. Figure out what this and the Back text is for")
-                }, modifier = Modifier.fillMaxSize()
-            )
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            OutlinedTextField(value = back, onValueChange = {
-                back = it
-                createEditBusinessCard.back = back.text
-            }, label = { Text(text = "Card Back Text") },
-                placeholder = {
-                    Text(text = "e.g. Figure out what this and the Front text is for")
-                }, modifier = Modifier.fillMaxSize()
-            )
-
-            Spacer(modifier = Modifier.padding(4.dp))
+//            OutlinedTextField(value = front, onValueChange = {
+//                front = it
+//                createEditBusinessCard.front = front.text
+//            }, label = { Text(text = "Card Front Text") },
+//                placeholder = {
+//                    Text(text = "e.g. Figure out what this and the Back text is for")
+//                }, modifier = Modifier.fillMaxSize()
+//            )
+//
+//            Spacer(modifier = Modifier.padding(4.dp))
+//
+//            OutlinedTextField(value = back, onValueChange = {
+//                back = it
+//                createEditBusinessCard.back = back.text
+//            }, label = { Text(text = "Card Back Text") },
+//                placeholder = {
+//                    Text(text = "e.g. Figure out what this and the Front text is for")
+//                }, modifier = Modifier.fillMaxSize()
+//            )
+//
+//            Spacer(modifier = Modifier.padding(4.dp))
 
             // Full Name
             OutlinedTextField(value = fullName, onValueChange = {
                 fullName = it
+                hasFullName = if (fullName.text == "") false else true
                 val fullNameField = createEditBusinessCard.fields.find {
                     field -> field.name == "Full Name" }
                 // If field doesn't exist yet, add it
@@ -226,14 +239,20 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             }, label = { Text(text = "Full Name") },
                 placeholder = {
                     Text(text = "e.g. John Doe")
-                }, modifier = Modifier.fillMaxSize()
+                }, modifier = Modifier.fillMaxSize(),
+                isError = !hasFullName
             )
 
-            Spacer(modifier = Modifier.padding(4.dp))
-
+            if (!hasFullName) {
+                Text(text = "Please enter your full name", color = Color.Red)
+            }
+            else {
+                Spacer(modifier = Modifier.padding(4.dp))
+            }
             // Company
             OutlinedTextField(value = company, onValueChange = {
                 company = it
+                hasCompany = if (company.text == "") false else true
                 val companyField = createEditBusinessCard.fields.find {
                         field -> field.name == "Company/Institution" }
                 // If field doesn't exist yet, add it
@@ -255,11 +274,16 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             }, label = { Text(text = "Company/Institution Name") },
                 placeholder = {
                     Text(text = "e.g. Google")
-                }, modifier = Modifier.fillMaxSize()
+                }, modifier = Modifier.fillMaxSize(),
+                isError = !hasCompany
             )
 
-            Spacer(modifier = Modifier.padding(4.dp))
-
+            if (!hasCompany) {
+                Text(text = "Please enter your company name", color = Color.Red)
+            }
+            else {
+                Spacer(modifier = Modifier.padding(4.dp))
+            }
             // Role
             OutlinedTextField(value = role, onValueChange = {
                 role = it
@@ -289,8 +313,71 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            // TODO: add Mobile Phone
-            // TODO: add Company Phone
+            // Mobile Phone
+            // TODO: Check if mobile phone has 10 digits
+            OutlinedTextField(value = mobilePhone, onValueChange = {
+                if (it.length <= 10) {
+                    mobilePhone = it.takeWhile { it.isDigit() }
+                }
+
+                val mobilePhoneField = createEditBusinessCard.fields.find {
+                        field -> field.name == "Mobile Phone" }
+                // If field doesn't exist yet, add it
+                if (mobilePhoneField == null) {
+                    createEditBusinessCard.fields.add(Field(
+                        name = "Mobile Phone",
+                        value = mobilePhone,
+                        type = FieldType.PHONE_NUMBER
+                    ))
+                }
+                // if it does, but user removed text from textfield, remove field from list
+                else if (mobilePhone == "") {
+                    createEditBusinessCard.fields.removeIf { field -> field.name == "Mobile Phone"}
+                }
+                // otherwise update field with new value
+                else {
+                    createEditViewModel.updateField("Mobile Phone", mobilePhone)
+                }
+            }, label = { Text(text = "Mobile Phone") },
+                placeholder = {
+                    Text(text = "e.g. +1 (123) 456-7890")
+                }, modifier = Modifier.fillMaxSize(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                visualTransformation = remember { phoneNumberTransformation }
+            )
+
+            // Company Phone
+            // TODO: Check if company phone has 10 digits
+            OutlinedTextField(value = companyPhone, onValueChange = {
+                if (it.length <= 10) {
+                    companyPhone = it.takeWhile { it.isDigit() }
+                }
+
+                val companyPhoneField = createEditBusinessCard.fields.find {
+                        field -> field.name == "Company Phone" }
+                // If field doesn't exist yet, add it
+                if (companyPhoneField == null) {
+                    createEditBusinessCard.fields.add(Field(
+                        name = "Company Phone",
+                        value = companyPhone,
+                        type = FieldType.PHONE_NUMBER
+                    ))
+                }
+                // if it does, but user removed text from textfield, remove field from list
+                else if (companyPhone == "") {
+                    createEditBusinessCard.fields.removeIf { field -> field.name == "Company Phone"}
+                }
+                // otherwise update field with new value
+                else {
+                    createEditViewModel.updateField("Company Phone", companyPhone)
+                }
+            }, label = { Text(text = "Company Phone") },
+                placeholder = {
+                    Text(text = "e.g. +1 (123) 456-7890")
+                }, modifier = Modifier.fillMaxSize(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                visualTransformation = remember { phoneNumberTransformation }
+            )
 
             // Email
             // TODO: Check email error handling in FAB
@@ -439,6 +526,40 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             //TODO: Allow lazy column to add more fields
 
             // TODO: Add button to import image for front and back of card
+
         }
     }
+}
+
+// Phone number transformation
+private val phoneNumberTransformation = VisualTransformation { text ->
+    val trimmed = if (text.text.length > 10) text.take(10) else text
+    var result = "+1 "
+    for (i in trimmed.indices) {
+        if (i == 0) result += "("
+        result += trimmed[i]
+        result += when (i) {
+            2 -> ") "
+            5 -> "-"
+            else -> ""
+        }
+    }
+
+    val mapping = object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            if (offset == 0) return 3
+            if (offset <= 2) return offset + 4
+            if (offset <= 5) return offset + 6
+            return offset + 7
+
+        }
+
+        override fun transformedToOriginal(offset: Int): Int {
+            if (offset <= 3) return 0
+            if (offset <= 7) return offset -4
+            if (offset <= 12) return offset -6
+            return offset - 7
+        }
+    }
+    TransformedText(AnnotatedString(result), mapping)
 }
