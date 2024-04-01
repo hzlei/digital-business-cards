@@ -257,38 +257,11 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
             }
         }
     }
-    if (showDialogState) {
+    
+    if (showShareDialogState) {
         ShareDialog(cardModel, onAction) {
-            showDialogState = false
+            showShareDialogState = false
         }
-    }
-
-    val deleteDialogRequest = {
-        onAction(BusinessCardAction.RemoveCard(cardModel))
-        showDeleteDialogState = false
-    }
-
-    if (showDeleteDialogState) {
-        AlertDialog(onDismissRequest = { showDeleteDialogState = false },
-            title = {
-                    Text(text = "Delete Card")
-            },
-            text = {
-                   Text(text = "Are you sure you want to delete this card?")
-            },
-            confirmButton = {
-                TextButton(onClick = { deleteDialogRequest() }) {
-                    Text(text = "Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDeleteDialogState = false
-                }) {
-                    Text(text = "Cancel")
-                }
-            }
-        )
     }
 
     val deleteDialogRequest = {
