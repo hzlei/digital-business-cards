@@ -31,6 +31,7 @@ data class Settings (
    val userId: String
 )
 
+@Suppress("UNREACHABLE_CODE")
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -106,7 +107,7 @@ class AppViewModel @Inject constructor(
 
     fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType): MutableList<BusinessCardModel> {
         return runBlocking {
-            viewModelScope.launch(Dispatchers.IO) {
+            val job = viewModelScope.launch(Dispatchers.IO) {
                 val directory = context.getExternalFilesDir(directoryName)
 
                 directory?.let {
@@ -140,14 +141,14 @@ class AppViewModel @Inject constructor(
                     }
                 }
             }
+            job.join()
 
             val retCards =
                 savedStateHandle.get<MutableList<BusinessCardModel>>(if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards")
                     ?: mutableListOf<BusinessCardModel>()
-            return@runBlocking retCards
+            retCards
         }
     }
-
 
 
     fun updateLoadedMyCards(hasLoaded: Boolean) {
