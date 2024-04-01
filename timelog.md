@@ -47,4 +47,7 @@
 | 2024/03/30 | 0 | 3 | 0 | 0 | 0 | 0 | Created Business Card Creation Screen + data handling |
 | 2024/03/31 | 0 | 1 | 0 | 0 | 0 | 0 | Fixed join event dialog rendering, and BusinessCardMultiSelect |
 | 2024/03/31 | 0 | 2 | 0 | 2 | 0 | 0 | Worked on fixing card storage issue (still not working), added API calls to event components) |
+| 2024/03/31 | 0 | 2 | 0 | 0 | 0 | 3 | Implemented settings for userId, fixed card loading and saving, added image rendering to cards for front and back |
+| 2024/04/01 | 0 | 4 | 0 | 0 | 0 | 0 | Implemented event loading and saving from local storage, fixed incorrect card loading adn saving from local storage, added event join error dialog, added API function calls for create event, join event, delete event, exit event, add cards to event, upload image to server, retrieve event information, corrected image cropping on card. Still need to fix create event api call |
+
 
