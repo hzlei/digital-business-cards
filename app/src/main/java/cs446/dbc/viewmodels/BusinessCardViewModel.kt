@@ -2,12 +2,16 @@ package cs446.dbc.viewmodels
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.DBCApplication
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.bluetooth.BluetoothActionActivity
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -52,6 +56,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.UpdateCardContext -> updateCardContext(action.newContext)
             is BusinessCardAction.ShareCardBluetooth -> shareBluetoothCard(action)
             is BusinessCardAction.ReceiveCardsBluetooth -> receiveBluetoothCards()
+            is BusinessCardAction.RequestCard -> requestCard(action.card, action.appViewModel, action.context)
             else -> TODO() // not actually, this is just to shut up the error
         }
     }
@@ -132,6 +137,23 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.addAll(cards!!)
         }
         // TODO: Delete from local storage as well
+    }
+
+    private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel, context: Context) {
+        if (newCard.front != "") {
+            // download image
+            ApiFunctions.downloadImage(newCard.front, "businessCards")
+        }
+        if (newCard.back != "") {
+            // download image
+            ApiFunctions.downloadImage(newCard.front, "businessCards")
+        }
+        // put card into shared cards list, and save to local storage
+        val sharedCardsList = savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
+        sharedCardsList.add(newCard)
+        sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front}))
+        appViewModel.saveCardToLocalStorage(newCard, context, "businessCards")
+
     }
 
     private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {
