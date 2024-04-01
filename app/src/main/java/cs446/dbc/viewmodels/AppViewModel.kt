@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -23,6 +25,12 @@ import javax.inject.Inject
 
 // TODO: Could be renamed to app bar since we use this for the topAppBar (but could leave it if
 // we want to add more stuff for both top bar, bottom bar, and general activity
+
+@Serializable
+data class Settings (
+   val userId: String
+)
+
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -31,7 +39,7 @@ class AppViewModel @Inject constructor(
 
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
-
+    private val settingsDirectoryName = "Settings"
     // TODO: change this to savedstate
     private val _uiState = MutableStateFlow(AppModel())
     val uiState: StateFlow<AppModel> = _uiState.asStateFlow()
@@ -44,9 +52,9 @@ class AppViewModel @Inject constructor(
 
     // TODO: Change these to Enums
     private val loadedMyCardsKey = "loadedMyCards"
-    private val loadedSavedCardsKey = "loadedSavedCards"
+    private val loadedSharedCardsKey = "loadedSharedCards"
     val loadedMyCards = savedStateHandle.getStateFlow(loadedMyCardsKey, false)
-    val loadedSharedCards = savedStateHandle.getStateFlow(loadedSavedCardsKey, false)
+    val loadedSharedCards = savedStateHandle.getStateFlow(loadedSharedCardsKey, false)
 
     private fun updateCardContext(newContext: CardType) {
         savedStateHandle["cardContext"] = if (newContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext
@@ -97,29 +105,50 @@ class AppViewModel @Inject constructor(
     }
 
     fun loadCardsFromDirectory(context: Context, directoryName: String, cardType: CardType): MutableList<BusinessCardModel> {
-        viewModelScope.launch(Dispatchers.IO) {
-            val directory = context.getExternalFilesDir(directoryName)
+        return runBlocking {
+            viewModelScope.launch(Dispatchers.IO) {
+                val directory = context.getExternalFilesDir(directoryName)
 
-            directory?.let {
-                if (it.exists() && it.isDirectory) {
-                    val cardFiles = it.listFiles() ?: return@launch
-                    val loadedCards = cardFiles.mapNotNull { file ->
-                        try {
-                            val cardJSON = file.readText()
-                            Json.decodeFromString<BusinessCardModel>(cardJSON)
-                        } catch (e: Exception) {
-                            Log.e("AppViewModel", "Error reading or parsing card from file: ${file.name}", e)
-                            null
-                        }
-                    }.toMutableList()
+                directory?.let {
+                    if (it.exists() && it.isDirectory) {
+                        val cardFiles = it.listFiles() ?: return@launch
+                        var loadedCards = cardFiles.mapNotNull { file ->
+                            try {
+                                val cardJSON = file.readText()
+                                Json.decodeFromString<BusinessCardModel>(cardJSON)
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "AppViewModel",
+                                    "Error reading or parsing card from file: ${file.name}",
+                                    e
+                                )
+                                null
+                            }
+                        }.toMutableList()
 
-                    savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] = loadedCards
+                        loadedCards = loadedCards.filter { card -> card.cardType == cardType }
+                            .toMutableList() // filter out only the type of cards we want
+
+
+                        savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] =
+                            loadedCards
+                        savedStateHandle[if (cardType == CardType.PERSONAL) "loadedMyCards" else "loadedSharedCards"] =
+                            true
+
+                    } else {
+                        Log.e("AppViewModel", "Error locating directory: $directoryName")
+                    }
                 }
             }
+
+            val retCards =
+                savedStateHandle.get<MutableList<BusinessCardModel>>(if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards")
+                    ?: mutableListOf<BusinessCardModel>()
+            return@runBlocking retCards
         }
-        savedStateHandle[if (cardType == CardType.PERSONAL) "loadedMyCardsKey" else "loadedSharedCardsKey"] = true
-        return savedStateHandle[if (cardType == CardType.PERSONAL) "myBusinessCards" else "sharedBusinessCards"] ?: mutableListOf()
     }
+
+
 
     fun updateLoadedMyCards(hasLoaded: Boolean) {
         savedStateHandle["loadedMyCards"] = hasLoaded
@@ -134,4 +163,55 @@ class AppViewModel @Inject constructor(
             currentState.copy(screenTitle = newTitle)
         }
     }
+
+    fun updateUserId(newId: String) {
+        _uiState.update {currentState ->
+            currentState.copy(userId = newId)
+        }
+    }
+
+    fun saveUserId(id: String, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directory = context.getExternalFilesDir(settingsDirectoryName)
+
+                directory?.let {
+                    if (!it.exists()) it.mkdirs()
+                    val fileName = "Settings.json"
+                    val file = File(it, fileName)
+
+                    file.writeText(Json.encodeToString(Settings(id)))
+                }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error saving userId to local storage", e)
+            }
+        }
+    }
+
+//    fun loadUserId(context: Context): String {
+//        val userId = viewModelScope.launch(Dispatchers.IO) {
+//            val directory = context.getExternalFilesDir(settingsDirectoryName)
+//
+//            val ret = directory?.let {
+//                if (it.exists() && it.isDirectory) {
+//                    val files = it.listFiles() ?: return@launch
+//                    val settingsFile = files[0]
+//                    try {
+//                        val settingsJson = settingsFile.readText()
+//                        val settings = Json.decodeFromString<Settings>(settingsJson)
+//                        return@let settings.userId
+//                    } catch (e: Exception) {
+//                        Log.e(
+//                            "AppViewModel",
+//                            "Error reading or parsing card from file: ${settingsFile.name}",
+//                            e
+//                        )
+//                    }
+//                }
+//                else return@let ""
+//            } as String
+//            return@launch ret
+//        } as String
+//        return userId
+//    }
 }

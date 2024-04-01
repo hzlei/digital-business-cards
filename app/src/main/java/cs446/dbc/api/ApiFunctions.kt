@@ -5,12 +5,15 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FileDataPart
 import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.EventModel
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
 
+@Serializable
 data class EventExists(
     val exists: Boolean
 )
@@ -27,11 +30,22 @@ object ApiFunctions {
         }
     }
 
-    fun createEvent(): String {
+    fun createEvent(event: EventModel): String {
         return runBlocking {
-            val (_, _, result) = Fuel.post("$serverUrl/event?$apiKeyParam").awaitStringResponseResult()
+            val body = Json.encodeToString(event)
+            val (_, _, result) = Fuel.post("$serverUrl/event?$apiKeyParam").body(body).awaitStringResponseResult()
             // returns event id
             return@runBlocking result.get()
+        }
+    }
+
+    fun editEvent(event: EventModel): Boolean {
+        return runBlocking {
+            val eventId = event.id
+            val body = Json.encodeToString(event)
+            val (_, response, _) = Fuel.put("$serverUrl/event/$eventId?$apiKeyParam").body(body).awaitStringResponseResult()
+            // returns event id
+            return@runBlocking response.statusCode == 200
         }
     }
 

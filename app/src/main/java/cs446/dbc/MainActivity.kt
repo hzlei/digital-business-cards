@@ -67,6 +67,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.AddEventDialog
 import cs446.dbc.components.JoinEventDialog
@@ -132,9 +133,7 @@ class MainActivity : AppCompatActivity() {
         // TODO: Check if we have the userid in a settings json file,
         //  if we do, use that, if not, request server, and then save locally in settings file
 
-
-        // TODO: Check if we have the userid in a settings json file,
-        //  if we do, use that, if not, request server, and then save locally in settings file
+        //val userId = appViewModel.loadUserId(appContext)
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
@@ -249,13 +248,14 @@ class MainActivity : AppCompatActivity() {
                                     Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = { navController.navigate(Screen.Settings.route) },
-                                ) {
-                                    Icon(Icons.Outlined.Settings, "Settings")
-                                }
-                            }
+                            // TODO: Hank hasn't made the settings options yet
+//                            navigationIcon = {
+//                                IconButton(
+//                                    onClick = { navController.navigate(Screen.Settings.route) },
+//                                ) {
+//                                    Icon(Icons.Outlined.Settings, "Settings")
+//                                }
+//                            }
                         )
                     },
                     bottomBar = {
@@ -696,22 +696,28 @@ class MainActivity : AppCompatActivity() {
             //  otherwise if they haven't made any, it's fine not to upload any
             if (myCards.isNotEmpty() && selectedCards.isEmpty()) return false
 
-            // TODO: Create event on server, join user into event, add user's cards to event
-            // TODO: remove this id generation here, only temporary for local testing purposes
-            //  until we add the server code
-
-            event.id = UUID.randomUUID().toString()
+            // Create event on server
+            val newEventId = ApiFunctions.createEvent(event)
+            event.id = newEventId
             event.eventType = EventType.HOSTED
             eventViewModel.performAction(EventAction.InsertEvent(
                 event = event
             ))
-            navController.navigate(Screen.Events.route)
+
+            // Send selected cards to event to have the user join the event
+            selectedCards.forEach { card ->
+                ApiFunctions.addEventCard(card, newEventId)
+            }
+
             eventViewModel.changeCurrEventViewId("")
+            navController.navigate(Screen.Events.route)
+
             return true
         }
         // otherwise we are editing an event
         else {
-            // TODO: send the updated event to server
+            // Edit event on server
+            ApiFunctions.editEvent(event)
             eventViewModel.performAction(EventAction.UpdateEvent(
                 event.id, event
             ))

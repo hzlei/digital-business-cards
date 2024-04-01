@@ -82,6 +82,7 @@ fun saveImageToStorage(context: Context, imageUri: Uri, onSaved: (File) -> Unit)
     // This function saves images to local storage for later use
     val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
     val directory = context.getExternalFilesDir(null) ?: return
+    // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
     val file = File(directory, "selected_image_${System.currentTimeMillis()}.jpg")
 
     inputStream?.use { input ->
