@@ -40,6 +40,7 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
         mutableStateListOf<BusinessCardModel>()
     }
 
+    myCardViewModel.updateCardContext("myBusinessCards")
     myCardViewModel.businssCardSnapshotList = composeCards
 
     LaunchedEffect(key1 = "load_cards") {

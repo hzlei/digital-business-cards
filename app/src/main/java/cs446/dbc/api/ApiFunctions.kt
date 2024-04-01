@@ -32,10 +32,10 @@ object ApiFunctions {
 
     fun createEvent(event: EventModel): String {
         return runBlocking {
-            val body = Json.encodeToString(event)
+            val body = Json.encodeToString<EventModel>(event)
             val (_, _, result) = Fuel.post("$serverUrl/event?$apiKeyParam").body(body).awaitStringResponseResult()
             // returns event id
-            return@runBlocking result.get()
+            return@runBlocking Json.decodeFromString<EventModel>(result.get()).id
         }
     }
 
@@ -49,6 +49,33 @@ object ApiFunctions {
         }
     }
 
+    fun getEvent(eventId: String): EventModel {
+        return runBlocking {
+            val (_, _, result) = Fuel.get("$serverUrl/event/$eventId?$apiKeyParam")
+                .awaitStringResponseResult()
+            // returns event
+            return@runBlocking Json.decodeFromString<EventModel>(result.get())
+        }
+    }
+
+    fun joinEvent(eventId: String, userId: String): EventModel {
+        return runBlocking {
+            val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/user/$userId?$apiKeyParam")
+                .awaitStringResponseResult()
+            // returns event
+            return@runBlocking Json.decodeFromString<EventModel>(result.get())
+        }
+    }
+
+    fun exitEvent(eventId: String, userId: String) {
+        return runBlocking {
+            val (_, _, _) = Fuel.delete("$serverUrl/event/$eventId/user/$userId?$apiKeyParam")
+                .awaitStringResponseResult()
+            // returns event
+        }
+    }
+
+
     fun checkEventExists(eventId: String): Boolean {
         return runBlocking {
             val (_, _, result) = Fuel.get("$serverUrl/event/$eventId/exists?$apiKeyParam").awaitStringResponseResult()
@@ -59,7 +86,8 @@ object ApiFunctions {
 
     fun addEventCard(card: BusinessCardModel, eventId: String): String {
         return runBlocking {
-            val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/card?$apiKeyParam").awaitStringResponseResult()
+            val body = Json.encodeToString(card)
+            val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/card?$apiKeyParam").body(body).awaitStringResponseResult()
             return@runBlocking result.get()
         }
     }

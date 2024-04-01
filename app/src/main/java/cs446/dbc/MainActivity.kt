@@ -87,9 +87,8 @@ import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
+import java.io.FileFilter
 import java.util.UUID
-import kotlin.math.log
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -108,40 +107,54 @@ class MainActivity : AppCompatActivity() {
 //    @OptIn(ExperimentalLifeCycleComposeApi::class)
     @Composable
     private fun App(appActivity: AppCompatActivity) {
+        val appContext = LocalContext.current
         val appViewModel: AppViewModel = viewModel() {
             AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
+
+        appViewModel.loadUserId(appContext)
+
+        val userId by appViewModel.userId.collectAsStateWithLifecycle()
+
         val cardViewModel: BusinessCardViewModel = viewModel() {
             BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
         val eventViewModel: EventViewModel = viewModel() {
-            EventViewModel(savedStateHandle = createSavedStateHandle())
+            EventViewModel(savedStateHandle = createSavedStateHandle(), appContext, userId)
         }
         val createEditViewModel: CreateEditViewModel = viewModel() {
             CreateEditViewModel(savedStateHandle = createSavedStateHandle())
         }
 
-        val appContext = LocalContext.current
         val navController = rememberNavController()
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
-        val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
 
         // TODO: Check if we have the userid in a settings json file,
         //  if we do, use that, if not, request server, and then save locally in settings file
 
-        appViewModel.loadUserId(appContext)
 
-        LaunchedEffect(key1 = "load_cards") {
+
+        LaunchedEffect(key1 = "load_shared_cards") {
             if (!loadedSharedCards) {
+                cardViewModel.updateCardContext("sharedCards")
                 val cardList =
                     appViewModel.loadCardsFromDirectory(
                         appContext,
                         "businessCards",
                         CardType.SHARED
                     )
+                cardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+            }
+        }
+
+        LaunchedEffect(key1 = "load_my_cards") {
+            if (!loadedMyCards) {
+                cardViewModel.updateCardContext("myBusinessCards")
+                val cardList =
+                    appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.PERSONAL)
                 cardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
             }
         }
@@ -414,6 +427,8 @@ class MainActivity : AppCompatActivity() {
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
         val events by eventViewModel.events.collectAsStateWithLifecycle()
         val myCards by cardViewModel.myBusinessCards.collectAsStateWithLifecycle()
+        val userId by appViewModel.userId.collectAsStateWithLifecycle()
+
         var showReceiveDialog by rememberSaveable {
             mutableStateOf(false)
         }
@@ -425,6 +440,10 @@ class MainActivity : AppCompatActivity() {
         var showSaveEventErrorDialog by rememberSaveable {
             mutableStateOf(false)
         }
+        var showEventJoinErrorDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
 
         var showAddEventsDialog by rememberSaveable {
             mutableStateOf(false)
@@ -476,6 +495,24 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        if (showEventJoinErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { showEventJoinErrorDialog = false },
+                dismissButton = {
+                    TextButton(onClick = { showEventJoinErrorDialog = false }) {
+                        Text(text = "Dismiss")
+                    }
+                },
+                confirmButton = {  },
+                title = { Text(text = "Error", textAlign = TextAlign.Center) },
+                text = {
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "Could not join event. Please check that the Event ID is correct, the event has not ended, and there are still spots open.")
+                }
+            )
+        }
+
         if (showAddEventsDialog) {
             AddEventDialog({ showAddEventsDialog = false }){eventType ->
                 showAddEventsDialog = false
@@ -486,16 +523,9 @@ class MainActivity : AppCompatActivity() {
                         navController.navigate(route = "create-event")
                     }
                     "Join" -> {
-                        // TODO: If user has no cards, we just join them directly to the event
-                        //  otherwise we have them pick out their cards and then join
-                        if (myCards.isNotEmpty()) {
-                            showJoinEventDialog = true
-                        }
-                        else {
-                            // Join event directly
-                        }
-                        // TODO: test interaction with join event dialog and host event one after the other
+                        showJoinEventDialog = true
                     }
+                    // TODO: test interaction with join event dialog and host event one after the other
                 }
             }
         }
@@ -503,12 +533,25 @@ class MainActivity : AppCompatActivity() {
         if (showJoinEventDialog) {
             JoinEventDialog(cardViewModel = cardViewModel,
                 createEditViewModel = createEditViewModel,
-                onDismiss = { showJoinEventDialog = false }) {
-                    // TODO: Do the event joining stuff here
-                    //  with the server and all
-                    // TODO: Request event from server, join user event, update server, add event
-                    //   to list
-                // make a function so we can use it here and in the above join
+                onDismiss = { showJoinEventDialog = false }) { eventId ->
+
+                    var doesEventExist = ApiFunctions.checkEventExists(eventId)
+                    if (!doesEventExist) {
+                        showEventJoinErrorDialog = true
+                        showJoinEventDialog = false
+                    }
+                    else {
+                        val event = ApiFunctions.joinEvent(eventId, userId)
+                        // Add our cards to the event to join
+                        eventBusinessCardList.forEach { card ->
+                            ApiFunctions.addEventCard(card, eventId)
+                        }
+                        // upload all of our card images to the event
+                        eventBusinessCardList.forEach { card ->
+                            checkAndUploadCardImages(context, card, userId, eventId)
+                        }
+                        eventViewModel.performAction(EventAction.InsertEvent(event))
+                    }
             }
         }
 
@@ -533,10 +576,11 @@ class MainActivity : AppCompatActivity() {
 
                             // this newcard should be returned from the createDialog
                             // then the logic is the same, just need to change how newCard is handled
+                            val id = UUID.randomUUID().toString()
                             val newCard = BusinessCardModel(
-                                id = UUID.randomUUID().toString(),
-                                front = "small.jpg",
-                                back = "New Back",
+                                id = id,
+                                front = "user_${userId}_card_${id}_image_front.jpg",
+                                back = "user_${userId}_card_${id}_image_back.jpg.jpg",
                                 favorite = false,
                                 fields = mutableListOf(),
                                 cardType = CardType.PERSONAL,
@@ -630,7 +674,7 @@ class MainActivity : AppCompatActivity() {
                                 // TODO: we also need to update max users set if it was set
                                 // TODO: we also need to set event type if it's empty string
                                 // TODO: convert this to UTC again, so we have consistent time
-                                val didSave = saveEvent(myCards, createEditEvent, eventViewModel, eventBusinessCardList, navController)
+                                val didSave = saveEvent(context, userId, myCards, createEditEvent, eventViewModel, eventBusinessCardList, navController)
                                 if (!didSave) {
                                     showSaveEventErrorDialog = true
                                 }
@@ -666,7 +710,34 @@ class MainActivity : AppCompatActivity() {
         object EventCreationMenu : Screen("create-event")
     }
 
-    private fun saveEvent(myCards: MutableList<BusinessCardModel>,
+    private fun checkAndUploadCardImages(context: Context, card: BusinessCardModel, userId: String, eventId: String) {
+        // Check if files actually exist before we upload them to the server
+        val directory = context.getExternalFilesDir(null)!!
+        val frontImage = directory.listFiles(FileFilter { file ->
+            file.name == card.front
+        })
+        val backImage = directory.listFiles(FileFilter { file ->
+            file.name == card.back
+        })
+        if (frontImage != null) {
+            if (frontImage.isNotEmpty()) ApiFunctions.uploadImage(
+                card.front,
+                "front",
+                userId,
+                card.id
+            )
+        }
+        if (backImage != null) {
+            if (backImage.isNotEmpty()) ApiFunctions.uploadImage(
+                card.back,
+                "back",
+                userId,
+                card.id
+            )
+        }
+    }
+
+    private fun saveEvent(context: Context, userId: String, myCards: MutableList<BusinessCardModel>,
                           eventModel: EventModel,
                           eventViewModel: EventViewModel,
                           selectedCards: MutableList<BusinessCardModel>,
@@ -681,7 +752,7 @@ class MainActivity : AppCompatActivity() {
             eventModel.numUsers,
             eventModel.maxUsers,
             eventModel.maxUsersSet,
-            eventModel.eventType
+            eventType = EventType.HOSTED
         )
         // if no id, we are creating a new event
         // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
@@ -709,7 +780,10 @@ class MainActivity : AppCompatActivity() {
 
             // Send selected cards to event to have the user join the event
             selectedCards.forEach { card ->
+                // TODO: Add card
                 ApiFunctions.addEventCard(card, newEventId)
+                // TODO: upload images for the cards!!!!
+//                checkAndUploadCard(context, card, userId, newEventId)
             }
 
             eventViewModel.changeCurrEventViewId("")

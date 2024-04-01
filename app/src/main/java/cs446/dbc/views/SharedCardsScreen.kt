@@ -38,6 +38,9 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     val composeCards = remember {
         mutableStateListOf<BusinessCardModel>()
     }
+
+    sharedCardViewModel.updateCardContext("sharedCards")
+
     // TODO: Remove after, we're just temporarily add cards to mock them for the demo
     /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
         and do so while switching context to another screen (so we can't just check if the
@@ -64,7 +67,7 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
         }
     }
 
-    sharedCardViewModel.businssCardSnapshotList = composeCards
+    sharedCardViewModel.sharedCardsSnapshotList = composeCards
 
     LaunchedEffect(key1 = "load_examples") {
         if (sharedCards.size < 1) {

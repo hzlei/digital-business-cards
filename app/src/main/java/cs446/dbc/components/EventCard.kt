@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.models.EventModel
 import cs446.dbc.viewmodels.EventAction
 import java.text.SimpleDateFormat
@@ -136,7 +137,9 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TextButton(
-                    onClick = { onAction(EventAction.RemoveEvent(eventModel)) },
+                    onClick = {
+                        onAction(EventAction.RemoveEvent(eventModel))
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Outlined.Delete, "Delete", tint = Color.Red)

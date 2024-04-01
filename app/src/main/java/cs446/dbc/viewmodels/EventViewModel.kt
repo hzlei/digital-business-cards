@@ -1,10 +1,24 @@
 package cs446.dbc.viewmodels
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import cs446.dbc.api.ApiFunctions
+import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.models.EventModel
+import cs446.dbc.models.EventType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 import java.util.Date
 import java.util.UUID
 import java.util.function.Predicate
@@ -13,6 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EventViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
+    private val context: Context,
+    private val userId: String
 ): ViewModel() {
 
     // TODO: How will we handle injection of saved preferences??
@@ -55,18 +71,17 @@ class EventViewModel @Inject constructor(
         savedStateHandle["events"] = events
         eventSnapshotList?.add(event)
         sortEvents()
+        saveEventToLocalStorage(event, context, "events")
     }
 
     private fun insertEvent(action: EventAction.InsertEvent) {
-        // TODO: Send event creation to server
-        // TODO: retrieve event id from server
-        // TODO: update event id in event
         val event = action.event
         val eventList = savedStateHandle.get<MutableList<EventModel>>("events")
         eventList?.add(event)
         savedStateHandle["events"] = eventList
         eventSnapshotList?.add(event)
         sortEvents()
+        saveEventToLocalStorage(event, context, "events")
     }
 
     private fun updateEvent(action: EventAction.UpdateEvent) {
@@ -78,6 +93,7 @@ class EventViewModel @Inject constructor(
         savedStateHandle["events"] = eventList
         eventSnapshotList?.add(action.updatedEvent)
         sortEvents()
+        saveEventToLocalStorage(action.updatedEvent, context, "events")
     }
 
     private fun removeEvent(action: EventAction.RemoveEvent) {
@@ -90,8 +106,9 @@ class EventViewModel @Inject constructor(
         // TODO: Delete from local storage as well
 
         // TODO: Remove user from event if event is joined
-
+        if (event.eventType == EventType.JOINED)  ApiFunctions.exitEvent(event.id, userId)
         // TODO: Delete event on server if event is hosted
+        else ApiFunctions.deleteEvent(event.id)
 
 
     }
@@ -111,5 +128,59 @@ class EventViewModel @Inject constructor(
 
     fun changeEventSnapshotList (snapshotStateList: SnapshotStateList<EventModel>) {
         eventSnapshotList = snapshotStateList
+    }
+
+    private fun saveEventToLocalStorage(event: EventModel, context: Context, directoryName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directory = context.getExternalFilesDir(directoryName)
+
+                directory?.let {
+                    if (!it.exists()) it.mkdirs()
+                    val fileName = "Event_${event.id}.json"
+                    val file = File(it, fileName)
+                    file.writeText(Json.encodeToString(event))
+                }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error saving event to local storage", e)
+            }
+        }
+    }
+
+    fun loadEventsFromLocalStorage(directoryName: String): MutableList<EventModel> {
+        return runBlocking {
+            val job = viewModelScope.launch(Dispatchers.IO) {
+                val directory = context.getExternalFilesDir(directoryName)
+                directory?.let {
+                    if (it.exists() && it.isDirectory) {
+                        val eventFiles = it.listFiles() ?: return@launch
+                        val loadedCards = eventFiles.mapNotNull { file ->
+                            try {
+                                val eventJson = file.readText()
+                                Json.decodeFromString<EventModel>(eventJson)
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "AppViewModel",
+                                    "Error reading or parsing event from file: ${file.name}",
+                                    e
+                                )
+                                null
+                            }
+                        }.toMutableList()
+
+                        savedStateHandle["events"] = loadedCards
+
+                    } else {
+                        Log.e("AppViewModel", "Error locating directory: $directoryName")
+                    }
+                }
+            }
+            job.join()
+
+            val retEvents =
+                savedStateHandle.get<MutableList<EventModel>>("events")
+                    ?: mutableListOf<EventModel>()
+            retEvents
+        }
     }
 }

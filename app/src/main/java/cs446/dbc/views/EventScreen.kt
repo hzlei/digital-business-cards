@@ -67,22 +67,24 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
             val eventsList = mutableListOf<EventModel>()
 
             // TODO: remove example list after the above is working correctly
-            for (i in 0..2) {
-                eventViewModel.performAction(EventAction.PopulateEvent(
-                    name = "Joined E$i",
-                    location = "Toronto - $i",
-                    eventType = EventType.JOINED
-                ))
-            }
-            for (i in 0..2) {
-                eventViewModel.performAction(EventAction.PopulateEvent(
-                    name = "Hosted Event that is really long - $i",
-                    location = "29 Westfold Ave, Toronto, Ontario, Canada - $i",
-                    eventType = EventType.HOSTED,
-                ))
-            }
-            eventViewModel.performAction(EventAction.SortEvents())
-            eventsList.addAll(events)
+//            for (i in 0..2) {
+//                eventViewModel.performAction(EventAction.PopulateEvent(
+//                    name = "Joined E$i",
+//                    location = "Toronto - $i",
+//                    eventType = EventType.JOINED
+//                ))
+//            }
+//            for (i in 0..2) {
+//                eventViewModel.performAction(EventAction.PopulateEvent(
+//                    name = "Hosted Event that is really long - $i",
+//                    location = "29 Westfold Ave, Toronto, Ontario, Canada - $i",
+//                    eventType = EventType.HOSTED,
+//                ))
+//            }
+//            eventViewModel.performAction(EventAction.SortEvents())
+//            eventsList.addAll(events)
+
+            eventViewModel.loadEventsFromLocalStorage("events")
 
             // Check if event still exists on server
             runBlocking {
@@ -90,6 +92,19 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
                     val doesExist = ApiFunctions.checkEventExists(event.id)
                     if (doesExist) {
                         // TODO: populate event
+                        val receivedEvent = ApiFunctions.getEvent(event.id)
+                        val evt = EventModel(
+                            receivedEvent.id,
+                            receivedEvent.name,
+                            receivedEvent.location,
+                            receivedEvent.startDate,
+                            receivedEvent.endDate,
+                            receivedEvent.numUsers,
+                            receivedEvent.maxUsers,
+                            receivedEvent.maxUsersSet,
+                            eventType = EventType.JOINED
+                        )
+                        eventViewModel.performAction(EventAction.UpdateEvent(event.id, evt))
                     }
                     else {
                         // delete event from local storage

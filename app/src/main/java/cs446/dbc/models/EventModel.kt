@@ -1,6 +1,7 @@
 package cs446.dbc.models
 
 import android.os.Parcelable
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.util.Date
@@ -35,6 +36,6 @@ data class EventModel(
 @Parcelize
 @Serializable
 enum class EventType : Parcelable {
-    HOSTED,
-    JOINED
+   @SerializedName("HOSTED") HOSTED,
+    @SerializedName("JOINED") JOINED
 }

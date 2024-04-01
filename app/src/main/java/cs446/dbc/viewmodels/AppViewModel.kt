@@ -93,7 +93,7 @@ class AppViewModel @Inject constructor(
 
                 directory?.let {
                     if (!it.exists()) it.mkdirs()
-                    val fileName = "Card_${UUID.randomUUID()}.json"
+                    val fileName = "Card_${card.id}.json"
                     val file = File(it, fileName)
 
                     file.writeText(Json.encodeToString(card))

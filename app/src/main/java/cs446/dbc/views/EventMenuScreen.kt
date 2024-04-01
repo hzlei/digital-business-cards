@@ -2,6 +2,7 @@ package cs446.dbc.views
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -52,8 +53,12 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
 
     val eventBusinessCardList: MutableList<BusinessCardModel> = mutableListOf<BusinessCardModel>()
     runBlocking {
-        val serverCardList = ApiFunctions.getAllEventCards(eventId)
-        eventBusinessCardList.addAll(serverCardList)
+        try {
+            val serverCardList = ApiFunctions.getAllEventCards(eventId)
+            eventBusinessCardList.addAll(serverCardList)
+        } catch (e: Exception) {
+            Log.e("Event Menu Screen", "Failed to get all event cards.", e)
+        }
     }
 
     // Set event id for current event in view model

@@ -193,7 +193,7 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
                 Spacer(modifier = Modifier.height(2.dp))
                 Box(modifier = Modifier.weight(0.3f)) {
                     BusinessCardMultiSelect(
-                        title = "Select Business Cards to Upload to Event",
+                        title = "Select Any Business Cards to Upload to Event",
                         cardViewModel = cardViewModel,
                         createEditViewModel = createEditViewModel
                     )

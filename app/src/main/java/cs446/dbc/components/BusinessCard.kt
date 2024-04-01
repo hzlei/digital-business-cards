@@ -315,7 +315,7 @@ fun Face(context: Context, background: Color, text: String, imagePath: String? =
                 painter = it,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
+                contentScale = ContentScale.Crop
             )
         }
         Text(

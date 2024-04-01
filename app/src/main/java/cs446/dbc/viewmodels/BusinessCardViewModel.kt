@@ -30,6 +30,7 @@ class BusinessCardViewModel @Inject constructor(
 
     private val currContext = savedStateHandle.getStateFlow("cardContext", if (viewModelContext == CardType.PERSONAL) myBusinessCardsContext else sharedBusinessCardsContext)
 
+    var sharedCardsSnapshotList: SnapshotStateList<BusinessCardModel>? = null
     var businssCardSnapshotList: SnapshotStateList<BusinessCardModel>? = null
 
 
@@ -68,8 +69,8 @@ class BusinessCardViewModel @Inject constructor(
         businssCardSnapshotList?.addAll(updatedList)
     }
 
-    fun getContext(): String {
-        return currContext.value
+    fun updateCardContext(ctx: String) {
+        savedStateHandle["cardContext"] = if (ctx == "myBusinessCards") myBusinessCardsContext else sharedBusinessCardsContext
     }
 
     private fun populateCard(action: BusinessCardAction.PopulateCard) {
@@ -85,12 +86,19 @@ class BusinessCardViewModel @Inject constructor(
     }
 
     private fun insertCard(action: BusinessCardAction.InsertCard) {
-        val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>(currContext.value)
+        val ctx = currContext.value
+        val currCards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
         currCards?.add(action.card)
         currCards?.sortWith(compareBy({ !it.favorite }, { it.front}))
         savedStateHandle[currContext.value] = currCards
-        businssCardSnapshotList?.clear()
-        businssCardSnapshotList?.addAll(currCards!!)
+        if (ctx == myBusinessCardsContext) {
+            businssCardSnapshotList?.clear()
+            businssCardSnapshotList?.addAll(currCards!!)
+        }
+        else {
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(currCards!!)
+        }
     }
 
     private fun insertCards(action: BusinessCardAction.InsertCards) {
@@ -99,8 +107,15 @@ class BusinessCardViewModel @Inject constructor(
         cards?.addAll(action.cards)
         cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
         savedStateHandle[currContext.value] = cards
-        businssCardSnapshotList?.clear()
-        businssCardSnapshotList?.addAll(cards!!)
+        if (ctx == myBusinessCardsContext) {
+            businssCardSnapshotList?.clear()
+            businssCardSnapshotList?.addAll(cards!!)
+        }
+        else {
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(cards!!)
+        }
+
     }
 
     private fun removeCard(action: BusinessCardAction.RemoveCard) {
@@ -108,8 +123,14 @@ class BusinessCardViewModel @Inject constructor(
         val cards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
         cards?.removeIf { it.id == action.card.id }
         savedStateHandle[currContext.value] = cards
-        businssCardSnapshotList?.clear()
-        businssCardSnapshotList?.addAll(cards!!)
+        if (ctx == myBusinessCardsContext) {
+            businssCardSnapshotList?.clear()
+            businssCardSnapshotList?.addAll(cards!!)
+        }
+        else {
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(cards!!)
+        }
         // TODO: Delete from local storage as well
     }
 
