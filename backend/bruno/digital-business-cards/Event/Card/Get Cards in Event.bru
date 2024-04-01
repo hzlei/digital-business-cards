@@ -1,0 +1,27 @@
+meta {
+  name: Get Cards in Event
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{api_url}}/event/{{event}}/card
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "randomtestid",
+    "front": "djsklfjasl;dkfjkl;jk",
+    "back": "dsjkfl;ajskdfj;ksladjfl;",
+    "favorite": false,
+    "fields": [],
+    "cardType": "PERSONAL",
+    "template": "CUSTOM"
+  }
+}
+
+vars:pre-request {
+  event: aaaaaaaa
+}

@@ -13,17 +13,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.components.EventCard
 import cs446.dbc.models.EventModel
 import cs446.dbc.models.EventType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController) {
@@ -32,6 +36,9 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
     val events by eventViewModel.events.collectAsStateWithLifecycle()
     val composeEvents = remember {
         mutableStateListOf<EventModel>()
+    }
+    var loadedEvents by remember {
+        mutableStateOf(false)
     }
 
     eventViewModel.changeEventSnapshotList(composeEvents)
@@ -53,8 +60,13 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
 //        }
 //    }
 
-    LaunchedEffect(key1 = "event_examples") {
-        if (events.isEmpty()) {
+    // TODO: Add the loading events stuff here
+//    LaunchedEffect(key1 = "event_examples") {
+        if (!loadedEvents) {
+            // load events from storage and add them to eventsList
+            val eventsList = mutableListOf<EventModel>()
+
+            // TODO: remove example list after the above is working correctly
             for (i in 0..2) {
                 eventViewModel.performAction(EventAction.PopulateEvent(
                     name = "Joined E$i",
@@ -70,8 +82,24 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
                 ))
             }
             eventViewModel.performAction(EventAction.SortEvents())
+            eventsList.addAll(events)
+
+            // Check if event still exists on server
+            runBlocking {
+                eventsList.forEach {event ->
+                    val doesExist = ApiFunctions.checkEventExists(event.id)
+                    if (doesExist) {
+                        // TODO: populate event
+                    }
+                    else {
+                        // delete event from local storage
+                    }
+
+                }
+                loadedEvents = true
+            }
         }
-    }
+//    }
 
     if (composeEvents.isEmpty()) {
         composeEvents.addAll(events)

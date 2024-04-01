@@ -110,8 +110,6 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                         color = Color.LightGray,
                         overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Log.d("name", eventModel.name)
-                    Log.d("start date", eventModel.startDate)
                     Text("Starts ${Date(eventModel.startDate.toLong()).toFormattedString()}",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.LightGray)
@@ -144,6 +142,7 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                     Icon(Icons.Outlined.Delete, "Delete", tint = Color.Red)
                 }
                 // TODO: Add in the sharing feature so ppl can actually share the event and others can join
+                //  @Fares, can you add this in with a QR code of the event id
 
                 TextButton(
                     onClick = onClickAction,

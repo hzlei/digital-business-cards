@@ -3,7 +3,6 @@ package cs446.dbc
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -31,13 +30,11 @@ import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -67,8 +64,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
-import cs446.dbc.components.CreateDialog
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.components.AddEventDialog
+import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.JoinEventDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
@@ -85,12 +83,11 @@ import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
 import cs446.dbc.views.CreateEventScreen
+import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
-import cs446.dbc.views.EventMenuScreen
 import java.util.UUID
-import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -127,6 +124,13 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val userId by appViewModel.userId.collectAsStateWithLifecycle()
+
+
+        // TODO: Check if we have the userid in a settings json file,
+        //  if we do, use that, if not, request server, and then save locally in settings file
+
+        appViewModel.loadUserId(appContext)
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {
@@ -241,13 +245,14 @@ class MainActivity : AppCompatActivity() {
                                     Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = { navController.navigate(Screen.Settings.route) },
-                                ) {
-                                    Icon(Icons.Outlined.Settings, "Settings")
-                                }
-                            }
+                            // TODO: Hank hasn't made the settings options yet
+//                            navigationIcon = {
+//                                IconButton(
+//                                    onClick = { navController.navigate(Screen.Settings.route) },
+//                                ) {
+//                                    Icon(Icons.Outlined.Settings, "Settings")
+//                                }
+//                            }
                         )
                     },
                     bottomBar = {
@@ -258,6 +263,7 @@ class MainActivity : AppCompatActivity() {
                             eventViewModel,
                             createEditViewModel,
                             snackBarHostState,
+                            userId,
                             appContext
                         )
                     }
@@ -399,6 +405,7 @@ class MainActivity : AppCompatActivity() {
         eventViewModel: EventViewModel,
         createEditViewModel: CreateEditViewModel,
         snackBarHostState: SnackbarHostState,
+        userId: String,
         context: Context
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -442,7 +449,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (showCreateDialog) {
-            CreateDialog(snackBarHostState) {
+            CreateDialog(snackBarHostState, userId) {
                 showCreateDialog = false
             }
         }
@@ -520,22 +527,25 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
-                            // HEREHEREHERE
                             showCreateDialog = true
+
+                            // this newcard should be returned from the createDialog
+                            // then the logic is the same, just need to change how newCard is handled
                             val newCard = BusinessCardModel(
                                 id = UUID.randomUUID().toString(),
-                                front = "New Front",
+                                front = "small.jpg",
                                 back = "New Back",
                                 favorite = false,
                                 fields = mutableListOf(),
                                 cardType = CardType.PERSONAL,
+                                template = TemplateType.TEMPLATE_1
                             )
 
                             appViewModel.addCard(
                                 newCard,
                                 context,
                                 "businessCards",
-                                CardType.PERSONAL
+                                CardType.PERSONAL,
                             )
                             cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
                         }
@@ -661,60 +671,55 @@ class MainActivity : AppCompatActivity() {
                           selectedCards: MutableList<BusinessCardModel>,
                           navController: NavHostController): Boolean
     {
+        val event = EventModel(
+            eventModel.id,
+            eventModel.name,
+            eventModel.location,
+            eventModel.startDate,
+            eventModel.endDate,
+            eventModel.numUsers,
+            eventModel.maxUsers,
+            eventModel.maxUsersSet,
+            eventModel.eventType
+        )
         // if no id, we are creating a new event
         // NOTE: RIGHT NOW SINCE WE DON'T HAVE THESE EVENTS ON THE SERVER, THEY DON'T HAVE
         // IDs SO THEY'LL ALWAYS CREATE A NEW EVENT (EVEN IF WE ARE EDITING THEM RN)
         // IT STILL ALL WORKS
-        if (eventModel.id == "") {
+        if (event.id == "") {
             // TODO: Error check to ensure they have added a name and location
             // return if we succeed in saving the event
-            if (eventModel.name == "") return false
-            if (eventModel.location == "") return false
+            if (event.name == "") return false
+            if (event.location == "") return false
             // check if start date is less than end date
-            if (eventModel.startDate.toLong() > eventModel.endDate.toLong()) return false
+            if (event.startDate.toLong() > event.endDate.toLong()) return false
 
             // TODO: ensure they actually have business cards first
             //  otherwise if they haven't made any, it's fine not to upload any
             if (myCards.isNotEmpty() && selectedCards.isEmpty()) return false
 
-            // TODO: Create event on server, join user into event, add user's cards to event
-            // TODO: remove this id generation here, only temporary for local testing purposes
-            //  until we add the server code
-
-            eventModel.id = UUID.randomUUID().toString()
-            eventModel.eventType = EventType.HOSTED
-            val event = EventModel(
-                eventModel.id,
-                eventModel.name,
-                eventModel.location,
-                eventModel.startDate,
-                eventModel.endDate,
-                eventModel.numUsers,
-                eventModel.maxUsers,
-                eventModel.maxUsersSet,
-                eventModel.eventType
-            )
+            // Create event on server
+            val newEventId = ApiFunctions.createEvent(event)
+            event.id = newEventId
+            event.eventType = EventType.HOSTED
             eventViewModel.performAction(EventAction.InsertEvent(
                 event = event
             ))
-            navController.navigate(Screen.Events.route)
+
+            // Send selected cards to event to have the user join the event
+            selectedCards.forEach { card ->
+                ApiFunctions.addEventCard(card, newEventId)
+            }
+
             eventViewModel.changeCurrEventViewId("")
+            navController.navigate(Screen.Events.route)
+
             return true
         }
         // otherwise we are editing an event
         else {
-            // TODO: send the updated event to server
-            val event = EventModel(
-                eventModel.id,
-                eventModel.name,
-                eventModel.location,
-                eventModel.startDate,
-                eventModel.endDate,
-                eventModel.numUsers,
-                eventModel.maxUsers,
-                eventModel.maxUsersSet,
-                eventModel.eventType
-            )
+            // Edit event on server
+            ApiFunctions.editEvent(event)
             eventViewModel.performAction(EventAction.UpdateEvent(
                 event.id, event
             ))
