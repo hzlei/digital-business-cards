@@ -44,3 +44,7 @@
 | 2024/03/29 | 0 | 6 | 0 | 0 | 0 | 0 | Fixed date picker dialog, render, and storage issues. Fixed event saving issue (due to state passing). Modified business cards to use event card type instead of template. Added event adding dialog for hosting/joining events. Working on fix for error check dialog for create event screen. |
 | 2024/03/30 | 0 | 6 | 0 | 2 | 0 | 0 | Created join dialog, added card selection to event creation, fixed event creation bug with information copying. Created API functions to handle http requests, looked into websocket handling. |
 | 2024/03/30 | 0 | 0 | 0 | 3 | 0 | 0 | Figure out websocket handler for management of event cards + Testing websocket connection |
+| 2024/03/30 | 0 | 3 | 0 | 0 | 0 | 0 | Created Business Card Creation Screen + data handling |
+| 2024/03/31 | 0 | 1 | 0 | 0 | 0 | 0 | Fixed join event dialog rendering, and BusinessCardMultiSelect |
+| 2024/03/31 | 0 | 2 | 0 | 2 | 0 | 0 | Worked on fixing card storage issue (still not working), added API calls to event components) |
+
