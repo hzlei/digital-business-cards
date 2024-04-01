@@ -187,6 +187,7 @@ func JoinEvent(w http.ResponseWriter, r *http.Request) {
       return
     }
     event.NumUsers += 1
+    event.EventType = "JOINED"
 
     _, err = client.Collection("events").Doc(eventID).Set(r.Context(), event)
     if err != nil {
@@ -304,7 +305,7 @@ func EventCards(w http.ResponseWriter, r *http.Request) {
   }
 
   cardID, ok := vars["card"]
-  if !ok && r.Method != "DELETE" {
+  if !ok && r.Method == "DELETE" {
     msg := "No card ID supplied."
 		log.Error().Msg(msg)
 		http.Error(w, msg, http.StatusBadRequest)
