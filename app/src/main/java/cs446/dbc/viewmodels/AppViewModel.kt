@@ -40,7 +40,6 @@ class AppViewModel @Inject constructor(
 
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
-    private val settingsDirectoryName = "Settings"
     // TODO: change this to savedstate
     private val _uiState = MutableStateFlow(AppModel())
     val uiState: StateFlow<AppModel> = _uiState.asStateFlow()
@@ -50,6 +49,7 @@ class AppViewModel @Inject constructor(
 
     val myCards = savedStateHandle.getStateFlow(myBusinessCardsContext, mutableListOf<BusinessCardModel>())
     val sharedCards = savedStateHandle.getStateFlow(sharedBusinessCardsContext, mutableListOf<BusinessCardModel>())
+    val userId = savedStateHandle.getStateFlow("userId", "")
 
     // TODO: Change these to Enums
     private val loadedMyCardsKey = "loadedMyCards"
@@ -166,15 +166,13 @@ class AppViewModel @Inject constructor(
     }
 
     fun updateUserId(newId: String) {
-        _uiState.update {currentState ->
-            currentState.copy(userId = newId)
-        }
+        savedStateHandle["userId"] = newId
     }
 
     fun saveUserId(id: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val directory = context.getExternalFilesDir(settingsDirectoryName)
+                val directory = context.getExternalFilesDir(null) ?: return@launch
 
                 directory?.let {
                     if (!it.exists()) it.mkdirs()
@@ -189,30 +187,32 @@ class AppViewModel @Inject constructor(
         }
     }
 
-//    fun loadUserId(context: Context): String {
-//        val userId = viewModelScope.launch(Dispatchers.IO) {
-//            val directory = context.getExternalFilesDir(settingsDirectoryName)
-//
-//            val ret = directory?.let {
-//                if (it.exists() && it.isDirectory) {
-//                    val files = it.listFiles() ?: return@launch
-//                    val settingsFile = files[0]
-//                    try {
-//                        val settingsJson = settingsFile.readText()
-//                        val settings = Json.decodeFromString<Settings>(settingsJson)
-//                        return@let settings.userId
-//                    } catch (e: Exception) {
-//                        Log.e(
-//                            "AppViewModel",
-//                            "Error reading or parsing card from file: ${settingsFile.name}",
-//                            e
-//                        )
-//                    }
-//                }
-//                else return@let ""
-//            } as String
-//            return@launch ret
-//        } as String
-//        return userId
-//    }
+    fun loadUserId(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val directory = context.getExternalFilesDir(null) ?: return@launch
+            directory?.let {
+                if (it.exists() && it.isDirectory) {
+                    try {
+                        val files = it.listFiles() ?: return@launch
+                        val settingsFile = files[0]
+                        val settingsJson = settingsFile.readText()
+                        val settings = Json.decodeFromString<Settings>(settingsJson)
+                        savedStateHandle["userId"] = settings.userId
+                    } catch (e: Exception) {
+                        Log.e(
+                            "AppViewModel",
+                            "Error reading or parsing userId from Settings file",
+                            e
+                        )
+                    }
+                }
+                else {
+                    Log.e(
+                        "AppViewModel",
+                        "Error reading or parsing userId from Settings file",
+                    )
+                }
+            }
+        }
+    }
 }
