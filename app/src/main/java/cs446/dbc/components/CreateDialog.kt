@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -61,7 +61,7 @@ fun CreateDialog(snackbarHostState: SnackbarHostState, userId: String, onDismiss
                     // Below is how you display an image
                     imageUri?.let { uri ->
                         Image(
-                            painter = rememberImagePainter(uri),
+                            painter = rememberAsyncImagePainter(uri),
                             contentDescription = "Selected Image",
                             modifier = Modifier
                                 .padding(top = 8.dp),
@@ -92,7 +92,6 @@ fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, isFront:
     // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
     val side = if (isFront) "front" else "back"
     val file = File(directory, "user_${userId}__image_${side}.jpg")
-
     inputStream?.use { input ->
         FileOutputStream(file).use { output ->
             input.copyTo(output)

@@ -87,7 +87,6 @@ import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
-import kotlinx.coroutines.runBlocking
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,6 +124,7 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
 
         // TODO: Check if we have the userid in a settings json file,
@@ -527,22 +527,25 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
-                            // HEREHEREHERE
                             showCreateDialog = true
+
+                            // this newcard should be returned from the createDialog
+                            // then the logic is the same, just need to change how newCard is handled
                             val newCard = BusinessCardModel(
                                 id = UUID.randomUUID().toString(),
-                                front = "New Front",
+                                front = "small.jpg",
                                 back = "New Back",
                                 favorite = false,
                                 fields = mutableListOf(),
                                 cardType = CardType.PERSONAL,
+                                template = TemplateType.TEMPLATE_1
                             )
 
                             appViewModel.addCard(
                                 newCard,
                                 context,
                                 "businessCards",
-                                CardType.PERSONAL
+                                CardType.PERSONAL,
                             )
                             cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
                         }
