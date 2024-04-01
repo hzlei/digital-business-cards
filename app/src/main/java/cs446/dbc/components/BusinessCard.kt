@@ -1,5 +1,6 @@
 package cs446.dbc.components
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -8,6 +9,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,10 +58,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import coil.compose.rememberAsyncImagePainter
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.BusinessCardAction
+import java.io.File
 
 
 @Composable
@@ -112,24 +119,29 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
             when (cardModel.template) {
                 TemplateType.TEMPLATE_1 -> {
                     front = {
-                        Template1(
+                        // TODO:
+                        // the background needs to be changed to an image if cardModel.front isnt an empty string
+                        // otherwise, put in the surface tint
+                        Face(
+                            context = LocalContext.current,
                             background = MaterialTheme.colorScheme.surfaceTint,
-                            cardData = cardModel,
-                            isFront = true
+                            imagePath = if (cardModel.front != "") cardModel.front else null,
+                            text = "Front Side"
                         )
                     }
                     back = {
-                        Template1(
-                            background = MaterialTheme.colorScheme.surfaceBright,
-                            cardData = cardModel,
-                            isFront = false
+                        Face(
+                            context = LocalContext.current,
+                            background = MaterialTheme.colorScheme.surfaceTint,
+                            imagePath = if (cardModel.back != "") cardModel.back else null,
+                            text = "Back Side"
                         )
                     }
                 }
                 // TODO: add the other templates
                 else -> {
-                    front = { Face(MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
-                    back = { Face(MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
+                    front = { Face(LocalContext.current, MaterialTheme.colorScheme.surfaceTint, cardModel.front) }
+                    back = { Face(LocalContext.current, MaterialTheme.colorScheme.surfaceBright, cardModel.back) }
                 }
             }
             FlipCard(
@@ -250,8 +262,9 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
             }
         }
     }
+    
     if (showShareDialogState) {
-        ShareDialog(cardModel) {
+        ShareDialog(cardModel, onAction) {
             showShareDialogState = false
         }
     }
@@ -287,14 +300,35 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
 
 
 @Composable
-fun Face(background: Color, text: String) {
-    Box(
+fun Face(context: Context, background: Color, text: String, imagePath: String? = null) {
+    val imagePainter = if (!imagePath.isNullOrEmpty()) {
+        rememberAsyncImagePainter(model = File(context.getExternalFilesDir(null), imagePath))
+    } else {
+        null
+    }
+
+    Box (
         modifier = Modifier
-            .aspectRatio(5f / 3f)
-            .background(background)
-            .wrapContentSize(Alignment.Center)
+            .aspectRatio(5f/3f)
+            .then(
+                if (imagePainter != null) Modifier.background(Color.Transparent) else Modifier.background(background)
+        )
+        .wrapContentSize(Alignment.Center)
     ) {
-        Text(text, fontSize = 30.sp)
+        imagePainter?.let {
+            Image(
+                painter = it,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+        Text(
+            text,
+            fontSize = 30.sp,
+            modifier = Modifier.align(Alignment.Center),
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

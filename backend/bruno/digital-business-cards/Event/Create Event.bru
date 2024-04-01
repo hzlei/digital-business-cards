@@ -1,0 +1,19 @@
+meta {
+  name: Create Event
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_url}}/event
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": "aaaaaaaa",
+    "location": "Brampton ON",
+    "maxUsers": 20
+  }
+}

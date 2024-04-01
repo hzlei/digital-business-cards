@@ -19,4 +19,6 @@ sealed class BusinessCardAction {
     data class UpdateCardType (val cardId: String, val newCardType: CardType): BusinessCardAction()
     data class UpdateCardContext (val newContext: CardType): BusinessCardAction()
     data class SetCardEditFocus(val cardId: String): BusinessCardAction()
+    data class ShareCardBluetooth (val card: BusinessCardModel): BusinessCardAction()
+    data class ReceiveCardsBluetooth(val stub : Boolean = false): BusinessCardAction()
 }

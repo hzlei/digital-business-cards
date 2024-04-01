@@ -1,0 +1,39 @@
+meta {
+  name: Download Card Image
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{api_url}}/user/{{user}}/card/{{card}}/image/{{side}}
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "randomtestid",
+    "front": "djsklfjasl;dkfjkl;jk",
+    "back": "dsjkfl;ajskdfj;ksladjfl;",
+    "favorite": false,
+    "fields": [
+      {
+        "name": "First Name",
+        "value": "Bob",
+        "type": "TEXT"
+      }
+    ],
+    "cardType": "SHARED",
+    "template": "CUSTOM"
+  }
+}
+
+body:multipart-form {
+  image: @file(/home/mihranmashhud/Downloads/Black And White Simple Personal Business Card/2.jpg)
+}
+
+vars:pre-request {
+  user: DE711C9RXVnj9i1W5Gh3
+  card: randomtestid
+  side: back
+}

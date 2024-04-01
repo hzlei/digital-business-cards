@@ -18,6 +18,7 @@
           jdk21
           kotlin
           gradle
+          flyctl
         ];
       };
     });

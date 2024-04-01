@@ -81,7 +81,9 @@ fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: Bus
                 ) {
                     when (view) {
                         ReceiveDialogViews.Options -> {
-                            ReceiveButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
+                            ReceiveButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {
+                                sharedCardViewModel.performAction(BusinessCardAction.ReceiveCardsBluetooth())
+                            }
                             ReceiveButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
 
                                 // Configure scan options

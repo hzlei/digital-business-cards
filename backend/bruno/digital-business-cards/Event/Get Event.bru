@@ -1,0 +1,23 @@
+meta {
+  name: Get Event
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{api_url}}/event/{{event}}
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "id": "sdfkjga",
+    "location": "Brampton ON",
+    "maxUsers": 20
+  }
+}
+
+vars:pre-request {
+  event: aaaaaaaa
+}

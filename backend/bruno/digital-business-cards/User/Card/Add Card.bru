@@ -1,0 +1,27 @@
+meta {
+  name: Add Card
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_url}}/user/{{user}}/card
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": "randomtestid",
+    "front": "djsklfjasl;dkfjkl;jk",
+    "back": "dsjkfl;ajskdfj;ksladjfl;",
+    "favorite": false,
+    "fields": [],
+    "cardType": "PERSONAL",
+    "template": "CUSTOM"
+  }
+}
+
+vars:pre-request {
+  user: DE711C9RXVnj9i1W5Gh3
+}
