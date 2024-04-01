@@ -37,7 +37,6 @@ class AppViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val viewModelContext: CardType
 ): ViewModel() {
-
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
     // TODO: change this to savedstate

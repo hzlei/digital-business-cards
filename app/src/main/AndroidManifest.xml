@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".DBCApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -23,9 +24,39 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".bluetooth.BluetoothActionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"/>
+        <service
+            android:name=".bluetooth.BluetoothShareService"
+            android:icon="@drawable/placeholder_notif"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false">
+        </service>
+        <service
+            android:name=".bluetooth.BluetoothReceiveService"
+            android:icon="@drawable/placeholder_notif"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false">
+        </service>
     </application>
 
     <!-- Permission for API calls -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- BT Permissions-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
 </manifest>

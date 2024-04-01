@@ -36,18 +36,20 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.viewmodels.BusinessCardAction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 private enum class ShareDialogViews {
-    Options,
-    Bluetooth,
-    QRCode,
-    NearbyShare;
+    Options, Bluetooth, QRCode, NearbyShare;
 }
 
 @Composable
-fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {}) {
+fun ShareDialog(
+    cardModel: BusinessCardModel,
+    onAction: (BusinessCardAction) -> Unit,
+    onDismissRequest: () -> Unit = {}
+) {
     var currentView by remember { mutableStateOf(ShareDialogViews.Options) }
     var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
@@ -70,7 +72,9 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
                 ) {
                     when (view) {
                         ShareDialogViews.Options -> {
-                            ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {}
+                            ShareButton(text = "Bluetooth", icon = Icons.Rounded.Bluetooth) {
+                                onAction(BusinessCardAction.ShareCardBluetooth(cardModel))
+                            }
                             ShareButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
                                 qrCodeBitmap = generateQRCode(Json.encodeToString(cardModel))
                                 currentView = ShareDialogViews.QRCode
@@ -106,11 +110,9 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
                     currentView = ShareDialogViews.Options
                 }
             }) {
-                AnimatedContent(
-                    targetState = currentView,
+                AnimatedContent(targetState = currentView,
                     label = "ShareDialogDismiss",
-                    transitionSpec = { fadeIn() togetherWith fadeOut() }
-                ) { view ->
+                    transitionSpec = { fadeIn() togetherWith fadeOut() }) { view ->
                     when (view) {
                         ShareDialogViews.Options -> {
                             Text(text = "Dismiss")
@@ -130,25 +132,18 @@ fun ShareDialog(cardModel: BusinessCardModel, onDismissRequest: () -> Unit = {})
 
 @Composable
 private fun ShareButton(
-    text: String,
-    icon: ImageVector,
-    iconDescription: String = "",
-    onBtnClick: () -> Unit
+    text: String, icon: ImageVector, iconDescription: String = "", onBtnClick: () -> Unit
 ) {
     FilledTonalButton(
         onClick = { onBtnClick() },
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
             Icon(
-                imageVector = icon,
-                iconDescription,
-                modifier = Modifier
-                    .size(20.dp)
+                imageVector = icon, iconDescription, modifier = Modifier.size(20.dp)
 
             )
             Spacer(modifier = Modifier.size(4.dp))

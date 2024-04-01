@@ -1,5 +1,6 @@
 package cs446.dbc.views
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
@@ -58,7 +59,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     // Set event id for current event in view model
 
     val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
     }
 
 

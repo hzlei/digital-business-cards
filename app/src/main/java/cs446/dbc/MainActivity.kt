@@ -88,6 +88,8 @@ import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
 import java.util.UUID
+import kotlin.math.log
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity() {
             AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+            BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
         }
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle())
@@ -662,7 +664,6 @@ class MainActivity : AppCompatActivity() {
         object Events : Screen("events")
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
-
     }
 
     private fun saveEvent(myCards: MutableList<BusinessCardModel>,
