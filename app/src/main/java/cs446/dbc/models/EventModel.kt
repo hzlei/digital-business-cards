@@ -34,8 +34,7 @@ data class EventModel(
 }
 
 @Parcelize
-@Serializable
 enum class EventType : Parcelable {
-   @SerializedName("HOSTED") HOSTED,
-    @SerializedName("JOINED") JOINED
+   HOSTED,
+   JOINED
 }

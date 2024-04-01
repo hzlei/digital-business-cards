@@ -22,6 +22,7 @@ object ApiFunctions {
     private const val serverUrl: String = "https://digital-business-cards.fly.dev/api"
     private const val apiKey: String = "idVqnP2UV0KYyu510aztMo8lwI9QH72d"
     private const val apiKeyParam: String = "key=$apiKey"
+    private val format = Json { encodeDefaults = true }
 
     fun createUserId(): String {
         return runBlocking {
@@ -32,17 +33,18 @@ object ApiFunctions {
 
     fun createEvent(event: EventModel): String {
         return runBlocking {
-            val body = Json.encodeToString<EventModel>(event)
+            val body = format.encodeToString<EventModel>(event)
+            Log.d("body", body)
             val (_, _, result) = Fuel.post("$serverUrl/event?$apiKeyParam").body(body).awaitStringResponseResult()
             // returns event id
-            return@runBlocking Json.decodeFromString<EventModel>(result.get()).id
+            return@runBlocking format.decodeFromString<EventModel>(result.get()).id
         }
     }
 
     fun editEvent(event: EventModel): Boolean {
         return runBlocking {
             val eventId = event.id
-            val body = Json.encodeToString(event)
+            val body = format.encodeToString(event)
             val (_, response, _) = Fuel.put("$serverUrl/event/$eventId?$apiKeyParam").body(body).awaitStringResponseResult()
             // returns event id
             return@runBlocking response.statusCode == 200
@@ -54,7 +56,7 @@ object ApiFunctions {
             val (_, _, result) = Fuel.get("$serverUrl/event/$eventId?$apiKeyParam")
                 .awaitStringResponseResult()
             // returns event
-            return@runBlocking Json.decodeFromString<EventModel>(result.get())
+            return@runBlocking format.decodeFromString<EventModel>(result.get())
         }
     }
 
@@ -63,7 +65,7 @@ object ApiFunctions {
             val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/user/$userId?$apiKeyParam")
                 .awaitStringResponseResult()
             // returns event
-            return@runBlocking Json.decodeFromString<EventModel>(result.get())
+            return@runBlocking format.decodeFromString<EventModel>(result.get())
         }
     }
 
@@ -79,14 +81,14 @@ object ApiFunctions {
     fun checkEventExists(eventId: String): Boolean {
         return runBlocking {
             val (_, _, result) = Fuel.get("$serverUrl/event/$eventId/exists?$apiKeyParam").awaitStringResponseResult()
-            val data = Json.decodeFromString<EventExists>(result.get())
+            val data = format.decodeFromString<EventExists>(result.get())
             return@runBlocking data.exists
         }
     }
 
     fun addEventCard(card: BusinessCardModel, eventId: String): String {
         return runBlocking {
-            val body = Json.encodeToString(card)
+            val body = format.encodeToString(card)
             val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/card?$apiKeyParam").body(body).awaitStringResponseResult()
             return@runBlocking result.get()
         }
@@ -95,7 +97,7 @@ object ApiFunctions {
     fun getAllEventCards(eventId: String): MutableList<BusinessCardModel> {
         return runBlocking {
             val (_, _, result) = Fuel.get("$serverUrl/event/$eventId/card?$apiKeyParam").awaitStringResponseResult()
-            return@runBlocking Json.decodeFromString<MutableList<BusinessCardModel>>(result.get())
+            return@runBlocking format.decodeFromString<MutableList<BusinessCardModel>>(result.get())
         }
     }
 
@@ -109,7 +111,7 @@ object ApiFunctions {
 
     fun saveUserCard(card: BusinessCardModel, userId: String): Boolean {
         return runBlocking {
-            val body = Json.encodeToString(card)
+            val body = format.encodeToString(card)
             val (_, response, _) = Fuel.post("$serverUrl/user/$userId/card?$apiKeyParam")
                 .body(body)
                 .awaitStringResponseResult()
