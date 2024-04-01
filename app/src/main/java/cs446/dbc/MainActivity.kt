@@ -129,20 +129,12 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
-        val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
 
         // TODO: Check if we have the userid in a settings json file,
         //  if we do, use that, if not, request server, and then save locally in settings file
 
         appViewModel.loadUserId(appContext)
-        if (userId == "") {
-            // TODO: generate
-            runBlocking {
-                val newUserId = ApiFunctions.createUserId()
-                appViewModel.updateUserId(newUserId)
-            }
-        }
 
         LaunchedEffect(key1 = "load_cards") {
             if (!loadedSharedCards) {

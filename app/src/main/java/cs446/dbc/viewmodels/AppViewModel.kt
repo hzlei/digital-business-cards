@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.models.AppModel
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -31,7 +32,6 @@ data class Settings (
    val userId: String
 )
 
-@Suppress("UNREACHABLE_CODE")
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -169,18 +169,12 @@ class AppViewModel @Inject constructor(
         savedStateHandle["userId"] = newId
     }
 
-    fun saveUserId(id: String, context: Context) {
+    private fun saveUserId(id: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val directory = context.getExternalFilesDir(null) ?: return@launch
-
-                directory?.let {
-                    if (!it.exists()) it.mkdirs()
-                    val fileName = "Settings.json"
-                    val file = File(it, fileName)
-
-                    file.writeText(Json.encodeToString(Settings(id)))
-                }
+                val file = File(directory, "Settings.json")
+                file.writeText(Json.encodeToString(Settings(id)))
             } catch (e: Exception) {
                 Log.e("AppViewModel", "Error saving userId to local storage", e)
             }
@@ -188,16 +182,19 @@ class AppViewModel @Inject constructor(
     }
 
     fun loadUserId(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val directory = context.getExternalFilesDir(null) ?: return@launch
-            directory?.let {
-                if (it.exists() && it.isDirectory) {
+        return runBlocking {
+            val job = viewModelScope.launch(Dispatchers.IO) {
+                val directory = context.getExternalFilesDir(null) ?: return@launch
+                directory.let {
                     try {
                         val files = it.listFiles() ?: return@launch
-                        val settingsFile = files[0]
-                        val settingsJson = settingsFile.readText()
-                        val settings = Json.decodeFromString<Settings>(settingsJson)
-                        savedStateHandle["userId"] = settings.userId
+                        val filteredFiles = files.filter { file -> file.name == "Settings.json" }
+                        if (filteredFiles.isNotEmpty()) {
+                            val settingsFile = filteredFiles.first()
+                            val settingsJson = settingsFile.readText()
+                            val settings = Json.decodeFromString<Settings>(settingsJson)
+                            savedStateHandle["userId"] = settings.userId
+                        }
                     } catch (e: Exception) {
                         Log.e(
                             "AppViewModel",
@@ -206,12 +203,14 @@ class AppViewModel @Inject constructor(
                         )
                     }
                 }
-                else {
-                    Log.e(
-                        "AppViewModel",
-                        "Error reading or parsing userId from Settings file",
-                    )
-                }
+            }
+            job.join()
+
+            val updatedUserId = savedStateHandle.get<String>("userId")
+            if (updatedUserId == "") {
+                val newUserId = ApiFunctions.createUserId()
+                updateUserId(newUserId)
+                saveUserId(newUserId, context)
             }
         }
     }
