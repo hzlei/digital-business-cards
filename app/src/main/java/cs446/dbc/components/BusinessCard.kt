@@ -1,5 +1,6 @@
 package cs446.dbc.components
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -58,6 +59,7 @@ import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.BusinessCardAction
+import java.io.File
 
 
 @Composable
@@ -110,6 +112,9 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
             when (cardModel.template) {
                 TemplateType.TEMPLATE_1 -> {
                     front = {
+                        // TODO:
+                        // the background needs to be changed to an image if cardModel.front isnt an empty string
+                        // otherwise, put in the surface tint
                         Template1(
                             background = MaterialTheme.colorScheme.surfaceTint,
                             cardData = cardModel,
@@ -344,4 +349,12 @@ fun FlipCard(
             }
         }
     }
+}
+
+fun loadImageFromStorage(context: Context, imagePath: String) {
+    // this needs to be called from an activity fragment or some other context
+    val directory = context.getExternalFilesDir(null) ?: return
+    val file = File(directory, imagePath)
+
+    imageView.load(file)
 }

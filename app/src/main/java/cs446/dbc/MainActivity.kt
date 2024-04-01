@@ -3,7 +3,6 @@ package cs446.dbc
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -31,13 +30,11 @@ import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -68,8 +65,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.compose.AppTheme
 import cs446.dbc.api.ApiFunctions
-import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.AddEventDialog
+import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.JoinEventDialog
 import cs446.dbc.components.ReceiveDialog
 import cs446.dbc.models.BusinessCardModel
@@ -86,13 +83,12 @@ import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
 import cs446.dbc.views.CreateEventScreen
+import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
-import cs446.dbc.views.EventMenuScreen
 import kotlinx.coroutines.runBlocking
 import java.util.UUID
-import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : AppCompatActivity() {
@@ -267,6 +263,7 @@ class MainActivity : AppCompatActivity() {
                             eventViewModel,
                             createEditViewModel,
                             snackBarHostState,
+                            userId,
                             appContext
                         )
                     }
@@ -408,6 +405,7 @@ class MainActivity : AppCompatActivity() {
         eventViewModel: EventViewModel,
         createEditViewModel: CreateEditViewModel,
         snackBarHostState: SnackbarHostState,
+        userId: String,
         context: Context
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -451,7 +449,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (showCreateDialog) {
-            CreateDialog(snackBarHostState) {
+            CreateDialog(snackBarHostState, userId) {
                 showCreateDialog = false
             }
         }
