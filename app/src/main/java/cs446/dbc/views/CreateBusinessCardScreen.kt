@@ -156,8 +156,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
 
     var template: TemplateType = TemplateType.TEMPLATE_1
     var cardType: CardType = CardType.PERSONAL
-    var eventId: String = ""
-    var eventUserId: String = ""
 
     LaunchedEffect(key1 = "populate_card_info") {
         if (cardId != "") {
@@ -170,8 +168,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             createEditBusinessCard.fields = currCard.fields
             createEditBusinessCard.template = currCard.template
             createEditBusinessCard.cardType = currCard.cardType
-            createEditBusinessCard.eventId = currCard.eventId
-            createEditBusinessCard.eventUserId = currCard.eventUserId
 
             front = TextFieldValue(currCard.front)
             back = TextFieldValue(currCard.back)
@@ -198,8 +194,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             }
             template = currCard.template
             cardType = currCard.cardType
-            eventId = currCard.eventId
-            eventUserId = currCard.eventUserId
         }
         else {
             createEditBusinessCard.id = ""
@@ -209,8 +203,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             createEditBusinessCard.fields = fields.toMutableList()
             createEditBusinessCard.template = template
             createEditBusinessCard.cardType = cardType
-            createEditBusinessCard.eventId = eventId
-            createEditBusinessCard.eventUserId = eventUserId
         }
     }
 

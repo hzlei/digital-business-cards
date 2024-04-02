@@ -898,8 +898,6 @@ class MainActivity : AppCompatActivity() {
             businessCardModel.fields,
             businessCardModel.template,
             businessCardModel.cardType,
-            businessCardModel.eventId,
-            businessCardModel.eventUserId
         )
         // if no id, we are creating a new card
         if (businessCard.id == "") {
