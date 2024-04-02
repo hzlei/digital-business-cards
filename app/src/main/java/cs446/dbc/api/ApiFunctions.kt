@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FileDataPart
 import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.models.EventModel
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
@@ -97,7 +98,9 @@ object ApiFunctions {
     fun getAllEventCards(eventId: String): MutableList<BusinessCardModel> {
         return runBlocking {
             val (_, _, result) = Fuel.get("$serverUrl/event/$eventId/card?$apiKeyParam").awaitStringResponseResult()
-            return@runBlocking format.decodeFromString<MutableList<BusinessCardModel>>(result.get())
+            val cardList = format.decodeFromString<MutableList<BusinessCardModel>>(result.get())
+            cardList.forEach { card -> card.cardType = CardType.EVENT_VIEW }
+            return@runBlocking cardList
         }
     }
 

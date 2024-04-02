@@ -61,10 +61,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.TemplateType
+import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import java.io.File
 
@@ -94,6 +97,8 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
         if (selected) 16.dp else 0.dp,
         label = "padding"
     )
+
+    val context = LocalContext.current
 
     val toggleSelected = { selected = !selected && isEnabled}
 
@@ -223,10 +228,15 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
                     visible = cardModel.cardType == CardType.EVENT_VIEW,
                     modifier = Modifier.weight(1f)
                 ) {
+                    val appViewModel: AppViewModel = viewModel() {
+                        AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+                    }
                     TextButton(
                         onClick = {
                             // TODO: Send request to server for this card
                             //   use the eventId and eventUserId within the card to locate it
+
+                              onAction(BusinessCardAction.RequestCard(cardModel, appViewModel, context))
                         },
                         modifier = Modifier.weight(1f)
                     ) {

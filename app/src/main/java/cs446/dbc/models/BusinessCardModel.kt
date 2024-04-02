@@ -14,8 +14,7 @@ data class BusinessCardModel(
     var fields: MutableList<Field>,
     var template: TemplateType = TemplateType.DEFAULT,
     var cardType: CardType = CardType.PERSONAL, // TODO: figure out how card types will change during sharing
-    var eventId: String = "",
-    var eventUserId: String = ""
+
 ) : Parcelable {
     constructor() : this(
         "",
@@ -25,8 +24,6 @@ data class BusinessCardModel(
         mutableListOf<Field>(),
         TemplateType.DEFAULT,
         CardType.PERSONAL,
-        "",
-        ""
     )
 }
 

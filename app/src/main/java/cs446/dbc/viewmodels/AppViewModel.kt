@@ -86,7 +86,7 @@ class AppViewModel @Inject constructor(
         saveCardToLocalStorage(card, context, directoryName)
     }
 
-    private fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
+    fun saveCardToLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val directory = context.getExternalFilesDir(directoryName)

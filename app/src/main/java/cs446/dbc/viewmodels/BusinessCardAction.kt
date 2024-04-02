@@ -1,5 +1,6 @@
 package cs446.dbc.viewmodels
 
+import android.content.Context
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import cs446.dbc.models.Field
@@ -20,6 +21,7 @@ sealed class BusinessCardAction {
     data class UpdateCardType (val cardId: String, val newCardType: CardType): BusinessCardAction()
     data class UpdateCardContext (val newContext: CardType): BusinessCardAction()
     data class SetCardEditFocus(val cardId: String): BusinessCardAction()
+    data class RequestCard(val card: BusinessCardModel, val appViewModel: AppViewModel, val context: Context): BusinessCardAction()
     data class ShareCardBluetooth (val card: BusinessCardModel): BusinessCardAction()
     data class ReceiveCardsBluetooth(val stub : Boolean = false): BusinessCardAction()
 }
