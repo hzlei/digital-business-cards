@@ -569,10 +569,11 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             //TODO: Allow lazy column to add more fields
 
             // Front background upload
+            val directory = context.getExternalFilesDir(null)
             val galleryLauncherFront = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                 uri?.let {
                     coroutineScope.launch(Dispatchers.IO) {
-                        saveImageToStorage(context, it, userId, isFront = true) { savedFile ->
+                        saveImageToStorage(context, it, userId, cardId, isFront = true) { savedFile ->
                             // Update the state to display the image in the front
                             imageUriFront = Uri.fromFile(savedFile)
                         }
@@ -584,6 +585,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 Text("Choose a front background for your card")
             }
             // Below is how you display an image
+            if (cardId != "") imageUriFront = Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_front.jpg"))
             imageUriFront?.let { uri ->
                 Spacer(modifier = Modifier.padding(4.dp))
                 AsyncImage(
@@ -605,7 +607,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             val galleryLauncherBack = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                 uri?.let {
                     coroutineScope.launch(Dispatchers.IO) {
-                        saveImageToStorage(context, it, userId, isFront = false) { savedFile ->
+                        saveImageToStorage(context, it, userId, cardId, isFront = false) { savedFile ->
                             // Update the state to display the image in the back
                             imageUriBack = Uri.fromFile(savedFile)
                         }
@@ -617,6 +619,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 Text("Choose a back background for your card")
             }
             // Below is how you display an image
+            if (cardId != "") imageUriBack = Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_back.jpg"))
             imageUriBack?.let { uri ->
                 Spacer(modifier = Modifier.padding(4.dp))
                 AsyncImage(
@@ -668,18 +671,14 @@ private val phoneNumberTransformation = VisualTransformation { text ->
     TransformedText(AnnotatedString(result), mapping)
 }
 
-private fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, isFront: Boolean, onSaved: (File) -> Unit) {
-    // rename the cardID after the image upload
-    // save it right now as user_$userId_card__image_$cardSide
-    // then later on during the save process for the new card, we'll find this image and rename it
-    // with the correct card ID
-
+private fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, cardId: String, isFront: Boolean, onSaved: (File) -> Unit) {
     // This function saves images to local storage for later use
     val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
     val directory = context.getExternalFilesDir(null) ?: return
     // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
+    // If in add card phase, the following file name convention is used: user_$userId__image_$cardSide
     val side = if (isFront) "front" else "back"
-    val file = File(directory, "user_${userId}__image_${side}.jpg")
+    val file = File(directory, "user_${userId}_${if (cardId != "") "card_${cardId}" else ""}_image_${side}.jpg")
     inputStream?.use { input ->
         FileOutputStream(file).use { output ->
             input.copyTo(output)
