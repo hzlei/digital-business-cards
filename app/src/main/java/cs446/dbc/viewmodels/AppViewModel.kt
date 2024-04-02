@@ -149,6 +149,23 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    fun deleteCardFromLocalStorage(card: BusinessCardModel, context: Context, directoryName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directory = context.getExternalFilesDir(directoryName)
+
+                directory?.let {
+                    val fileName = "Card_${card.id}.json"
+                    val file = File(it, fileName)
+
+                    file.delete()
+                }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error deleting card from local storage", e)
+            }
+        }
+    }
+
 
     fun updateLoadedMyCards(hasLoaded: Boolean) {
         savedStateHandle["loadedMyCards"] = hasLoaded

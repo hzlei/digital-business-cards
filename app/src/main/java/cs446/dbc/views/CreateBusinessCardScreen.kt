@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -218,32 +220,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            // TODO: Force add full name, company/institution name, role/title
-            //  They can then add information such as mobile phone number, company phone number, email,
-            //  address, website, linkedin, github
-//            OutlinedTextField(value = front, onValueChange = {
-//                front = it
-//                createEditBusinessCard.front = front.text
-//            }, label = { Text(text = "Card Front Text") },
-//                placeholder = {
-//                    Text(text = "e.g. Figure out what this and the Back text is for")
-//                }, modifier = Modifier.fillMaxSize()
-//            )
-//
-//            Spacer(modifier = Modifier.padding(4.dp))
-//
-//            OutlinedTextField(value = back, onValueChange = {
-//                back = it
-//                createEditBusinessCard.back = back.text
-//            }, label = { Text(text = "Card Back Text") },
-//                placeholder = {
-//                    Text(text = "e.g. Figure out what this and the Front text is for")
-//                }, modifier = Modifier.fillMaxSize()
-//            )
-//
-//            Spacer(modifier = Modifier.padding(4.dp))
-
             // Full Name
             OutlinedTextField(value = fullName, onValueChange = {
                 fullName = it
@@ -273,12 +249,12 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 isError = !hasFullName
             )
 
-            if (!hasFullName) {
+            AnimatedVisibility (!hasFullName) {
                 Text(text = "Please enter your full name", color = Color.Red)
             }
-            else {
-                Spacer(modifier = Modifier.padding(4.dp))
-            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
             // Company
             OutlinedTextField(value = company, onValueChange = {
                 company = it
@@ -308,12 +284,12 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 isError = !hasCompany
             )
 
-            if (!hasCompany) {
+            AnimatedVisibility (!hasCompany) {
                 Text(text = "Please enter your company name", color = Color.Red)
             }
-            else {
-                Spacer(modifier = Modifier.padding(4.dp))
-            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
             // Role
             OutlinedTextField(value = role, onValueChange = {
                 role = it
@@ -559,8 +535,6 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            //TODO: Allow lazy column to add more fields
-
             // Front background upload
             val directory = context.getExternalFilesDir(null)
             val galleryLauncherFront = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -575,12 +549,31 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 }
             }
 
-            OutlinedButton(onClick = { galleryLauncherFront.launch("image/*") }) {
-                Text("Choose a front background for your card")
-            }
-            // Below is how you display an image
-            if (cardId != "") imageUriFront = Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_front.jpg"))
-            imageUriFront?.let { uri ->
+            Column (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedButton(onClick = { galleryLauncherFront.launch("image/*") }) {
+                    Text("Choose a front background for your card")
+                }
+                // Below is how you display an image
+                if (cardId != "") imageUriFront =
+                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_front.jpg"))
+                imageUriFront?.let { uri ->
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(uri)
+                            .build(),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
+                    front = TextFieldValue(uri.toString())
+                }
+
                 Spacer(modifier = Modifier.padding(4.dp))
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -605,31 +598,48 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                         saveImageToStorage(context, it, userId, cardId, isFront = false) { savedFile ->
                             // Update the state to display the image in the back
                             imageUriBack = Uri.fromFile(savedFile)
+
+                // Front background upload
+                val galleryLauncherBack =
+                    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                        uri?.let {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                saveImageToStorage(
+                                    context,
+                                    it,
+                                    userId,
+                                    cardId,
+                                    isFront = false
+                                ) { savedFile ->
+                                    // Update the state to display the image in the back
+                                    imageUriBack = Uri.fromFile(savedFile)
+                                }
+                            }
                         }
                         reloadRequest++
                     }
-                }
-            }
 
-            OutlinedButton(onClick = { galleryLauncherBack.launch("image/*") }) {
-                Text("Choose a back background for your card")
-            }
-            // Below is how you display an image
-            if (cardId != "") imageUriBack = Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_back.jpg"))
-            imageUriBack?.let { uri ->
-                Spacer(modifier = Modifier.padding(4.dp))
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(uri)
-                        .setParameter("reload", reloadRequest)
-                        .build(),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-                back = TextFieldValue(uri.toString())
+
+                OutlinedButton(onClick = { galleryLauncherBack.launch("image/*") }) {
+                    Text("Choose a back background for your card")
+                }
+                // Below is how you display an image
+                if (cardId != "") imageUriBack =
+                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_back.jpg"))
+                imageUriBack?.let { uri ->
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(uri)
+                            .build(),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
+                    back = TextFieldValue(uri.toString())
+                }
             }
         }
     }

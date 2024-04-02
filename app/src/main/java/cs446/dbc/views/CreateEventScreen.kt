@@ -1,6 +1,7 @@
 package cs446.dbc.views
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -72,9 +74,18 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
     var name by remember {
         mutableStateOf(TextFieldValue(""))
     }
+    var hasSetName by remember {
+        mutableStateOf(false)
+    }
+
     var location by remember {
         mutableStateOf(TextFieldValue(""))
     }
+
+    var hasSetLocation by remember {
+        mutableStateOf(false)
+    }
+
     val defaultMaxUsers = 1000
     var maxUsers by remember {
         mutableIntStateOf(defaultMaxUsers)
@@ -107,7 +118,9 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             createEditEvent.eventType = currEvent.eventType
 
             name = TextFieldValue(currEvent.name)
+            hasSetName = name.text != ""
             location = TextFieldValue(currEvent.location)
+            hasSetLocation = location.text != ""
             startDate = currEvent.startDate.toLong()
             endDate = currEvent.endDate.toLong()
             maxUsers = currEvent.maxUsers
@@ -140,20 +153,30 @@ fun CreateEventScreen(createEditViewModel: CreateEditViewModel, eventViewModel: 
             OutlinedTextField(value = name, onValueChange = {
                     name = it
                     createEditEvent.name = name.text
+                    hasSetName = name.text != ""
                 }, label = { Text(text = "Event Name") },
                 placeholder = {
                 Text(text = "e.g. Deep Learning Summit")
-            }, modifier = Modifier.fillMaxSize())
+            }, modifier = Modifier.fillMaxSize(), isError = !hasSetName)
+
+            AnimatedVisibility (!hasSetName) {
+                Text(text = "Please enter a name for the event!", color = Color.Red)
+            }
 
             Spacer(modifier = Modifier.padding(4.dp))
 
             OutlinedTextField(value = location, onValueChange = {
                     location = it
                     createEditEvent.location = location.text
+                    hasSetLocation = location.text != ""
                 }, label = { Text(text = "Event Location") },
                 placeholder = {
                     Text(text = "e.g. Toronto, Ontario")
-            }, modifier = Modifier.fillMaxSize())
+            }, modifier = Modifier.fillMaxSize(), isError = !hasSetLocation)
+
+            AnimatedVisibility (!hasSetName) {
+                Text(text = "Please enter a location for the event!", color = Color.Red)
+            }
 
             Spacer(modifier = Modifier.padding(4.dp))
 
