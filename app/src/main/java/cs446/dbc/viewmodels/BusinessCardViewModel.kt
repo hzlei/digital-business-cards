@@ -4,18 +4,23 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.DBCApplication
 import cs446.dbc.api.ApiFunctions
 import cs446.dbc.bluetooth.BluetoothActionActivity
+import cs446.dbc.bluetooth.CardReceiveDelegate
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.UUID
 import javax.inject.Inject
 
@@ -24,8 +29,7 @@ class BusinessCardViewModel @Inject constructor(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val viewModelContext: CardType,
-    private val appContext: Context
-): AndroidViewModel(application) {
+): AndroidViewModel(application), CardReceiveDelegate {
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
 
@@ -176,17 +180,28 @@ class BusinessCardViewModel @Inject constructor(
     }
 
     private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {
-        val app = getApplication<Application>()
-        app.startActivity(Intent(app, BluetoothActionActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            putExtra("outCard", action.card)
-        })
+        getApplication<DBCApplication>().container.bluetoothRepository.startSharing(action.card)
     }
 
     private fun receiveBluetoothCards() {
-        val app = getApplication<Application>()
-        app.startActivity(Intent(app, BluetoothActionActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        })
+        getApplication<DBCApplication>().container.bluetoothRepository.startReceiving(this)
+    }
+
+    // Note that the incoming data is completely unchanged from when the user shared it
+    override fun receiveCard(card: BusinessCardModel) {
+        // Make a copy of the card with correct information
+        val cardCopy = BusinessCardModel(
+            card.id,
+            card.front,
+            card.back,
+            false,
+            card.fields,
+            card.template,
+            CardType.SHARED
+        )
+
+        viewModelScope.launch {
+            insertCard(BusinessCardAction.InsertCard(cardCopy))
+        }
     }
 }

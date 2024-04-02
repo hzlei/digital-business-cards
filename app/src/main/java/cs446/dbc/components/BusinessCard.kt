@@ -273,7 +273,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
             }
         }
     }
-    
+
     if (showShareDialogState) {
         ShareDialog(cardModel, onAction) {
             showShareDialogState = false
