@@ -1,5 +1,6 @@
 package cs446.dbc.api
 
+import android.content.Context
 import android.util.Log
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FileDataPart
@@ -134,10 +135,11 @@ object ApiFunctions {
         }
     }
 
-    fun downloadImage(imagePath: String, directory: String) {
+    fun downloadImage(imagePath: String, directoryName: String, context: Context) {
         // Assume imagePath will be the server path string
         return runBlocking {
             val path = imagePath.replace("_","/")
+            val directory = context.getExternalFilesDir(directoryName)
             val file =  File("$directory/$imagePath")
             Fuel.download("$serverUrl/$path").fileDestination { _, _ ->
                 file

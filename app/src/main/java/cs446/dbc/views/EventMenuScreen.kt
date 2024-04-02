@@ -64,7 +64,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     // Set event id for current event in view model
 
     val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
     }
 
 

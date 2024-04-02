@@ -97,7 +97,7 @@ fun UserCardsScreenPreview() {
     val cardList: List<BusinessCardModel> = listOf()
     val appContext = LocalContext.current
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.PERSONAL)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.PERSONAL, appContext)
     }
     val navController: NavHostController = NavHostController(appContext)
     UserCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)

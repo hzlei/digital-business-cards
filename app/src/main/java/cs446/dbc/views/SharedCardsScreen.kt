@@ -115,7 +115,7 @@ fun SharedCardsScreenPreview() {
     val appViewModel: AppViewModel = viewModel()
     val cardList: List<BusinessCardModel> = listOf()
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
     }
     val navController = NavHostController(appContext)
     SharedCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)

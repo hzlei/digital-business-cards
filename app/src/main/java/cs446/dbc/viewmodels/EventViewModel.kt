@@ -96,6 +96,23 @@ class EventViewModel @Inject constructor(
         saveEventToLocalStorage(action.updatedEvent, context, "events")
     }
 
+    private fun deleteEventFromLocalStorage(event: EventModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directory = context.getExternalFilesDir("events")
+
+                directory?.let {
+                    val fileName = "Event_${event.id}.json"
+                    val file = File(it, fileName)
+
+                    file.delete()
+                }
+            } catch (e: Exception) {
+                Log.e("EventViewModel", "Error deleting event from local storage", e)
+            }
+        }
+    }
+
     private fun removeEvent(action: EventAction.RemoveEvent) {
         val event = action.event
         // TODO: Remove event locally
@@ -103,14 +120,12 @@ class EventViewModel @Inject constructor(
         eventList?.removeIf { it.id == event.id }
         eventSnapshotList?.removeIf(Predicate { it -> it.id == event.id })
         savedStateHandle["events"] = eventList
-        // TODO: Delete from local storage as well
-
-        // TODO: Remove user from event if event is joined
+        // Delete from local storage as well
+        deleteEventFromLocalStorage(event)
+        // Remove user from event if event is joined
         if (event.eventType == EventType.JOINED)  ApiFunctions.exitEvent(event.id, userId)
         // TODO: Delete event on server if event is hosted
         else ApiFunctions.deleteEvent(event.id)
-
-
     }
 
     private fun sortEvents(comparator: Comparator<EventModel> = compareBy<EventModel> (

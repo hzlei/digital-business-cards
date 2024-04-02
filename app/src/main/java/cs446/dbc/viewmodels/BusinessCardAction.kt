@@ -9,7 +9,7 @@ sealed class BusinessCardAction {
     data class PopulateCard (val front: String, val back: String, val favorite: Boolean, val fields: MutableList<Field>, val cardType: CardType): BusinessCardAction()
     data class InsertCard (val card: BusinessCardModel): BusinessCardAction()
     data class InsertCards(val cards: MutableList<BusinessCardModel>): BusinessCardAction()
-    data class RemoveCard(val card: BusinessCardModel): BusinessCardAction()
+    data class RemoveCard(val card: BusinessCardModel, val appViewModel: AppViewModel): BusinessCardAction()
     data class UpdateCard(val cardID: String, val card: BusinessCardModel): BusinessCardAction()
     data class UpdateFront (val cardId: String, val front: String): BusinessCardAction()
     data class UpdateBack (val cardId: String, val back: String): BusinessCardAction()
@@ -21,7 +21,7 @@ sealed class BusinessCardAction {
     data class UpdateCardType (val cardId: String, val newCardType: CardType): BusinessCardAction()
     data class UpdateCardContext (val newContext: CardType): BusinessCardAction()
     data class SetCardEditFocus(val cardId: String): BusinessCardAction()
-    data class RequestCard(val card: BusinessCardModel, val appViewModel: AppViewModel, val context: Context): BusinessCardAction()
+    data class RequestCard(val card: BusinessCardModel, val appViewModel: AppViewModel): BusinessCardAction()
     data class ShareCardBluetooth (val card: BusinessCardModel): BusinessCardAction()
     data class ReceiveCardsBluetooth(val stub : Boolean = false): BusinessCardAction()
 }

@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
         val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+            BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
         }
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle(), appContext, userId)
@@ -737,17 +737,6 @@ class MainActivity : AppCompatActivity() {
                         enter = fadeIn() + scaleIn(),
                         exit = fadeOut() + scaleOut(),
                     ) {
-                        FloatingActionButton(
-                            modifier = Modifier,
-                            onClick = {
-                                showCreateDialog = true
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Save,
-                                contentDescription = "Save Cards"
-                            )
-                        }
                         FloatingActionButton(
                             modifier = Modifier,
                             onClick = {
