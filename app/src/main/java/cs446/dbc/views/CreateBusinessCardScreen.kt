@@ -98,6 +98,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
     val coroutineScope = rememberCoroutineScope()
     var imageUriFront by remember { mutableStateOf<Uri?>(null) }
     var imageUriBack by remember { mutableStateOf<Uri?>(null) }
+    var reloadRequest by remember { mutableStateOf(0) }
 
     appViewModel.updateScreenTitle("${if (cardId != "") "Edit" else "Create"} Card")
 
@@ -577,6 +578,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                             // Update the state to display the image in the front
                             imageUriFront = Uri.fromFile(savedFile)
                         }
+                        reloadRequest++
                     }
                 }
             }
@@ -591,6 +593,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(uri)
+                        .setParameter("reload", reloadRequest)
                         .build(),
                     contentDescription = "Selected Image",
                     modifier = Modifier
@@ -603,7 +606,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            // Front background upload
+            // Back background upload
             val galleryLauncherBack = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                 uri?.let {
                     coroutineScope.launch(Dispatchers.IO) {
@@ -611,6 +614,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                             // Update the state to display the image in the back
                             imageUriBack = Uri.fromFile(savedFile)
                         }
+                        reloadRequest++
                     }
                 }
             }
@@ -625,6 +629,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(uri)
+                        .setParameter("reload", reloadRequest)
                         .build(),
                     contentDescription = "Selected Image",
                     modifier = Modifier
