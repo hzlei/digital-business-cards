@@ -133,7 +133,6 @@ class MainActivity : AppCompatActivity() {
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
         val currCardViewId by cardViewModel.currCardViewId.collectAsStateWithLifecycle()
-        val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
 
         // TODO: Check if we have the userid in a settings json file,
@@ -466,7 +465,9 @@ class MainActivity : AppCompatActivity() {
         var showEventJoinErrorDialog by rememberSaveable {
             mutableStateOf(false)
         }
-
+        var showSaveCardErrorDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
 
         var showAddEventsDialog by rememberSaveable {
             mutableStateOf(false)
