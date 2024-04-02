@@ -5,14 +5,18 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcel
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import cs446.dbc.DBCApplication
 import cs446.dbc.models.BusinessCardModel
+import java.io.File
 
 class BluetoothActionActivity : ComponentActivity() {
     private lateinit var bluetoothRepository : BluetoothRepository
@@ -40,8 +44,9 @@ class BluetoothActionActivity : ComponentActivity() {
 
         if (!locationManager.isLocationEnabled) return false
 
-        val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        bluetoothRepository.startSharing(outCard!!)
+        application.startForegroundService(Intent(application, BluetoothShareService::class.java).apply {
+            putExtra("outCard", outCard!!)
+        })
         return true
     }
 
@@ -53,7 +58,7 @@ class BluetoothActionActivity : ComponentActivity() {
     private val enableDiscoverableLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode != Activity.RESULT_CANCELED) {
-                bluetoothRepository.startReceiving()
+                application.startForegroundService(Intent(application, BluetoothReceiveService::class.java))
             }
             finish()
         }

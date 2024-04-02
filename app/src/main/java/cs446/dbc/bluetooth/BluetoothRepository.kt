@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Parcel
 import androidx.annotation.RequiresApi
+import cs446.dbc.DBCApplication
 import cs446.dbc.models.BusinessCardModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,7 @@ import java.lang.ref.WeakReference
 // SSOT for Bluetooth stuff, unfortunately permissions are managed in a seperate model
 // so I can't perfectly integrate it in here
 
-class CardReceiveDelegate {
+interface CardReceiveDelegate {
     open fun receiveCard(card: BusinessCardModel) {
 
     }
@@ -67,7 +68,8 @@ class BluetoothRepository(private val app: Application) {
     val bluetoothEnabled =
         if (bluetoothSupported) _bluetoothEnabled.asStateFlow() else falseStateFlow
 
-    val receiveDelegate: WeakReference<CardReceiveDelegate?> = WeakReference(null)
+    var receiveDelegate: WeakReference<CardReceiveDelegate?> = WeakReference(null)
+        private set
 
     fun checkPermissions(): Boolean {
         // This checks if none of the permissions are not denied, because it allows vac. truth
@@ -119,13 +121,9 @@ class BluetoothRepository(private val app: Application) {
 
 
     fun startSharing(outCard: BusinessCardModel) {
-        val outParcel = Parcel.obtain()
-        outCard.writeToParcel(outParcel, 0)
-        val outBytes: ByteArray = outParcel.marshall()
-        outParcel.recycle()
-
-        app.startForegroundService(Intent(app, BluetoothShareService::class.java).apply {
-            putExtra("outBytes", outBytes)
+        app.startActivity(Intent(app, BluetoothActionActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            putExtra("outCard", outCard)
         })
     }
 
@@ -133,8 +131,11 @@ class BluetoothRepository(private val app: Application) {
         app.stopService(Intent(app, BluetoothShareService::class.java))
     }
 
-    fun startReceiving() {
-        app.startForegroundService(Intent(app, BluetoothReceiveService::class.java))
+    fun startReceiving(delegate : CardReceiveDelegate) {
+        receiveDelegate = WeakReference(delegate)
+        app.startActivity(Intent(app, BluetoothActionActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        })
     }
 
     fun stopReceiving() {

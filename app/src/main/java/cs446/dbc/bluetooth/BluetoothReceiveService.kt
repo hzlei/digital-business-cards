@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import android.os.Parcel
 import android.util.Log
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.parcelize.parcelableCreator
+import java.io.File
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.SynchronousQueue
@@ -56,12 +58,31 @@ class BluetoothReceiveService : Service() {
 
     // Stub left here for later
     private fun onReceived(outBytes: ByteArray) {
+        val directory = application.getExternalFilesDir(null)
         val delegate = bluetoothRepository.receiveDelegate.get() ?: return
 
         val parcel = Parcel.obtain()
         parcel.unmarshall(outBytes, 0, outBytes.size)
         parcel.setDataPosition(0) // This is extremely important!
-        delegate.receiveCard(parcelableCreator<BusinessCardModel>().createFromParcel(parcel))
+        val card : BusinessCardModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            parcel.readParcelable(BusinessCardModel::class.java.classLoader, BusinessCardModel::class.java)!!
+        } else {
+            parcel.readParcelable(BusinessCardModel::class.java.classLoader)!!
+        }
+        // Save images if they came with
+        if (card!!.front != "") {
+            val imgFile = File(directory, card.front)
+            val imgBytes = ByteArray(parcel.readInt())
+            parcel.readByteArray(imgBytes)
+            imgFile.writeBytes(imgBytes)
+        }
+        if (card!!.back != "") {
+            val imgFile = File(directory, card.back)
+            val imgBytes = ByteArray(parcel.readInt())
+            parcel.readByteArray(imgBytes)
+            imgFile.writeBytes(imgBytes)
+        }
+        delegate.receiveCard(card)
     }
 
     override fun onCreate() {
@@ -73,7 +94,6 @@ class BluetoothReceiveService : Service() {
     }
 
     fun cleanStopSelf() {
-        Log.v("God Forbid", "This work")
         receiveSocket?.close()
         connectThread?.interrupt()
         transferQueue.clear()

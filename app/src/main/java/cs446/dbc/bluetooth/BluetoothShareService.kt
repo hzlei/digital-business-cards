@@ -20,6 +20,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import android.os.Message
+import android.os.Parcel
 import android.os.Process
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -27,6 +28,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.google.android.material.R
 import cs446.dbc.DBCApplication
+import cs446.dbc.models.BusinessCardModel
+import java.io.File
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.Semaphore
@@ -122,7 +125,11 @@ class BluetoothShareService : Service() {
                 obtainMessage().also { msg ->
                     msg.arg1 = MSG_NEW_SHARE
                     msg.data = Bundle().apply {
-                        putByteArray("outBytes", intent.getByteArrayExtra("outBytes")!!)
+                        putParcelable("outCard", if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            intent.extras!!.getParcelable("outCard", BusinessCardModel::class.java)!!
+                        } else {
+                            intent.extras!!.getParcelable("outCard")!!
+                        })
                     }
                     this.sendMessage(msg)
                 }
@@ -184,12 +191,54 @@ class BluetoothShareService : Service() {
         // MSG Handlers
         private fun newShare(msg: Message) {
             obtainMessage().also { newMsg ->
-                newMsg.arg1 = MSG_START_DISCOVERY
-                outBytes = msg.data.getByteArray("outBytes")!!
-                shareCount.set(0)
+                val outCard : BusinessCardModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    msg.data.getParcelable("outCard", BusinessCardModel::class.java)!!
+                } else {
+                    msg.data.getParcelable("outCard")!!
+                }
 
+                val directory = application.getExternalFilesDir(null)
+                val outParcel = Parcel.obtain()
+
+                var frontBytes : ByteArray? = null
+                var backBytes : ByteArray? = null
+
+                if (outCard!!.front != "") {
+                    Log.v("HELP", outCard!!.front)
+                    val imageFile = File(directory, outCard!!.front)
+                    if (imageFile.exists()) {
+                        frontBytes = imageFile.readBytes()
+                    } else {
+                        outCard!!.front = ""
+                    }
+                }
+                if (outCard!!.back != "") {
+                    Log.v("HELP", outCard!!.back)
+                    val imageFile = File(directory, outCard!!.back)
+                    if (imageFile.exists()) {
+                        backBytes = imageFile.readBytes()
+                    } else {
+                        outCard!!.back = ""
+                    }
+                }
+
+                outParcel.writeParcelable(outCard!!, 0)
+                frontBytes?.apply {
+                    outParcel.writeInt(this.size)
+                    outParcel.writeByteArray(this)
+                }
+                backBytes?.apply {
+                    outParcel.writeInt(this.size)
+                    outParcel.writeByteArray(this)
+                }
+
+                outBytes = outParcel.marshall()
+                outParcel.recycle()
+
+                shareCount.set(0)
                 startNotification()
 
+                newMsg.arg1 = MSG_START_DISCOVERY
                 sendMessage(newMsg)
             }
         }
@@ -268,6 +317,7 @@ class BluetoothShareService : Service() {
                             // I don't actually read anything here, I just want to wait for
                             // the receiver to close
                             connSock.inputStream.read()
+                            it.value.received.set(true)
                             shareCount.addAndGet(1)
                         } catch (e: Exception) {
                             Log.v("e", e.toString())
