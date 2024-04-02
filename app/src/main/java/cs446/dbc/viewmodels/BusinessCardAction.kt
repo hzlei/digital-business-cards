@@ -9,6 +9,7 @@ sealed class BusinessCardAction {
     data class InsertCard (val card: BusinessCardModel): BusinessCardAction()
     data class InsertCards(val cards: MutableList<BusinessCardModel>): BusinessCardAction()
     data class RemoveCard(val card: BusinessCardModel): BusinessCardAction()
+    data class UpdateCard(val cardID: String, val card: BusinessCardModel): BusinessCardAction()
     data class UpdateFront (val cardId: String, val front: String): BusinessCardAction()
     data class UpdateBack (val cardId: String, val back: String): BusinessCardAction()
     data class ToggleFavorite (val cardId: String): BusinessCardAction()

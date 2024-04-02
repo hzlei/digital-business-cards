@@ -44,6 +44,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.InsertCard -> insertCard(action)
             is BusinessCardAction.InsertCards -> insertCards(action)
             is BusinessCardAction.RemoveCard -> removeCard(action)
+            is BusinessCardAction.UpdateCard -> updateCard(action)
             is BusinessCardAction.RemoveField -> TODO()
             is BusinessCardAction.UpdateAllFields -> TODO()
             is BusinessCardAction.UpdateBack -> TODO()
@@ -114,6 +115,17 @@ class BusinessCardViewModel @Inject constructor(
         businssCardSnapshotList?.clear()
         businssCardSnapshotList?.addAll(cards!!)
         // TODO: Delete from local storage as well
+    }
+
+    private fun updateCard(action: BusinessCardAction.UpdateCard) {
+        val ctx = currContext.value
+        val cards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
+        cards?.removeIf { it.id == action.cardID }
+        cards?.add(action.card)
+        cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
+        savedStateHandle[currContext.value] = cards
+        businssCardSnapshotList?.clear()
+        businssCardSnapshotList?.addAll(cards!!)
     }
 
     fun changeCurrCardViewId (id: String?) {
