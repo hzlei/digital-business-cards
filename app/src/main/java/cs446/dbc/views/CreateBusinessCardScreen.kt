@@ -1,7 +1,12 @@
 package cs446.dbc.views
 
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +29,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -36,11 +43,14 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
@@ -50,7 +60,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import cs446.dbc.components.BusinessCardMultiSelect
+import cs446.dbc.components.CreateDialog
 import cs446.dbc.components.toFormattedString
 import cs446.dbc.models.CardType
 import cs446.dbc.models.EventType
@@ -61,6 +75,11 @@ import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -73,6 +92,12 @@ import java.util.TimeZone
 fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewModel: BusinessCardViewModel, appViewModel: AppViewModel, navController: NavHostController, cardId: String = "") {
     val myCards by cardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val createEditBusinessCard by createEditViewModel.createEditBusinessCard.collectAsStateWithLifecycle()
+    val userId by appViewModel.userId.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var imageUriFront by remember { mutableStateOf<Uri?>(null) }
+    var imageUriBack by remember { mutableStateOf<Uri?>(null) }
 
     appViewModel.updateScreenTitle("${if (cardId != "") "Edit" else "Create"} Card")
 
@@ -152,12 +177,24 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
             back = TextFieldValue(currCard.back)
             favorite = currCard.favorite
             currCard.fields.forEach { field ->
-                val fieldCpy = Field(
-                    field.name,
-                    field.value,
-                    field.type
-                )
-                fields.add(fieldCpy)
+                when (field.name) {
+                    "Full Name" -> {
+                        fullName = TextFieldValue(field.value)
+                        hasFullName = true
+                    }
+                    "Company/Institution" -> {
+                        company = TextFieldValue(field.value)
+                        hasCompany = true
+                    }
+                    "Role" -> role = TextFieldValue(field.value)
+                    "Mobile Phone" -> mobilePhone = field.value
+                    "Company Phone" -> companyPhone = field.value
+                    "Email" -> email = TextFieldValue(field.value)
+                    "Address" -> address = TextFieldValue(field.value)
+                    "Website" -> website = TextFieldValue(field.value)
+                    "LinkedIn ID" -> linkedin = TextFieldValue(field.value)
+                    "Github Username" -> github = TextFieldValue(field.value)
+                }
             }
             template = currCard.template
             cardType = currCard.cardType
@@ -346,6 +383,8 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 visualTransformation = remember { phoneNumberTransformation }
             )
 
+            Spacer(modifier = Modifier.padding(4.dp))
+
             // Company Phone
             // TODO: Check if company phone has 10 digits
             OutlinedTextField(value = companyPhone, onValueChange = {
@@ -378,6 +417,8 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 visualTransformation = remember { phoneNumberTransformation }
             )
+
+            Spacer(modifier = Modifier.padding(4.dp))
 
             // Email
             // TODO: Check email error handling in FAB
@@ -523,10 +564,73 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 }, modifier = Modifier.fillMaxSize()
             )
 
+            Spacer(modifier = Modifier.padding(4.dp))
+
             //TODO: Allow lazy column to add more fields
 
-            // TODO: Add button to import image for front and back of card
+            // Front background upload
+            val galleryLauncherFront = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                uri?.let {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        saveImageToStorage(context, it, userId, isFront = true) { savedFile ->
+                            // Update the state to display the image in the front
+                            imageUriFront = Uri.fromFile(savedFile)
+                        }
+                    }
+                }
+            }
 
+            OutlinedButton(onClick = { galleryLauncherFront.launch("image/*") }) {
+                Text("Choose a front background for your card")
+            }
+            // Below is how you display an image
+            imageUriFront?.let { uri ->
+                Spacer(modifier = Modifier.padding(4.dp))
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(uri)
+                        .build(),
+                    contentDescription = "Selected Image",
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                front = TextFieldValue(uri.toString())
+            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            // Front background upload
+            val galleryLauncherBack = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                uri?.let {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        saveImageToStorage(context, it, userId, isFront = false) { savedFile ->
+                            // Update the state to display the image in the back
+                            imageUriBack = Uri.fromFile(savedFile)
+                        }
+                    }
+                }
+            }
+
+            OutlinedButton(onClick = { galleryLauncherBack.launch("image/*") }) {
+                Text("Choose a back background for your card")
+            }
+            // Below is how you display an image
+            imageUriBack?.let { uri ->
+                Spacer(modifier = Modifier.padding(4.dp))
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(uri)
+                        .build(),
+                    contentDescription = "Selected Image",
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+                back = TextFieldValue(uri.toString())
+            }
         }
     }
 }
@@ -562,4 +666,24 @@ private val phoneNumberTransformation = VisualTransformation { text ->
         }
     }
     TransformedText(AnnotatedString(result), mapping)
+}
+
+private fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, isFront: Boolean, onSaved: (File) -> Unit) {
+    // rename the cardID after the image upload
+    // save it right now as user_$userId_card__image_$cardSide
+    // then later on during the save process for the new card, we'll find this image and rename it
+    // with the correct card ID
+
+    // This function saves images to local storage for later use
+    val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
+    val directory = context.getExternalFilesDir(null) ?: return
+    // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
+    val side = if (isFront) "front" else "back"
+    val file = File(directory, "user_${userId}__image_${side}.jpg")
+    inputStream?.use { input ->
+        FileOutputStream(file).use { output ->
+            input.copyTo(output)
+        }
+        onSaved(file)
+    }
 }
