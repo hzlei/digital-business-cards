@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -31,7 +33,10 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
+fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel,
+                    origCardList: List<BusinessCardModel>, appContext: Context,
+                    navController: NavController)
+{
     appViewModel.updateScreenTitle("My Cards")
     val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
@@ -78,7 +83,7 @@ fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardVie
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, true, myCardViewModel::performAction)
+                BusinessCard(card, myCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -94,5 +99,6 @@ fun UserCardsScreenPreview() {
     val cardViewModel: BusinessCardViewModel = viewModel() {
         BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.PERSONAL)
     }
-    UserCardsScreen(appViewModel, cardViewModel, cardList, appContext)
+    val navController: NavHostController = NavHostController(appContext)
+    UserCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)
 }

@@ -33,6 +33,8 @@ class BusinessCardViewModel @Inject constructor(
     var sharedCardsSnapshotList: SnapshotStateList<BusinessCardModel>? = null
     var businssCardSnapshotList: SnapshotStateList<BusinessCardModel>? = null
 
+    val currCardViewId = savedStateHandle.getStateFlow("currCardViewId", "")
+
 
     // TODO: Do we need a separate remove card action when removing the card?
     fun performAction(action: BusinessCardAction) {
@@ -43,6 +45,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.InsertCard -> insertCard(action)
             is BusinessCardAction.InsertCards -> insertCards(action)
             is BusinessCardAction.RemoveCard -> removeCard(action)
+            is BusinessCardAction.UpdateCard -> updateCard(action)
             is BusinessCardAction.RemoveField -> TODO()
             is BusinessCardAction.UpdateAllFields -> TODO()
             is BusinessCardAction.UpdateBack -> TODO()
@@ -50,6 +53,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.UpdateFront -> TODO()
             is BusinessCardAction.UpdateCardType -> TODO()
             is BusinessCardAction.UpdateCardContext -> updateCardContext(action.newContext)
+            is BusinessCardAction.SetCardEditFocus -> changeCurrCardViewId(action.cardId)
             is BusinessCardAction.ShareCardBluetooth -> shareBluetoothCard(action)
             is BusinessCardAction.ReceiveCardsBluetooth -> receiveBluetoothCards()
             else -> TODO() // not actually, this is just to shut up the error
@@ -132,6 +136,21 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.addAll(cards!!)
         }
         // TODO: Delete from local storage as well
+    }
+
+    private fun updateCard(action: BusinessCardAction.UpdateCard) {
+        val ctx = currContext.value
+        val cards = savedStateHandle.get<MutableList<BusinessCardModel>>(ctx)
+        cards?.removeIf { it.id == action.cardID }
+        cards?.add(action.card)
+        cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
+        savedStateHandle[currContext.value] = cards
+        businssCardSnapshotList?.clear()
+        businssCardSnapshotList?.addAll(cards!!)
+    }
+
+    fun changeCurrCardViewId (id: String?) {
+        savedStateHandle["currCardViewId"] = id
     }
 
     private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {

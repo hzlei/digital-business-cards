@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import cs446.dbc.components.BusinessCard
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -31,7 +33,10 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel, origCardList: List<BusinessCardModel>, appContext: Context) {
+fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel,
+                      origCardList: List<BusinessCardModel>, appContext: Context,
+                      navController: NavController)
+{
     appViewModel.updateScreenTitle("Shared Cards")
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
@@ -96,7 +101,7 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, true, sharedCardViewModel::performAction)
+                BusinessCard(card, true, navController, sharedCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -112,5 +117,6 @@ fun SharedCardsScreenPreview() {
     val cardViewModel: BusinessCardViewModel = viewModel() {
         BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED)
     }
-    UserCardsScreen(appViewModel, cardViewModel, cardList, appContext)
+    val navController = NavHostController(appContext)
+    SharedCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)
 }

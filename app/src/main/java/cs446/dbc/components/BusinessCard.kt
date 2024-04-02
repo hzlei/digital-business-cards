@@ -54,11 +54,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import coil.compose.rememberAsyncImagePainter
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
@@ -68,7 +73,7 @@ import java.io.File
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onAction: (BusinessCardAction) -> Unit) {
+fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     var showShareDialogState by rememberSaveable {
         mutableStateOf(false)
@@ -171,7 +176,8 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
                         Text(text = field.name)
                         VerticalDivider(thickness = 20.dp, color = Color.LightGray,
                             modifier = Modifier.width(3.dp))
-                        Text(text = field.value)
+                        // TODO: ensure we allow for proper wrapping
+                        Text(text = field.value, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -250,6 +256,8 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, onActi
                 ) {
                     TextButton(onClick = {
                          // TODO: Add routing to create business card screen with editing option
+                         onAction(BusinessCardAction.SetCardEditFocus(cardModel.id))
+                        navController.navigate("create-card")
                     }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.Edit, "Edit")
                     }
@@ -315,7 +323,7 @@ fun Face(context: Context, background: Color, text: String, imagePath: String? =
                 painter = it,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.FillBounds
             )
         }
         Text(

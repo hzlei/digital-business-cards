@@ -82,12 +82,14 @@ import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.CreateEditViewModel
 import cs446.dbc.viewmodels.EventAction
 import cs446.dbc.viewmodels.EventViewModel
+import cs446.dbc.views.CreateBusinessCardScreen
 import cs446.dbc.views.CreateEventScreen
 import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
 import java.io.FileFilter
+import java.io.File
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,6 +132,14 @@ class MainActivity : AppCompatActivity() {
         val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
         val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
         val currEventViewId by eventViewModel.currEventViewId.collectAsStateWithLifecycle()
+        val currCardViewId by cardViewModel.currCardViewId.collectAsStateWithLifecycle()
+        val userId by appViewModel.userId.collectAsStateWithLifecycle()
+
+
+        // TODO: Check if we have the userid in a settings json file,
+        //  if we do, use that, if not, request server, and then save locally in settings file
+
+        appViewModel.loadUserId(appContext)
 
 
         // TODO: Check if we have the userid in a settings json file,
@@ -365,7 +375,9 @@ class MainActivity : AppCompatActivity() {
                                             ),
                                             cardType = CardType.PERSONAL
                                         ),
-                                    ), appContext
+                                    ),
+                                    appContext,
+                                    navController
                                 )
                             }
                             composable(Screen.Home.route) {
@@ -378,7 +390,8 @@ class MainActivity : AppCompatActivity() {
                                     appViewModel,
                                     cardViewModel,
                                     sharedCardsList,
-                                    appContext
+                                    appContext,
+                                    navController
                                 )
                             }
                             composable(Screen.Settings.route) {
@@ -404,6 +417,15 @@ class MainActivity : AppCompatActivity() {
                             }
                             composable(Screen.EventCreationMenu.route) {
                                 CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, cardViewModel, navController, currEventViewId)
+                            }
+                            composable(Screen.BusinessCardCreationMenu.route) {
+                                CreateBusinessCardScreen(
+                                    createEditViewModel = createEditViewModel,
+                                    cardViewModel = cardViewModel,
+                                    appViewModel = appViewModel,
+                                    navController = navController,
+                                    cardId = currCardViewId
+                                )
                             }
                         }
                     }
@@ -436,6 +458,7 @@ class MainActivity : AppCompatActivity() {
             mutableStateOf(false)
         }
         val createEditEvent by createEditViewModel.createEditEvent.collectAsStateWithLifecycle()
+        val createEditBusinessCard by createEditViewModel.createEditBusinessCard.collectAsStateWithLifecycle()
         val eventBusinessCardList by createEditViewModel.eventBusinessCardList.collectAsStateWithLifecycle()
         var showSaveEventErrorDialog by rememberSaveable {
             mutableStateOf(false)
@@ -473,6 +496,24 @@ class MainActivity : AppCompatActivity() {
             CreateDialog(snackBarHostState, userId) {
                 showCreateDialog = false
             }
+        }
+
+        if (showSaveCardErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { showSaveCardErrorDialog = false },
+                dismissButton = {
+                    TextButton(onClick = { showSaveCardErrorDialog = false }) {
+                        Text(text = "Dismiss")
+                    }
+                },
+                confirmButton = {  },
+                title = { Text(text = "Error", textAlign = TextAlign.Center) },
+                text = {
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "Ensure that your full name and company are not empty")
+                }
+            )
         }
 
         if (showSaveEventErrorDialog) {
@@ -572,28 +613,29 @@ class MainActivity : AppCompatActivity() {
                     FloatingActionButton(
                         modifier = Modifier,
                         onClick = { /*TODO: Go to business card creation screen*/
-                            showCreateDialog = true
-
-                            // this newcard should be returned from the createDialog
-                            // then the logic is the same, just need to change how newCard is handled
-                            val id = UUID.randomUUID().toString()
-                            val newCard = BusinessCardModel(
-                                id = id,
-                                front = "user_${userId}_card_${id}_image_front.jpg",
-                                back = "user_${userId}_card_${id}_image_back.jpg.jpg",
-                                favorite = false,
-                                fields = mutableListOf(),
-                                cardType = CardType.PERSONAL,
-                                template = TemplateType.TEMPLATE_1
-                            )
-
-                            appViewModel.addCard(
-                                newCard,
-                                context,
-                                "businessCards",
-                                CardType.PERSONAL,
-                            )
-                            cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
+                            cardViewModel.changeCurrCardViewId("")
+                            navController.navigate(route = "create-card")
+//                            showCreateDialog = true
+//
+//                            // this newcard should be returned from the createDialog
+//                            // then the logic is the same, just need to change how newCard is handled
+//                            val newCard = BusinessCardModel(
+//                                id = UUID.randomUUID().toString(),
+//                                front = "small.jpg",
+//                                back = "New Back",
+//                                favorite = false,
+//                                fields = mutableListOf(),
+//                                cardType = CardType.PERSONAL,
+//                                template = TemplateType.TEMPLATE_1
+//                            )
+//
+//                            appViewModel.addCard(
+//                                newCard,
+//                                context,
+//                                "businessCards",
+//                                CardType.PERSONAL,
+//                            )
+//                            cardViewModel.performAction(BusinessCardAction.InsertCard(newCard))
                         }
                     ) {
                         Icon(
@@ -687,6 +729,41 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+
+                navBackStackEntry?.destination?.route?.let {
+                    AnimatedVisibility(
+                        visible = it.contains(Screen.BusinessCardCreationMenu.route),
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut(),
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier,
+                            onClick = {
+                                showCreateDialog = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Save,
+                                contentDescription = "Save Cards"
+                            )
+                        }
+                        FloatingActionButton(
+                            modifier = Modifier,
+                            onClick = {
+                                // TODO: edit cards action and ID generation should be handled later
+                                val didSave = saveCards(createEditBusinessCard, cardViewModel, navController, appViewModel, context, userId)
+                                if (!didSave) {
+                                    showSaveCardErrorDialog = true
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Save,
+                                contentDescription = "Save Cards"
+                            )
+                        }
+                    }
+                }
             }
         )
     }
@@ -708,6 +785,7 @@ class MainActivity : AppCompatActivity() {
         object Events : Screen("events")
         object EventMenu : Screen("event-menu/{eventId}")
         object EventCreationMenu : Screen("create-event")
+        object BusinessCardCreationMenu : Screen("create-card")
     }
 
     private fun checkAndUploadCardImages(context: Context, card: BusinessCardModel, userId: String, eventId: String) {
@@ -800,6 +878,75 @@ class MainActivity : AppCompatActivity() {
             ))
             navController.navigate(Screen.Events.route)
             eventViewModel.changeCurrEventViewId("")
+            return true
+        }
+    }
+
+    private fun saveCards(businessCardModel: BusinessCardModel,
+                          businessCardViewModel: BusinessCardViewModel,
+                          navController: NavHostController,
+                          appViewModel: AppViewModel,
+                          context: Context,
+                          userId: String): Boolean
+    {
+        val businessCard = BusinessCardModel(
+            businessCardModel.id,
+            businessCardModel.front,
+            businessCardModel.back,
+            businessCardModel.favorite,
+            businessCardModel.fields,
+            businessCardModel.template,
+            businessCardModel.cardType,
+            businessCardModel.eventId,
+            businessCardModel.eventUserId
+        )
+        // if no id, we are creating a new card
+        if (businessCard.id == "") {
+            // Check to ensure a card has non-empty full name and company
+            val fullNameField = businessCard.fields.find { field -> field.name == "Full Name" }
+            if (fullNameField == null || fullNameField.value == "") return false
+            val companyField = businessCard.fields.find { field -> field.name == "Company/Institution" }
+            if (companyField == null || companyField.value == "") return false
+
+            // TODO: change this to proper ID generation
+            val newBusinessCardId = UUID.randomUUID().toString()
+            businessCard.id = newBusinessCardId
+
+            // Rename front and back of the card
+            val directory = context.getExternalFilesDir(null)
+            var fromPath = File(directory, "user_${userId}__image_front.jpg")
+            var toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_front.jpg")
+            if (fromPath.exists()) fromPath.renameTo(toPath)
+            businessCard.front = "user_${userId}_card_${newBusinessCardId}_image_front.jpg"
+
+            fromPath = File(directory, "user_${userId}__image_back.jpg")
+            toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_back.jpg")
+            if (fromPath.exists()) fromPath.renameTo(toPath)
+            businessCard.back = "user_${userId}_card_${newBusinessCardId}_image_back.jpg"
+
+            appViewModel.addCard(
+                businessCard,
+                context,
+                "businessCards",
+                CardType.PERSONAL,
+            )
+            businessCardViewModel.performAction(BusinessCardAction.InsertCard(
+                card = businessCard
+            ))
+
+            businessCardViewModel.changeCurrCardViewId("")
+            navController.navigate(Screen.UserCards.route)
+
+            return true
+        }
+        // otherwise we are editing a card
+        else {
+            businessCardViewModel.performAction(BusinessCardAction.UpdateCard(
+                cardID = businessCard.id,
+                card = businessCard
+            ))
+            navController.navigate(Screen.UserCards.route)
+            businessCardViewModel.changeCurrCardViewId("")
             return true
         }
     }
