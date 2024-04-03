@@ -146,9 +146,7 @@ object ApiFunctions {
         return runBlocking {
             val path = imagePath.replace("_","/")
             val directory = context.getExternalFilesDir(null)!!
-            Log.d("directoryError", directory.absolutePath)
             val file =  File("${directory.absolutePath}/$imagePath")
-            Log.d("pathError", path)
             Fuel.download("$serverUrl/$path?$apiKeyParam").fileDestination { _, _ ->
                 file
             }.response { req, res, result ->

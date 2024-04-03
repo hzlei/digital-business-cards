@@ -38,7 +38,7 @@ import java.util.UUID
 
 @Composable
 // TODO: rename this to something more appropriate for it's purpose
-fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String) {
+fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, cardViewModel: BusinessCardViewModel, appContext: Context, navController: NavHostController, eventId: String) {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
     val currEvent = events.find { event -> event.id == eventId }
     val userId by appViewModel.userId.collectAsStateWithLifecycle()
@@ -53,6 +53,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     }
 
     val eventBusinessCardList: MutableList<BusinessCardModel> = mutableListOf<BusinessCardModel>()
+
     runBlocking {
         try {
             val serverCardList = ApiFunctions.getAllEventCards(eventId)
@@ -60,12 +61,6 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
         } catch (e: Exception) {
             Log.e("Event Menu Screen", "Failed to get all event cards.", e)
         }
-    }
-
-    // Set event id for current event in view model
-
-    val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
     }
 
 
@@ -78,40 +73,6 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     //  though make sure we preserve their background and stuff
 
 
-//    // TODO: Remove these example ones later, they're only to test UI
-//    for (i in 0..7) {
-//        eventBusinessCardList.add(
-//            BusinessCardModel(
-//                id = UUID.randomUUID().toString(),
-//                front = "CARD ${i + 1}",
-//                back = "CARD ${i + 1}",
-//                favorite = false,
-//                fields = mutableListOf<Field>(
-//                    Field(
-//                        name = "Full Name",
-//                        value = "First Last $i",
-//                        type = FieldType.TEXT
-//                    ),
-//                    Field(
-//                        name = "Phone number",
-//                        value = "${(1..10).map { (0..9).random() }}",
-//                        type = FieldType.PHONE_NUMBER
-//                    ),
-//                    Field(
-//                        name = "Organization",
-//                        value = "Test Org $i",
-//                        type = FieldType.TEXT
-//                    ),
-//                ),
-//                cardType = CardType.EVENT_VIEW
-//            )
-//        )
-//    }
-
-//    eventBusinessCardList.forEach {card ->
-//        card.template = TemplateType.EVENT_VIEW_TEMPLATE
-//    }
-    // TODO: Add swipe refresh https://www.youtube.com/watch?v=lHdhqk8Bft0
     Box {
         LazyColumn (
             modifier = Modifier
@@ -121,7 +82,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
             items(eventBusinessCardList) {card ->
                 // TODO: We may need to wrap the cards around with a box and add a toolbar underneath
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    BusinessCard(card, true, userId, navController, eventBusinessCardViewModel::performAction)
+                    BusinessCard(card, true, userId, navController, cardViewModel::performAction)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }

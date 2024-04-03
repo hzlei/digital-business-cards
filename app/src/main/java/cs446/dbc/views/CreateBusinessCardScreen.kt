@@ -556,7 +556,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 }
                 // Below is how you display an image
                 if (cardId != "") imageUriFront =
-                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_front.jpg"))
+                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_front"))
                 imageUriFront?.let { uri ->
                     Spacer(modifier = Modifier.padding(4.dp))
                     AsyncImage(
@@ -598,7 +598,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 }
                 // Below is how you display an image
                 if (cardId != "") imageUriBack =
-                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_back.jpg"))
+                    Uri.fromFile(File(directory, "user_${userId}_card_${cardId}_image_back"))
                 imageUriBack?.let { uri ->
                     Spacer(modifier = Modifier.padding(4.dp))
                     AsyncImage(
@@ -658,7 +658,7 @@ private fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, 
     // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
     // If in add card phase, the following file name convention is used: user_$userId__image_$cardSide
     val side = if (isFront) "front" else "back"
-    val file = File(directory, "user_${userId}_${if (cardId != "") "card_${cardId}" else ""}_image_${side}.jpg")
+    val file = File(directory, "user_${userId}_${if (cardId != "") "card_${cardId}" else ""}_image_${side}")
     inputStream?.use { input ->
         FileOutputStream(file).use { output ->
             input.copyTo(output)

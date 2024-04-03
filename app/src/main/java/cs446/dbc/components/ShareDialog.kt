@@ -138,7 +138,6 @@ fun ShareDialog(
 
                                 currentView = ShareDialogViews.QRCode
                             }
-                            ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
                         }
 
                         ShareDialogViews.Bluetooth -> {
@@ -154,9 +153,7 @@ fun ShareDialog(
                             )
                         }
 
-                        ShareDialogViews.NearbyShare -> {
-
-                        }
+                        ShareDialogViews.NearbyShare -> TODO()
                     }
                 }
             }

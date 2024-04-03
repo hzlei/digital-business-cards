@@ -3,6 +3,7 @@ package cs446.dbc
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -288,7 +289,7 @@ class MainActivity : AppCompatActivity() {
                                 arguments = listOf(navArgument("eventId") {}))
                             {
                                 val eventId = it.arguments?.getString("eventId")!!
-                                EventMenuScreen(eventViewModel, appViewModel, appContext, navController, eventId)
+                                EventMenuScreen(eventViewModel, appViewModel, cardViewModel, appContext, navController, eventId)
                             }
                             composable(Screen.EventCreationMenu.route) {
                                 CreateEventScreen(createEditViewModel, eventViewModel, appViewModel, cardViewModel, navController, currEventViewId)
@@ -452,23 +453,27 @@ class MainActivity : AppCompatActivity() {
             JoinEventDialog(cardViewModel = cardViewModel,
                 createEditViewModel = createEditViewModel,
                 onDismiss = { showJoinEventDialog = false }) { eventId ->
-
+                    showJoinEventDialog = false
                     var doesEventExist = ApiFunctions.checkEventExists(eventId)
                     if (!doesEventExist) {
                         showEventJoinErrorDialog = true
-                        showJoinEventDialog = false
                     }
                     else {
-                        val event = ApiFunctions.joinEvent(eventId, userId)
-                        // Add our cards to the event to join
-                        eventBusinessCardList.forEach { card ->
-                            ApiFunctions.addEventCard(card, eventId)
+                        try {
+                            val event = ApiFunctions.joinEvent(eventId, userId)
+                            // Add our cards to the event to join
+                            eventBusinessCardList.forEach { card ->
+                                ApiFunctions.addEventCard(card, eventId)
+                            }
+                            // upload all of our card images to the event
+                            eventBusinessCardList.forEach { card ->
+                                checkAndUploadCardImages(context, card, userId, eventId)
+                            }
+                            eventViewModel.performAction(EventAction.InsertEvent(event))
+                        } catch (e: Exception) {
+                            Log.e("Join Event Error", "Join Event Error", e)
+
                         }
-                        // upload all of our card images to the event
-                        eventBusinessCardList.forEach { card ->
-                            checkAndUploadCardImages(context, card, userId, eventId)
-                        }
-                        eventViewModel.performAction(EventAction.InsertEvent(event))
                     }
             }
         }
@@ -498,7 +503,7 @@ class MainActivity : AppCompatActivity() {
 //                            // then the logic is the same, just need to change how newCard is handled
 //                            val newCard = BusinessCardModel(
 //                                id = UUID.randomUUID().toString(),
-//                                front = "small.jpg",
+//                                front = "small",
 //                                back = "New Back",
 //                                favorite = false,
 //                                fields = mutableListOf(),
@@ -689,7 +694,7 @@ class MainActivity : AppCompatActivity() {
                           selectedCards: MutableList<BusinessCardModel>,
                           navController: NavHostController): Boolean
     {
-        val event = EventModel(
+        var event = EventModel(
             eventModel.id,
             eventModel.name,
             eventModel.location,
@@ -718,7 +723,7 @@ class MainActivity : AppCompatActivity() {
 
             // Create event on server
             val newEventId = ApiFunctions.createEvent(event)
-            event.id = newEventId
+            val event = ApiFunctions.joinEvent(newEventId, userId)
             event.eventType = EventType.HOSTED
             eventViewModel.performAction(EventAction.InsertEvent(
                 event = event
@@ -729,7 +734,7 @@ class MainActivity : AppCompatActivity() {
                 // TODO: Add card
                 ApiFunctions.addEventCard(card, newEventId)
                 // TODO: upload images for the cards!!!!
-//                checkAndUploadCard(context, card, userId, newEventId)
+                checkAndUploadCardImages(context, card, userId, event.id)
             }
 
             eventViewModel.changeCurrEventViewId("")
@@ -780,15 +785,15 @@ class MainActivity : AppCompatActivity() {
 
             // Rename front and back of the card
             val directory = context.getExternalFilesDir(null)
-            var fromPath = File(directory, "user_${userId}__image_front.jpg")
-            var toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_front.jpg")
+            var fromPath = File(directory, "user_${userId}__image_front")
+            var toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_front")
             if (fromPath.exists()) fromPath.renameTo(toPath)
-            businessCard.front = "user_${userId}_card_${newBusinessCardId}_image_front.jpg"
+            businessCard.front = "user_${userId}_card_${newBusinessCardId}_image_front"
 
-            fromPath = File(directory, "user_${userId}__image_back.jpg")
-            toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_back.jpg")
+            fromPath = File(directory, "user_${userId}__image_back")
+            toPath = File(directory, "user_${userId}_card_${newBusinessCardId}_image_back")
             if (fromPath.exists()) fromPath.renameTo(toPath)
-            businessCard.back = "user_${userId}_card_${newBusinessCardId}_image_back.jpg"
+            businessCard.back = "user_${userId}_card_${newBusinessCardId}_image_back"
 
             appViewModel.addCard(
                 businessCard,

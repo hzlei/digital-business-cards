@@ -123,7 +123,6 @@ fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: Bus
                                 options.setBarcodeImageEnabled(true)
                                 scanLauncher.launch(options)
                             }
-                            ReceiveButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}
                         }
 
                         ReceiveDialogViews.Bluetooth -> {

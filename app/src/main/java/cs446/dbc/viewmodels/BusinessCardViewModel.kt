@@ -110,7 +110,7 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.addAll(currCards!!)
         }
         // save to local storage
-        action.appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCard")
+        action.appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCards")
     }
 
     private fun insertCards(action: BusinessCardAction.InsertCards) {
