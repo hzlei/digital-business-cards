@@ -6,11 +6,11 @@ import cs446.dbc.models.CardType
 import cs446.dbc.models.Field
 
 sealed class BusinessCardAction {
-    data class PopulateCard (val front: String, val back: String, val favorite: Boolean, val fields: MutableList<Field>, val cardType: CardType): BusinessCardAction()
-    data class InsertCard (val card: BusinessCardModel): BusinessCardAction()
-    data class InsertCards(val cards: MutableList<BusinessCardModel>): BusinessCardAction()
+    data class PopulateCard (val front: String, val back: String, val favorite: Boolean, val fields: MutableList<Field>, val cardType: CardType, val appViewModel: AppViewModel): BusinessCardAction()
+    data class InsertCard (val card: BusinessCardModel, val appViewModel: AppViewModel): BusinessCardAction()
+    data class InsertCards(val cards: MutableList<BusinessCardModel>, val appViewModel: AppViewModel): BusinessCardAction()
     data class RemoveCard(val card: BusinessCardModel, val appViewModel: AppViewModel): BusinessCardAction()
-    data class UpdateCard(val cardID: String, val card: BusinessCardModel): BusinessCardAction()
+    data class UpdateCard(val cardID: String, val card: BusinessCardModel, val appViewModel: AppViewModel): BusinessCardAction()
     data class UpdateFront (val cardId: String, val front: String): BusinessCardAction()
     data class UpdateBack (val cardId: String, val back: String): BusinessCardAction()
     data class ToggleFavorite (val cardId: String): BusinessCardAction()

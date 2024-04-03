@@ -92,7 +92,7 @@ class BusinessCardViewModel @Inject constructor(
             fields = action.fields,
             cardType = action.cardType
         )
-        insertCard(BusinessCardAction.InsertCard(card))
+        insertCard(BusinessCardAction.InsertCard(card, action.appViewModel))
     }
 
     private fun insertCard(action: BusinessCardAction.InsertCard) {
@@ -109,6 +109,8 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(currCards!!)
         }
+        // save to local storage
+        action.appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCard")
     }
 
     private fun insertCards(action: BusinessCardAction.InsertCards) {
@@ -125,7 +127,10 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(cards!!)
         }
-
+        // save to local storage
+        cards?.forEach { card ->
+            action.appViewModel.saveCardToLocalStorage(card, appContext, "businessCards")
+        }
     }
 
     private fun removeCard(action: BusinessCardAction.RemoveCard) {
@@ -154,6 +159,8 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle[currContext.value] = cards
         businssCardSnapshotList?.clear()
         businssCardSnapshotList?.addAll(cards!!)
+        // update to storage
+        action.appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
     }
 
     fun changeCurrCardViewId (id: String?) {
@@ -162,11 +169,11 @@ class BusinessCardViewModel @Inject constructor(
     private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel) {
         if (newCard.front != "") {
             // download image
-            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
+            ApiFunctions.downloadImage(newCard.front, appContext)
         }
         if (newCard.back != "") {
             // download image
-            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
+            ApiFunctions.downloadImage(newCard.front, appContext)
         }
         // put card into shared cards list, and save to local storage
         val sharedCardsList = savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!

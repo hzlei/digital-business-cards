@@ -1,6 +1,9 @@
 package cs446.dbc.components
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.os.Parcelable
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,27 +34,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import cs446.dbc.api.ApiFunctions
 import cs446.dbc.models.BusinessCardModel
+import cs446.dbc.models.CardType
 import cs446.dbc.viewmodels.BusinessCardAction
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.FileFilter
 
 private enum class ShareDialogViews {
     Options, Bluetooth, QRCode, NearbyShare;
 }
 
+@Parcelize
+@Serializable
+data class QRCodeCardInfo (
+    val userId: String,
+    val cardId: String
+): Parcelable
+
 @Composable
 fun ShareDialog(
     cardModel: BusinessCardModel,
+    userId: String,
     onAction: (BusinessCardAction) -> Unit,
     onDismissRequest: () -> Unit = {}
 ) {
     var currentView by remember { mutableStateOf(ShareDialogViews.Options) }
     var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val context = LocalContext.current
+
+    cardModel.cardType = CardType.SHARED
+
 
     AlertDialog(
         icon = {
@@ -76,7 +97,45 @@ fun ShareDialog(
                                 onAction(BusinessCardAction.ShareCardBluetooth(cardModel))
                             }
                             ShareButton(text = "QR Code", icon = Icons.Rounded.QrCode2) {
-                                qrCodeBitmap = generateQRCode(Json.encodeToString(cardModel))
+                                val jsonCode = Json.encodeToString(QRCodeCardInfo(userId, cardModel.id))
+                                Log.d("STUPID JSON", jsonCode)
+                                qrCodeBitmap = generateQRCode(jsonCode)
+
+                                // Add card to user in server
+                                ApiFunctions.addUserCard(cardModel, userId)
+                                // upload images
+                                val directory = context.getExternalFilesDir(null)!!
+                                val frontImage = directory.listFiles(FileFilter { file ->
+                                    file.name == cardModel.front
+                                })
+                                val backImage = directory.listFiles(FileFilter { file ->
+                                    file.name == cardModel.back
+                                })
+
+                                if (frontImage != null) {
+                                    if (frontImage.isNotEmpty()) {
+                                        ApiFunctions.uploadImage(
+                                            cardModel.front,
+                                            "front",
+                                            userId,
+                                            cardModel.id,
+                                            context
+                                        )
+                                    }
+                                }
+
+                                if (backImage != null) {
+                                    if (backImage.isNotEmpty()) {
+                                        ApiFunctions.uploadImage(
+                                            cardModel.back,
+                                            "back",
+                                            userId,
+                                            cardModel.id,
+                                            context
+                                        )
+                                    }
+                                }
+
                                 currentView = ShareDialogViews.QRCode
                             }
                             ShareButton(text = "Nearby Share", icon = Icons.Rounded.Wifi) {}

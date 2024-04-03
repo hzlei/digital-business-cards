@@ -33,24 +33,22 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessCardViewModel,
-                      origCardList: List<BusinessCardModel>, appContext: Context,
+fun SharedCardsScreen(appViewModel: AppViewModel,
+                      sharedCardViewModel: BusinessCardViewModel,
+                      appContext: Context,
                       navController: NavController)
 {
     appViewModel.updateScreenTitle("Shared Cards")
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
+    val userId by appViewModel.userId.collectAsStateWithLifecycle()
+    sharedCardViewModel.updateCardContext("sharedCards")
+
     val composeCards = remember {
         mutableStateListOf<BusinessCardModel>()
     }
 
     sharedCardViewModel.updateCardContext("sharedCards")
-
-    // TODO: Remove after, we're just temporarily add cards to mock them for the demo
-    /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
-        and do so while switching context to another screen (so we can't just check if the
-        businessCards list is empty)
-     */
 
 
     // First load the cards
@@ -58,37 +56,14 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
         if (!loadedSharedCards) {
             val cardList =
                 appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
-            sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList, appViewModel))
         }
     }
 
-    // TODO: Remove this later, we add examples
-    LaunchedEffect(key1 = Unit) {
-        if (sharedCards.isEmpty()) {
-            origCardList.forEach { card ->
-//                appViewModel.addCard(card, appContext, "businessCards", CardType.SHARED)
-                sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
-            }
-        }
-    }
+
 
     sharedCardViewModel.sharedCardsSnapshotList = composeCards
 
-    LaunchedEffect(key1 = "load_examples") {
-        if (sharedCards.size < 1) {
-            origCardList.forEach { card ->
-                sharedCardViewModel.performAction(
-                    BusinessCardAction.PopulateCard(
-                        front = card.front,
-                        back = card.back,
-                        favorite = card.favorite,
-                        fields = card.fields,
-                        cardType = card.cardType
-                    )
-                )
-            }
-        }
-    }
 
     if (composeCards.isEmpty()) {
         composeCards.addAll(sharedCards)
@@ -101,7 +76,7 @@ fun SharedCardsScreen(appViewModel: AppViewModel, sharedCardViewModel: BusinessC
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, true, navController, sharedCardViewModel::performAction)
+                BusinessCard(card, true, userId, navController, sharedCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -118,5 +93,5 @@ fun SharedCardsScreenPreview() {
         BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
     }
     val navController = NavHostController(appContext)
-    SharedCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)
+    SharedCardsScreen(appViewModel, cardViewModel, appContext, navController)
 }
