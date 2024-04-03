@@ -190,11 +190,14 @@ class BusinessCardViewModel @Inject constructor(
                 ApiFunctions.downloadImage(newCard.front, appContext)
             }
             newCard.cardType = CardType.SHARED
+            Log.d("requested Cards", newCard.toString())
             // put card into shared cards list, and save to local storage
             val sharedCardsList =
                 savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
             sharedCardsList.add(newCard)
             sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(sharedCardsList)
             appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
     }

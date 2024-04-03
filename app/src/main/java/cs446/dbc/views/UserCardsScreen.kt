@@ -42,7 +42,6 @@ fun UserCardsScreen(appViewModel: AppViewModel,
     val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
     val userId by appViewModel.userId.collectAsStateWithLifecycle()
-    myCardViewModel.updateCardContext("sharedCards")
 
     val composeCards = remember {
         mutableStateListOf<BusinessCardModel>()
@@ -53,6 +52,7 @@ fun UserCardsScreen(appViewModel: AppViewModel,
 
     LaunchedEffect(key1 = "load_cards") {
         if (!loadedMyCards) {
+            myCardViewModel.updateCardContext("myBusinessCards")
             val cardList =
                 appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.PERSONAL)
             myCardViewModel.performAction(BusinessCardAction.InsertCards(cardList, appViewModel))

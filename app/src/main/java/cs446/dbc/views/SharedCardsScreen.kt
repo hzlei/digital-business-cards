@@ -54,9 +54,14 @@ fun SharedCardsScreen(appViewModel: AppViewModel,
     // First load the cards
     LaunchedEffect(key1 = "load_cards") {
         if (!loadedSharedCards) {
+            sharedCardViewModel.updateCardContext("sharedCards")
             val cardList =
                 appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
+            cardList.forEach {card ->
+                Log.d("shared card list", card.toString())
+            }
             sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList, appViewModel))
+            composeCards.addAll(cardList)
         }
     }
 
