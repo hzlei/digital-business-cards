@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -89,6 +90,9 @@ import cs446.dbc.views.EventMenuScreen
 import cs446.dbc.views.EventScreen
 import cs446.dbc.views.SharedCardsScreen
 import cs446.dbc.views.UserCardsScreen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.FileFilter
 import java.io.File
 import java.util.UUID
@@ -459,20 +463,22 @@ class MainActivity : AppCompatActivity() {
                         showEventJoinErrorDialog = true
                     }
                     else {
-                        try {
-                            val event = ApiFunctions.joinEvent(eventId, userId)
-                            // Add our cards to the event to join
-                            eventBusinessCardList.forEach { card ->
-                                ApiFunctions.addEventCard(card, eventId)
+                        val job = eventViewModel.viewModelScope.launch(Dispatchers.IO) {
+                            try {
+                                val event = ApiFunctions.joinEvent(eventId, userId)
+                                // Add our cards to the event to join
+                                eventBusinessCardList.forEach { card ->
+                                    ApiFunctions.addEventCard(card, eventId)
+                                }
+                                delay(2000)
+                                // upload all of our card images to the event
+                                eventBusinessCardList.forEach { card ->
+                                    checkAndUploadCardImages(context, card, userId, eventId)
+                                }
+                                eventViewModel.performAction(EventAction.InsertEvent(event))
+                            } catch (e: Exception) {
+                                Log.e("Join Event Error", "Join Event Error", e)
                             }
-                            // upload all of our card images to the event
-                            eventBusinessCardList.forEach { card ->
-                                checkAndUploadCardImages(context, card, userId, eventId)
-                            }
-                            eventViewModel.performAction(EventAction.InsertEvent(event))
-                        } catch (e: Exception) {
-                            Log.e("Join Event Error", "Join Event Error", e)
-
                         }
                     }
             }
@@ -659,7 +665,7 @@ class MainActivity : AppCompatActivity() {
         object BusinessCardCreationMenu : Screen("create-card")
     }
 
-    private fun checkAndUploadCardImages(context: Context, card: BusinessCardModel, userId: String, eventId: String) {
+    private suspend fun checkAndUploadCardImages(context: Context, card: BusinessCardModel, userId: String, eventId: String) {
         // Check if files actually exist before we upload them to the server
         val directory = context.getExternalFilesDir(null)!!
         val frontImage = directory.listFiles(FileFilter { file ->
@@ -677,6 +683,7 @@ class MainActivity : AppCompatActivity() {
                 context
             )
         }
+        delay(1000)
         if (backImage != null) {
             if (backImage.isNotEmpty()) ApiFunctions.uploadImage(
                 card.back,
@@ -722,29 +729,36 @@ class MainActivity : AppCompatActivity() {
             if (myCards.isNotEmpty() && selectedCards.isEmpty()) return false
 
             // Create event on server
-            val newEventId = ApiFunctions.createEvent(event)
-            val event = ApiFunctions.joinEvent(newEventId, userId)
-            event.eventType = EventType.HOSTED
-            eventViewModel.performAction(EventAction.InsertEvent(
-                event = event
-            ))
+            val job = eventViewModel.viewModelScope.launch(Dispatchers.IO) {
+                val newEventId = ApiFunctions.createEvent(event)
+                val event = ApiFunctions.joinEvent(newEventId, userId)
+                event.eventType = EventType.HOSTED
+                eventViewModel.performAction(
+                    EventAction.InsertEvent(
+                        event = event
+                    )
+                )
 
-            // Send selected cards to event to have the user join the event
-            selectedCards.forEach { card ->
-                // TODO: Add card
-                ApiFunctions.addEventCard(card, newEventId)
-                // TODO: upload images for the cards!!!!
-                checkAndUploadCardImages(context, card, userId, event.id)
+                // Send selected cards to event to have the user join the event
+                selectedCards.forEach { card ->
+                    // TODO: Add card
+                    ApiFunctions.addEventCard(card, newEventId)
+                }
+                delay(2000)
+                selectedCards.forEach { card ->
+                    // TODO: upload images for the cards!!!!
+                    checkAndUploadCardImages(context, card, userId, event.id)
+                }
+                eventViewModel.changeCurrEventViewId("")
+
             }
-
-            eventViewModel.changeCurrEventViewId("")
             navController.navigate(Screen.Events.route)
-
             return true
         }
         // otherwise we are editing an event
         else {
             // Edit event on server
+            // TODO: add dispatcher here
             ApiFunctions.editEvent(event)
             eventViewModel.performAction(EventAction.UpdateEvent(
                 event.id, event

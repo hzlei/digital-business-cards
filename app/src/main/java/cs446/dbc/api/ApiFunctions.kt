@@ -37,7 +37,10 @@ object ApiFunctions {
         return runBlocking {
             val body = format.encodeToString<EventModel>(event)
             Log.d("body", body)
-            val (_, _, result) = Fuel.post("$serverUrl/event?$apiKeyParam").body(body).awaitStringResponseResult()
+            val (req, response, result) = Fuel.post("$serverUrl/event?$apiKeyParam").body(body).awaitStringResponseResult()
+            Log.e("CREATE_EVENT_REQUEST", req.toString())
+            Log.e("CREATE_EVENT_RESPONSE", response.toString())
+            Log.e("CREATE_EVENT_RESULT", result.toString())
             // returns event id
             return@runBlocking format.decodeFromString<EventModel>(result.get()).id
         }
@@ -55,7 +58,7 @@ object ApiFunctions {
 
     fun getEvent(eventId: String): EventModel {
         return runBlocking {
-            val (_, _, result) = Fuel.get("$serverUrl/event/$eventId?$apiKeyParam")
+            val (req, response, result) = Fuel.get("$serverUrl/event/$eventId?$apiKeyParam")
                 .awaitStringResponseResult()
             // returns event
             return@runBlocking format.decodeFromString<EventModel>(result.get())
@@ -64,8 +67,12 @@ object ApiFunctions {
 
     fun joinEvent(eventId: String, userId: String): EventModel {
         return runBlocking {
-            val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/user/$userId?$apiKeyParam")
+
+            val (req, response, result) = Fuel.post("$serverUrl/event/$eventId/user/$userId?$apiKeyParam")
                 .awaitStringResponseResult()
+            Log.e("JOIN_EVENT_REQUEST", req.toString())
+            Log.e("JOIN_EVENT_RESPONSE", response.toString())
+            Log.e("JOIN_EVENT_RESULT", result.toString())
             // returns event
             return@runBlocking format.decodeFromString<EventModel>(result.get())
         }
@@ -91,7 +98,10 @@ object ApiFunctions {
     fun addEventCard(card: BusinessCardModel, eventId: String): String {
         return runBlocking {
             val body = format.encodeToString(card)
-            val (_, _, result) = Fuel.post("$serverUrl/event/$eventId/card?$apiKeyParam").body(body).awaitStringResponseResult()
+            val (req, response, result) = Fuel.post("$serverUrl/event/$eventId/card?$apiKeyParam").body(body).awaitStringResponseResult()
+            Log.e("ADD_EVENT_CARD_REQUEST", req.toString())
+            Log.e("ADD_EVENT_CARD_RESPONSE", response.toString())
+            Log.e("ADD_EVENT_CARD_RESULT", result.toString())
             return@runBlocking result.get()
         }
     }
@@ -133,10 +143,15 @@ object ApiFunctions {
     fun uploadImage(imagePath: String, cardSide: String, userId: String, cardId: String, context: Context): String {
         return runBlocking {
             val directory = context.getExternalFilesDir(null)!!
+            Log.e("UP_IMG_PATH", imagePath)
+            Log.e("UP_IMG_ABS_PATH", "${directory.absolutePath}/$imagePath")
             val file = FileDataPart.from("${directory.absolutePath}/$imagePath", name = "image")
-            val (_, _, result) = Fuel.upload("$serverUrl/user/$userId/card/$cardId/image/$cardSide?$apiKeyParam")
+            val (req, response, result) = Fuel.upload("$serverUrl/user/$userId/card/$cardId/image/$cardSide?$apiKeyParam")
                 .add(file)
                 .awaitStringResponseResult()
+            Log.e("UP_IMG_REQUEST", req.toString())
+            Log.e("UP_IMG_RESPONSE", response.toString())
+            Log.e("UP_IMG_RESULT", result.toString())
             return@runBlocking result.get()
         }
     }
