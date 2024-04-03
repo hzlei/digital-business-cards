@@ -1,6 +1,5 @@
 package cs446.dbc.viewmodels
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -183,7 +182,7 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle["currCardViewId"] = id
     }
     private fun requestCard(newCard: BusinessCardModel) {
-        val job = viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             if (newCard.front != "") {
                 // download image
                 Log.e("front image", newCard.front)
@@ -201,8 +200,8 @@ class BusinessCardViewModel @Inject constructor(
                 savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
             sharedCardsList.add(newCard)
             sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
-            sharedCardsSnapshotList?.clear()
-            sharedCardsSnapshotList?.addAll(sharedCardsList)
+//            sharedCardsSnapshotList?.clear()
+//            sharedCardsSnapshotList?.addAll(sharedCardsList)
             appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
     }

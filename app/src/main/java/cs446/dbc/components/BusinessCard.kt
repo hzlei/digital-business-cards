@@ -98,11 +98,6 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
         label = "padding"
     )
 
-    // really just to get the function access
-    val appViewModel: AppViewModel = viewModel() {
-        AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
-    }
-
     val toggleSelected = { selected = !selected && isEnabled}
 
     Card(
@@ -237,7 +232,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
                             // TODO: Send request to server for this card
                             //   use the eventId and eventUserId within the card to locate it
 
-                              onAction(BusinessCardAction.RequestCard(cardModel, appViewModel))
+                              onAction(BusinessCardAction.RequestCard(cardModel))
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -281,7 +276,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
     }
 
     val deleteDialogRequest = {
-        onAction(BusinessCardAction.RemoveCard(cardModel, appViewModel))
+        onAction(BusinessCardAction.RemoveCard(cardModel))
         showDeleteDialogState = false
     }
 
