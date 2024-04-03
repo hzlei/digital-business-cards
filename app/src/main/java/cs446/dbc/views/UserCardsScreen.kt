@@ -33,16 +33,13 @@ import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 
 @Composable
-fun UserCardsScreen(appViewModel: AppViewModel,
-                    myCardViewModel: BusinessCardViewModel,
-                    appContext: Context,
+fun UserCardsScreen(appViewModel: AppViewModel, myCardViewModel: BusinessCardViewModel,
+                    origCardList: List<BusinessCardModel>, appContext: Context,
                     navController: NavController)
 {
     appViewModel.updateScreenTitle("My Cards")
     val cards by myCardViewModel.myBusinessCards.collectAsStateWithLifecycle()
     val loadedMyCards by appViewModel.loadedMyCards.collectAsStateWithLifecycle()
-    val userId by appViewModel.userId.collectAsStateWithLifecycle()
-    myCardViewModel.updateCardContext("sharedCards")
 
     val composeCards = remember {
         mutableStateListOf<BusinessCardModel>()
@@ -59,6 +56,22 @@ fun UserCardsScreen(appViewModel: AppViewModel,
         }
     }
 
+    // TODO: Remove after, we're just temporarily add cards to mock them for the demo
+    /* TODO: This may work for saved preferences, but it'll be more complicated since we can delete cards
+        and do so while switching context to another screen (so we can't just check if the
+        businessCards list is empty)
+     */
+
+
+//    LaunchedEffect(key1 = Unit) {
+//        if (cards.isEmpty()) {
+//            origCardList.forEach { card ->
+//                appViewModel.addCard(card, appContext, "businessCards", CardType.PERSONAL)
+//                myCardViewModel.performAction(BusinessCardAction.InsertCard(card))
+//            }
+//        }
+//    }
+
     if (composeCards.isEmpty()) {
         composeCards.addAll(cards)
     }
@@ -70,7 +83,7 @@ fun UserCardsScreen(appViewModel: AppViewModel,
     ) {
         items(composeCards) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
-                BusinessCard(card, true, userId, navController, myCardViewModel::performAction)
+                BusinessCard(card, true, navController ,myCardViewModel::performAction)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -84,8 +97,8 @@ fun UserCardsScreenPreview() {
     val cardList: List<BusinessCardModel> = listOf()
     val appContext = LocalContext.current
     val cardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.PERSONAL, appContext, appViewModel)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.PERSONAL, appContext)
     }
     val navController: NavHostController = NavHostController(appContext)
-    UserCardsScreen(appViewModel, cardViewModel, appContext, navController)
+    UserCardsScreen(appViewModel, cardViewModel, cardList, appContext, navController)
 }

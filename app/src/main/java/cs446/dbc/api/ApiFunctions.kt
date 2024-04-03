@@ -22,7 +22,7 @@ data class EventExists(
 
 object ApiFunctions {
     private const val serverUrl: String = "https://digital-business-cards.fly.dev/api"
-    private const val apiKey: String = "saj7eichiegei4fa9tae0phai6lie8Oach7aeTez9ohh5dagie4pi1eez4Booyee"
+    private const val apiKey: String = "idVqnP2UV0KYyu510aztMo8lwI9QH72d"
     private const val apiKeyParam: String = "key=$apiKey"
     private val format = Json { encodeDefaults = true }
 
@@ -112,28 +112,22 @@ object ApiFunctions {
         }
     }
 
-    fun addUserCard(card: BusinessCardModel, userId: String): String {
+
+    fun saveUserCard(card: BusinessCardModel, userId: String): Boolean {
         return runBlocking {
             val body = format.encodeToString(card)
-            val (_, _, result) = Fuel.post("$serverUrl/user/$userId/card?$apiKeyParam").body(body).awaitStringResponseResult()
-            return@runBlocking result.get()
-        }
-    }
-
-    fun getUserCard(cardId: String, userId: String): BusinessCardModel {
-        return runBlocking {
-            val (_, _, result) = Fuel.get("$serverUrl/user/$userId/card/$cardId?$apiKeyParam").awaitStringResponseResult()
-            Log.d("getUserCard", result.get())
-            return@runBlocking format.decodeFromString<BusinessCardModel>(result.get())
+            val (_, response, _) = Fuel.post("$serverUrl/user/$userId/card?$apiKeyParam")
+                .body(body)
+                .awaitStringResponseResult()
+            return@runBlocking response.statusCode == 200
         }
     }
 
     // TODO: Remember to update the image path to this value for the card
     // TODO: ensure saveUserCard is called first before this function is called
-    fun uploadImage(imagePath: String, cardSide: String, userId: String, cardId: String, context: Context): String {
+    fun uploadImage(imagePath: String, cardSide: String, userId: String, cardId: String): String {
         return runBlocking {
-            val directory = context.getExternalFilesDir(null)!!
-            val file = FileDataPart.from("${directory.absolutePath}/$imagePath", name = "image")
+            val file = FileDataPart.from(imagePath, name = "image")
             val (_, _, result) = Fuel.upload("$serverUrl/user/$userId/card/$cardId/image/$cardSide?$apiKeyParam")
                 .add(file)
                 .awaitStringResponseResult()
@@ -141,20 +135,18 @@ object ApiFunctions {
         }
     }
 
-    fun downloadImage(imagePath: String, context: Context) {
+    fun downloadImage(imagePath: String, directoryName: String, context: Context) {
         // Assume imagePath will be the server path string
         return runBlocking {
             val path = imagePath.replace("_","/")
-            val directory = context.getExternalFilesDir(null)!!
-            Log.d("directoryError", directory.absolutePath)
-            val file =  File("${directory.absolutePath}/$imagePath")
-            Log.d("pathError", path)
-            Fuel.download("$serverUrl/$path?$apiKeyParam").fileDestination { _, _ ->
+            val directory = context.getExternalFilesDir(directoryName)
+            val file =  File("$directory/$imagePath")
+            Fuel.download("$serverUrl/$path").fileDestination { _, _ ->
                 file
             }.response { req, res, result ->
                 val (data, error) = result
                 if (error != null) {
-                    Log.e("fetchProfileImage", "error: $error")
+                    Log.e("fetchProfileImage", "error: ${error}")
                 } else {
                     result.fold({ bytes ->
                         Log.e("fetchProfileImage", "file bytes --> ${file.length()}, response bytes -> ${bytes.size}")

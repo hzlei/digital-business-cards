@@ -73,7 +73,7 @@ import java.io.File
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId: String, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
+fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     var showShareDialogState by rememberSaveable {
         mutableStateOf(false)
@@ -97,6 +97,11 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
         if (selected) 16.dp else 0.dp,
         label = "padding"
     )
+
+    // really just to get the function access
+    val appViewModel: AppViewModel = viewModel() {
+        AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
+    }
 
     val toggleSelected = { selected = !selected && isEnabled}
 
@@ -129,7 +134,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
                             context = LocalContext.current,
                             background = MaterialTheme.colorScheme.surfaceTint,
                             imagePath = if (cardModel.front != "") cardModel.front else null,
-                            text = ""
+                            text = "Front Side"
                         )
                     }
                     back = {
@@ -137,7 +142,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
                             context = LocalContext.current,
                             background = MaterialTheme.colorScheme.surfaceTint,
                             imagePath = if (cardModel.back != "") cardModel.back else null,
-                            text = ""
+                            text = "Back Side"
                         )
                     }
                 }
@@ -232,7 +237,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
                             // TODO: Send request to server for this card
                             //   use the eventId and eventUserId within the card to locate it
 
-                              onAction(BusinessCardAction.RequestCard(cardModel))
+                              onAction(BusinessCardAction.RequestCard(cardModel, appViewModel))
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -270,13 +275,13 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId
     }
 
     if (showShareDialogState) {
-        ShareDialog(cardModel, userId, onAction) {
+        ShareDialog(cardModel, onAction) {
             showShareDialogState = false
         }
     }
 
     val deleteDialogRequest = {
-        onAction(BusinessCardAction.RemoveCard(cardModel))
+        onAction(BusinessCardAction.RemoveCard(cardModel, appViewModel))
         showDeleteDialogState = false
     }
 

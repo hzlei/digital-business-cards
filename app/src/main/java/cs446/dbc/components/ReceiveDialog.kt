@@ -1,8 +1,5 @@
 package cs446.dbc.components
 
-import android.os.Parcelable
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -33,21 +30,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import cs446.dbc.api.ApiFunctions
 import cs446.dbc.models.BusinessCardModel
-import cs446.dbc.models.CardType
-import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardAction
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 private enum class ReceiveDialogViews {
@@ -57,32 +46,14 @@ private enum class ReceiveDialogViews {
     NearbyShare;
 }
 
-
 @Composable
 fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: BusinessCardViewModel, onDismissRequest: () -> Unit = {}) {
     var currentView by remember { mutableStateOf(ReceiveDialogViews.Options) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    val appViewModel: AppViewModel = viewModel() {
-        AppViewModel(savedStateHandle = createSavedStateHandle(), CardType.SHARED)
-    }
 
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
-            Log.d("Scan Launcher Decode", result.contents)
-            val cardInfo = Json.decodeFromString<QRCodeCardInfo>(result.contents)
-            Toast.makeText(context, cardInfo.toString(), Toast.LENGTH_LONG).show()
-            val card = ApiFunctions.getUserCard(cardInfo.cardId, cardInfo.userId)
-            Log.d("Receive Card", card.toString())
-
-            // download images
-            if (card.front != "") {
-                ApiFunctions.downloadImage(card.front, context)
-            }
-            if (card.back != "") {
-                ApiFunctions.downloadImage(card.back, context)
-            }
+            val card = Json.decodeFromString<BusinessCardModel>(result.contents)
 
             sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
             scope.launch {

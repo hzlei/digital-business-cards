@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
         val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
         val cardViewModel: BusinessCardViewModel = viewModel() {
-            BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext, appViewModel)
+            BusinessCardViewModel(application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
         }
         val eventViewModel: EventViewModel = viewModel() {
             EventViewModel(savedStateHandle = createSavedStateHandle(), appContext, userId)
@@ -171,6 +171,80 @@ class MainActivity : AppCompatActivity() {
         val homeUiState by appViewModel.uiState.collectAsStateWithLifecycle()
         val snackBarHostState = remember { SnackbarHostState() }
 
+        // TODO: remove after demo, we'll use this to start in the SharedCards Screen
+        val sharedCardsList = listOf(
+            BusinessCardModel(
+                id = UUID.randomUUID().toString(),
+                front = "A",
+                back = "B",
+                favorite = false,
+                fields = mutableListOf(),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID().toString(),
+                front = "C",
+                back = "D",
+                favorite = true,
+                fields = mutableListOf(),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID().toString(),
+                front = "E",
+                back = "F",
+                favorite = false,
+                fields = mutableListOf(
+                    Field(
+                        "Full Name",
+                        "Hanz Zimmer",
+                        FieldType.TEXT
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID().toString(),
+                front = "G",
+                back = "H",
+                favorite = false,
+                fields = mutableListOf(
+                    Field(
+                        "Phone Number",
+                        "416-111-2222",
+                        FieldType.PHONE_NUMBER
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+            BusinessCardModel(
+                id = UUID.randomUUID().toString(),
+                front = "I",
+                back = "J",
+                favorite = false,
+                template = TemplateType.TEMPLATE_1,
+                fields = mutableListOf(
+                    Field(
+                        "Full Name",
+                        "John Doe",
+                        FieldType.TEXT,
+                    )
+                ),
+                cardType = CardType.SHARED
+            ),
+        )
+
+        sharedCardsList.forEach { card ->
+            cardViewModel.performAction(
+                BusinessCardAction.PopulateCard(
+                    front = card.front,
+                    back = card.back,
+                    favorite = card.favorite,
+                    fields = card.fields,
+                    cardType = card.cardType
+                )
+            )
+        }
 
         appViewModel.updateScreenTitle("Saved Cards")
 
@@ -250,8 +324,57 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 // TODO: Remove the example list after
                                 UserCardsScreen(
-                                    appViewModel,
-                                    cardViewModel,
+                                    appViewModel, cardViewModel, listOf(
+                                        BusinessCardModel(
+                                            id = UUID.randomUUID().toString(),
+                                            front = "A",
+                                            back = "B",
+                                            favorite = false,
+                                            fields = mutableListOf(
+                                                Field(
+                                                    "Full Name",
+                                                    "John Doe",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Email",
+                                                    "john@example.com",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Organization",
+                                                    "Test Org",
+                                                    FieldType.TEXT
+                                                )
+                                            ),
+                                            cardType = CardType.PERSONAL,
+                                            template = TemplateType.TEMPLATE_1
+                                        ),
+                                        BusinessCardModel(
+                                            id = UUID.randomUUID().toString(),
+                                            front = "C",
+                                            back = "D",
+                                            favorite = true,
+                                            fields = mutableListOf(
+                                                Field(
+                                                    "Full Name",
+                                                    "Mary Doe",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Email",
+                                                    "mary@example.com",
+                                                    FieldType.TEXT,
+                                                ),
+                                                Field(
+                                                    "Organization",
+                                                    "Test Org 2",
+                                                    FieldType.TEXT
+                                                )
+                                            ),
+                                            cardType = CardType.PERSONAL
+                                        ),
+                                    ),
                                     appContext,
                                     navController
                                 )
@@ -265,6 +388,7 @@ class MainActivity : AppCompatActivity() {
                                 SharedCardsScreen(
                                     appViewModel,
                                     cardViewModel,
+                                    sharedCardsList,
                                     appContext,
                                     navController
                                 )
@@ -668,8 +792,7 @@ class MainActivity : AppCompatActivity() {
                 card.front,
                 "front",
                 userId,
-                card.id,
-                context
+                card.id
             )
         }
         if (backImage != null) {
@@ -677,8 +800,7 @@ class MainActivity : AppCompatActivity() {
                 card.back,
                 "back",
                 userId,
-                card.id,
-                context
+                card.id
             )
         }
     }

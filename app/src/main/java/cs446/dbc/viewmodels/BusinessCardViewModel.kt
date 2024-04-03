@@ -29,8 +29,6 @@ class BusinessCardViewModel @Inject constructor(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val viewModelContext: CardType,
-    private val appContext: Context,
-    private val appViewModel: AppViewModel
 ): AndroidViewModel(application), CardReceiveDelegate {
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
@@ -67,7 +65,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.SetCardEditFocus -> changeCurrCardViewId(action.cardId)
             is BusinessCardAction.ShareCardBluetooth -> shareBluetoothCard(action)
             is BusinessCardAction.ReceiveCardsBluetooth -> receiveBluetoothCards()
-            is BusinessCardAction.RequestCard -> requestCard(action.card)
+            is BusinessCardAction.RequestCard -> requestCard(action.card, action.appViewModel)
             else -> TODO() // not actually, this is just to shut up the error
         }
     }
@@ -115,8 +113,6 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(currCards!!)
         }
-        // save to local storage
-        appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCard")
     }
 
     private fun insertCards(action: BusinessCardAction.InsertCards) {
@@ -133,10 +129,7 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(cards!!)
         }
-        // save to local storage
-        cards?.forEach { card ->
-            appViewModel.saveCardToLocalStorage(card, appContext, "businessCards")
-        }
+
     }
 
     private fun removeCard(action: BusinessCardAction.RemoveCard) {
@@ -153,7 +146,7 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.addAll(cards!!)
         }
         // TODO: Delete from local storage as well
-        appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
+        action.appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
     }
 
     private fun updateCard(action: BusinessCardAction.UpdateCard) {
@@ -165,21 +158,19 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle[currContext.value] = cards
         businssCardSnapshotList?.clear()
         businssCardSnapshotList?.addAll(cards!!)
-        // update to storage
-        appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
     }
 
     fun changeCurrCardViewId (id: String?) {
         savedStateHandle["currCardViewId"] = id
     }
-    private fun requestCard(newCard: BusinessCardModel) {
+    private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel) {
         if (newCard.front != "") {
             // download image
-            ApiFunctions.downloadImage(newCard.front, appContext)
+            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
         }
         if (newCard.back != "") {
             // download image
-            ApiFunctions.downloadImage(newCard.front, appContext)
+            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
         }
         // put card into shared cards list, and save to local storage
         val sharedCardsList = savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
