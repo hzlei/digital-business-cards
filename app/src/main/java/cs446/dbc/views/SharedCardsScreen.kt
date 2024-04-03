@@ -68,7 +68,7 @@ fun SharedCardsScreen(appViewModel: AppViewModel,
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        items(composeCards) { card ->
+        items(composeCards.distinct()) { card ->
             Box(modifier = Modifier.fillMaxWidth()) {
                 BusinessCard(card, true, userId, navController, sharedCardViewModel::performAction)
             }

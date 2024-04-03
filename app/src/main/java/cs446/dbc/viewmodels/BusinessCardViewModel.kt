@@ -2,24 +2,17 @@ package cs446.dbc.viewmodels
 
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.DBCApplication
 import cs446.dbc.api.ApiFunctions
-import cs446.dbc.bluetooth.BluetoothActionActivity
 import cs446.dbc.bluetooth.CardReceiveDelegate
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import java.lang.ref.WeakReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -200,7 +193,8 @@ class BusinessCardViewModel @Inject constructor(
                 savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
             sharedCardsList.add(newCard)
             sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
-//            sharedCardsSnapshotList?.clear()
+            sharedCardsList.distinct()
+            sharedCardsSnapshotList?.clear()
 //            sharedCardsSnapshotList?.addAll(sharedCardsList)
             appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
