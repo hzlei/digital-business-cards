@@ -4,11 +4,13 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cs446.dbc.DBCApplication
 import cs446.dbc.api.ApiFunctions
@@ -16,6 +18,9 @@ import cs446.dbc.bluetooth.BluetoothActionActivity
 import cs446.dbc.models.BusinessCardModel
 import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
@@ -157,29 +162,41 @@ class BusinessCardViewModel @Inject constructor(
         cards?.add(action.card)
         cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
         savedStateHandle[currContext.value] = cards
-        businssCardSnapshotList?.clear()
-        businssCardSnapshotList?.addAll(cards!!)
+        if (ctx == myBusinessCardsContext) {
+            businssCardSnapshotList?.clear()
+            businssCardSnapshotList?.addAll(cards!!)
+        }
+        else {
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(cards!!)
+        }
         // update to storage
-        action.appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
+        action.appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCards")
     }
 
     fun changeCurrCardViewId (id: String?) {
         savedStateHandle["currCardViewId"] = id
     }
     private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel) {
-        if (newCard.front != "") {
-            // download image
-            ApiFunctions.downloadImage(newCard.front, appContext)
+        val job = viewModelScope.launch(Dispatchers.IO) {
+            if (newCard.front != "") {
+                // download image
+                Log.e("front image", newCard.front)
+                ApiFunctions.downloadImage(newCard.front, appContext)
+            }
+            delay(2000)
+            if (newCard.back != "") {
+                // download image
+                ApiFunctions.downloadImage(newCard.front, appContext)
+            }
+            newCard.cardType = CardType.SHARED
+            // put card into shared cards list, and save to local storage
+            val sharedCardsList =
+                savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
+            sharedCardsList.add(newCard)
+            sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
+            appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
-        if (newCard.back != "") {
-            // download image
-            ApiFunctions.downloadImage(newCard.front, appContext)
-        }
-        // put card into shared cards list, and save to local storage
-        val sharedCardsList = savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
-        sharedCardsList.add(newCard)
-        sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front}))
-        appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
     }
 
     private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {

@@ -468,6 +468,7 @@ class MainActivity : AppCompatActivity() {
                                 val event = ApiFunctions.joinEvent(eventId, userId)
                                 // Add our cards to the event to join
                                 eventBusinessCardList.forEach { card ->
+                                    ApiFunctions.addUserCard(card, userId)
                                     ApiFunctions.addEventCard(card, eventId)
                                 }
                                 delay(2000)
@@ -742,6 +743,7 @@ class MainActivity : AppCompatActivity() {
                 // Send selected cards to event to have the user join the event
                 selectedCards.forEach { card ->
                     // TODO: Add card
+                    ApiFunctions.addUserCard(card, userId)
                     ApiFunctions.addEventCard(card, newEventId)
                 }
                 delay(2000)

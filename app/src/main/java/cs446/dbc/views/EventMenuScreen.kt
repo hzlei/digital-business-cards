@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,7 +34,9 @@ import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.EventViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import java.io.FileFilter
 import java.util.Random
 import java.util.UUID
 
@@ -44,6 +48,8 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
     appViewModel.updateScreenTitle("Event: ${currEvent?.name}")
+    val directory = appContext.getExternalFilesDir(null)!!
+    val eventBusinessCardList: SnapshotStateList<BusinessCardModel> = SnapshotStateList()
 
     LaunchedEffect("checkNonExistentEvent") {
         if (eventId == "" || currEvent == null) {
@@ -52,11 +58,31 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
         }
     }
 
-    val eventBusinessCardList: MutableList<BusinessCardModel> = mutableListOf<BusinessCardModel>()
-
     runBlocking {
         try {
             val serverCardList = ApiFunctions.getAllEventCards(eventId)
+            serverCardList.forEach { card ->
+                // Only download images if we don't already have them
+                val frontImage = directory.listFiles(FileFilter { file ->
+                    file.name == card.front
+                })
+                val backImage = directory.listFiles(FileFilter { file ->
+                    file.name == card.back
+                })
+
+                if (frontImage != null) {
+                    if (frontImage.isEmpty()) {
+                        ApiFunctions.downloadImage(card.front, appContext)
+                    }
+                }
+                if (backImage != null) {
+                    if (backImage.isEmpty()) {
+                        ApiFunctions.downloadImage(card.back, appContext)
+                    }
+                }
+
+            }
+            delay(500)
             eventBusinessCardList.addAll(serverCardList)
         } catch (e: Exception) {
             Log.e("Event Menu Screen", "Failed to get all event cards.", e)
