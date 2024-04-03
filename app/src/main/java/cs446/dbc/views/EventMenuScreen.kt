@@ -41,6 +41,7 @@ import java.util.UUID
 fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String) {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
     val currEvent = events.find { event -> event.id == eventId }
+    val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
     appViewModel.updateScreenTitle("Event: ${currEvent?.name}")
 
@@ -64,7 +65,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     // Set event id for current event in view model
 
     val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
+        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext, appViewModel)
     }
 
 
@@ -120,7 +121,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
             items(eventBusinessCardList) {card ->
                 // TODO: We may need to wrap the cards around with a box and add a toolbar underneath
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    BusinessCard(card, true, navController, eventBusinessCardViewModel::performAction)
+                    BusinessCard(card, true, userId, navController, eventBusinessCardViewModel::performAction)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }

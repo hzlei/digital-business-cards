@@ -103,7 +103,7 @@ fun BusinessCardMultiSelect(title: String, cardViewModel: BusinessCardViewModel,
                     Card(
                         modifier = Modifier.weight(0.75f)
                     ) {
-                        BusinessCard(myCards.find { it.id == items[idx].card.id }!!, false, NavHostController(
+                        BusinessCard(myCards.find { it.id == items[idx].card.id }!!, false, "", NavHostController(
                             LocalContext.current), cardViewModel::performAction)
                         //Text(text = items[idx].title)
                     }
