@@ -546,6 +546,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                             // Update the state to display the image in the front
                             imageUriFront = Uri.fromFile(savedFile)
                         }
+                        reloadRequest++
                     }
                 }
             }
@@ -560,6 +561,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(uri)
+                        .setParameter("reload", reloadRequest)
                         .build(),
                     contentDescription = "Selected Image",
                     modifier = Modifier
@@ -580,6 +582,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                             // Update the state to display the image in the back
                             imageUriBack = Uri.fromFile(savedFile)
                         }
+                        reloadRequest++
                     }
                 }
             }
@@ -594,6 +597,7 @@ fun CreateBusinessCardScreen(createEditViewModel: CreateEditViewModel, cardViewM
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(uri)
+                        .setParameter("reload", reloadRequest)
                         .build(),
                     contentDescription = "Selected Image",
                     modifier = Modifier
