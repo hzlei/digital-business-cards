@@ -84,7 +84,7 @@ fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: Bus
                 ApiFunctions.downloadImage(card.back, context)
             }
 
-            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card, appViewModel))
+            sharedCardViewModel.performAction(BusinessCardAction.InsertCard(card))
             scope.launch {
                 snackbarHostState.showSnackbar("Card Received Successfully!")
             }
