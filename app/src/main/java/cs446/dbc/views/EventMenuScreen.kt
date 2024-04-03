@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,17 +34,22 @@ import cs446.dbc.models.TemplateType
 import cs446.dbc.viewmodels.AppViewModel
 import cs446.dbc.viewmodels.BusinessCardViewModel
 import cs446.dbc.viewmodels.EventViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import java.io.FileFilter
 import java.util.Random
 import java.util.UUID
 
 @Composable
 // TODO: rename this to something more appropriate for it's purpose
-fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appContext: Context, navController: NavHostController, eventId: String) {
+fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, cardViewModel: BusinessCardViewModel, appContext: Context, navController: NavHostController, eventId: String) {
     val events by eventViewModel.events.collectAsStateWithLifecycle()
     val currEvent = events.find { event -> event.id == eventId }
+    val userId by appViewModel.userId.collectAsStateWithLifecycle()
 
     appViewModel.updateScreenTitle("Event: ${currEvent?.name}")
+    val directory = appContext.getExternalFilesDir(null)!!
+    val eventBusinessCardList: SnapshotStateList<BusinessCardModel> = SnapshotStateList()
 
     LaunchedEffect("checkNonExistentEvent") {
         if (eventId == "" || currEvent == null) {
@@ -51,22 +58,36 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
         }
     }
 
-    val eventBusinessCardList: MutableList<BusinessCardModel> = mutableListOf<BusinessCardModel>()
     runBlocking {
         try {
             val serverCardList = ApiFunctions.getAllEventCards(eventId)
+            serverCardList.forEach { card ->
+                // Only download images if we don't already have them
+                val frontImage = directory.listFiles(FileFilter { file ->
+                    file.name == card.front
+                })
+                val backImage = directory.listFiles(FileFilter { file ->
+                    file.name == card.back
+                })
+
+                if (frontImage != null) {
+                    if (frontImage.isEmpty()) {
+                        ApiFunctions.downloadImage(card.front, appContext)
+                    }
+                }
+                if (backImage != null) {
+                    if (backImage.isEmpty()) {
+                        ApiFunctions.downloadImage(card.back, appContext)
+                    }
+                }
+
+            }
+            delay(500)
             eventBusinessCardList.addAll(serverCardList)
         } catch (e: Exception) {
             Log.e("Event Menu Screen", "Failed to get all event cards.", e)
         }
     }
-
-    // Set event id for current event in view model
-
-    val eventBusinessCardViewModel: BusinessCardViewModel = viewModel() {
-        BusinessCardViewModel(appContext.applicationContext as Application, savedStateHandle = createSavedStateHandle(), CardType.SHARED, appContext)
-    }
-
 
     // TODO: These cards should all have a card type of shared!
     // TODO: how are we adding the toolbar under each card to request for the card?
@@ -77,40 +98,6 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
     //  though make sure we preserve their background and stuff
 
 
-//    // TODO: Remove these example ones later, they're only to test UI
-//    for (i in 0..7) {
-//        eventBusinessCardList.add(
-//            BusinessCardModel(
-//                id = UUID.randomUUID().toString(),
-//                front = "CARD ${i + 1}",
-//                back = "CARD ${i + 1}",
-//                favorite = false,
-//                fields = mutableListOf<Field>(
-//                    Field(
-//                        name = "Full Name",
-//                        value = "First Last $i",
-//                        type = FieldType.TEXT
-//                    ),
-//                    Field(
-//                        name = "Phone number",
-//                        value = "${(1..10).map { (0..9).random() }}",
-//                        type = FieldType.PHONE_NUMBER
-//                    ),
-//                    Field(
-//                        name = "Organization",
-//                        value = "Test Org $i",
-//                        type = FieldType.TEXT
-//                    ),
-//                ),
-//                cardType = CardType.EVENT_VIEW
-//            )
-//        )
-//    }
-
-//    eventBusinessCardList.forEach {card ->
-//        card.template = TemplateType.EVENT_VIEW_TEMPLATE
-//    }
-    // TODO: Add swipe refresh https://www.youtube.com/watch?v=lHdhqk8Bft0
     Box {
         LazyColumn (
             modifier = Modifier
@@ -120,7 +107,7 @@ fun EventMenuScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, 
             items(eventBusinessCardList) {card ->
                 // TODO: We may need to wrap the cards around with a box and add a toolbar underneath
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    BusinessCard(card, true, navController, eventBusinessCardViewModel::performAction)
+                    BusinessCard(card, true, userId, navController, cardViewModel::performAction)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }

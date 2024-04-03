@@ -91,7 +91,7 @@ fun saveImageToStorage(context: Context, imageUri: Uri, userId: String, isFront:
     val directory = context.getExternalFilesDir(null) ?: return
     // Use the following file name convention: user_$userId_card_$cardId_image_$cardSide
     val side = if (isFront) "front" else "back"
-    val file = File(directory, "user_${userId}__image_${side}.jpg")
+    val file = File(directory, "user_${userId}__image_${side}")
     inputStream?.use { input ->
         FileOutputStream(file).use { output ->
             input.copyTo(output)

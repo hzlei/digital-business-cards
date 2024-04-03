@@ -48,72 +48,43 @@ fun EventScreen(eventViewModel: EventViewModel, appViewModel: AppViewModel, appC
         eventViewModel.changeCurrEventViewId("")
     }
 
-//    val loadedEvents by appViewModel.loadedEvents.collectAsStateWithLifecycle()
-
-    // TODO: First load the events
-//    LaunchedEffect(key1 = "load_events") {
-//        if (!loadedEvents) {
-//            // TODO: Convert into loading events from storage
-//            //val cardList =
-//            //    appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
-//            //sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList))
-//        }
-//    }
-
     // TODO: Add the loading events stuff here
 //    LaunchedEffect(key1 = "event_examples") {
         if (!loadedEvents) {
             // load events from storage and add them to eventsList
             val eventsList = mutableListOf<EventModel>()
 
-            // TODO: remove example list after the above is working correctly
-//            for (i in 0..2) {
-//                eventViewModel.performAction(EventAction.PopulateEvent(
-//                    name = "Joined E$i",
-//                    location = "Toronto - $i",
-//                    eventType = EventType.JOINED
-//                ))
-//            }
-//            for (i in 0..2) {
-//                eventViewModel.performAction(EventAction.PopulateEvent(
-//                    name = "Hosted Event that is really long - $i",
-//                    location = "29 Westfold Ave, Toronto, Ontario, Canada - $i",
-//                    eventType = EventType.HOSTED,
-//                ))
-//            }
-//            eventViewModel.performAction(EventAction.SortEvents())
-//            eventsList.addAll(events)
-
             eventViewModel.loadEventsFromLocalStorage("events")
 
             // Check if event still exists on server
-            runBlocking {
-                eventsList.forEach {event ->
-                    val doesExist = ApiFunctions.checkEventExists(event.id)
-                    if (doesExist) {
-                        // TODO: populate event
-                        val receivedEvent = ApiFunctions.getEvent(event.id)
-                        val evt = EventModel(
-                            receivedEvent.id,
-                            receivedEvent.name,
-                            receivedEvent.location,
-                            receivedEvent.startDate,
-                            receivedEvent.endDate,
-                            receivedEvent.numUsers,
-                            receivedEvent.maxUsers,
-                            receivedEvent.maxUsersSet,
-                            eventType = EventType.JOINED
-                        )
-                        eventViewModel.performAction(EventAction.UpdateEvent(event.id, evt))
-                    }
-                    else {
-                        // delete event from local storage
-                    }
-
-                }
+            // We will not actually be doing this, because Firebase is rate limiting us
+//            runBlocking {
+//                eventsList.forEach {event ->
+//                    val doesExist = ApiFunctions.checkEventExists(event.id)
+//                    if (doesExist) {
+//                        val receivedEvent = ApiFunctions.getEvent(event.id)
+//                        val evt = EventModel(
+//                            receivedEvent.id,
+//                            receivedEvent.name,
+//                            receivedEvent.location,
+//                            receivedEvent.startDate,
+//                            receivedEvent.endDate,
+//                            receivedEvent.numUsers,
+//                            receivedEvent.maxUsers,
+//                            receivedEvent.maxUsersSet,
+//                            eventType = EventType.JOINED
+//                        )
+//                        eventViewModel.performAction(EventAction.UpdateEvent(event.id, evt))
+//                    }
+//                    else {
+//                        // delete event from local storage
+//                        eventViewModel.performAction(EventAction.RemoveEvent(event))
+//                    }
+//
+//                }
                 loadedEvents = true
             }
-        }
+//        }
 //    }
 
     if (composeEvents.isEmpty()) {

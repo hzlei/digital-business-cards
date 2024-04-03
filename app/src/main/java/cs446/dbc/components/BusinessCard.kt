@@ -73,7 +73,7 @@ import java.io.File
 
 
 @Composable
-fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
+fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, userId: String, navController: NavController, onAction: (BusinessCardAction) -> Unit) {
     // This will only toggle the dialog
     var showShareDialogState by rememberSaveable {
         mutableStateOf(false)
@@ -134,7 +134,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
                             context = LocalContext.current,
                             background = MaterialTheme.colorScheme.surfaceTint,
                             imagePath = if (cardModel.front != "") cardModel.front else null,
-                            text = "Front Side"
+                            text = ""
                         )
                     }
                     back = {
@@ -142,7 +142,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
                             context = LocalContext.current,
                             background = MaterialTheme.colorScheme.surfaceTint,
                             imagePath = if (cardModel.back != "") cardModel.back else null,
-                            text = "Back Side"
+                            text = ""
                         )
                     }
                 }
@@ -275,7 +275,7 @@ fun BusinessCard(cardModel: BusinessCardModel, isEnabled: Boolean = true, navCon
     }
 
     if (showShareDialogState) {
-        ShareDialog(cardModel, onAction) {
+        ShareDialog(cardModel, userId, onAction) {
             showShareDialogState = false
         }
     }

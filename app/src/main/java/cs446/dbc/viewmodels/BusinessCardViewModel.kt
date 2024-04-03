@@ -21,6 +21,9 @@ import cs446.dbc.models.CardType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
@@ -29,7 +32,10 @@ class BusinessCardViewModel @Inject constructor(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val viewModelContext: CardType,
+    private val appContext: Context,
+    private val appViewModel: AppViewModel
 ): AndroidViewModel(application), CardReceiveDelegate {
+
     private val myBusinessCardsContext = "myBusinessCards"
     private val sharedBusinessCardsContext = "sharedBusinessCards"
 
@@ -65,7 +71,7 @@ class BusinessCardViewModel @Inject constructor(
             is BusinessCardAction.SetCardEditFocus -> changeCurrCardViewId(action.cardId)
             is BusinessCardAction.ShareCardBluetooth -> shareBluetoothCard(action)
             is BusinessCardAction.ReceiveCardsBluetooth -> receiveBluetoothCards()
-            is BusinessCardAction.RequestCard -> requestCard(action.card, action.appViewModel)
+            is BusinessCardAction.RequestCard -> requestCard(action.card)
             else -> TODO() // not actually, this is just to shut up the error
         }
     }
@@ -113,6 +119,8 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(currCards!!)
         }
+        // save to local storage
+        appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCards")
     }
 
     private fun insertCards(action: BusinessCardAction.InsertCards) {
@@ -129,7 +137,10 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.clear()
             sharedCardsSnapshotList?.addAll(cards!!)
         }
-
+        // save to local storage
+        cards?.forEach { card ->
+            appViewModel.saveCardToLocalStorage(card, appContext, "businessCards")
+        }
     }
 
     private fun removeCard(action: BusinessCardAction.RemoveCard) {
@@ -146,7 +157,7 @@ class BusinessCardViewModel @Inject constructor(
             sharedCardsSnapshotList?.addAll(cards!!)
         }
         // TODO: Delete from local storage as well
-        action.appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
+        appViewModel.deleteCardFromLocalStorage(action.card, appContext, "businessCards")
     }
 
     private fun updateCard(action: BusinessCardAction.UpdateCard) {
@@ -156,27 +167,44 @@ class BusinessCardViewModel @Inject constructor(
         cards?.add(action.card)
         cards?.sortWith(compareBy({ !it.favorite }, { it.front}))
         savedStateHandle[currContext.value] = cards
-        businssCardSnapshotList?.clear()
-        businssCardSnapshotList?.addAll(cards!!)
+        if (ctx == myBusinessCardsContext) {
+            businssCardSnapshotList?.clear()
+            businssCardSnapshotList?.addAll(cards!!)
+        }
+        else {
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(cards!!)
+        }
+        // update to storage
+        appViewModel.saveCardToLocalStorage(action.card, appContext, "businessCards")
     }
 
     fun changeCurrCardViewId (id: String?) {
         savedStateHandle["currCardViewId"] = id
     }
-    private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel) {
-        if (newCard.front != "") {
-            // download image
-            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
+    private fun requestCard(newCard: BusinessCardModel) {
+        val job = viewModelScope.launch(Dispatchers.IO) {
+            if (newCard.front != "") {
+                // download image
+                Log.e("front image", newCard.front)
+                ApiFunctions.downloadImage(newCard.front, appContext)
+            }
+            delay(2000)
+            if (newCard.back != "") {
+                // download image
+                ApiFunctions.downloadImage(newCard.front, appContext)
+            }
+            newCard.cardType = CardType.SHARED
+            Log.d("requested Cards", newCard.toString())
+            // put card into shared cards list, and save to local storage
+            val sharedCardsList =
+                savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
+            sharedCardsList.add(newCard)
+            sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
+            sharedCardsSnapshotList?.clear()
+            sharedCardsSnapshotList?.addAll(sharedCardsList)
+            appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
-        if (newCard.back != "") {
-            // download image
-            ApiFunctions.downloadImage(newCard.front, "businessCards", appContext)
-        }
-        // put card into shared cards list, and save to local storage
-        val sharedCardsList = savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
-        sharedCardsList.add(newCard)
-        sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front}))
-        appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
     }
 
     private fun shareBluetoothCard(action : BusinessCardAction.ShareCardBluetooth) {

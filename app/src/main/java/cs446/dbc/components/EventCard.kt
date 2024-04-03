@@ -1,6 +1,8 @@
 package cs446.dbc.components
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -48,6 +51,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 
 @Composable
 fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAction: () -> Unit) {
@@ -68,6 +75,9 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
         if (selected) 16.dp else 0.dp,
         label = "padding"
     )
+
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val context: Context = LocalContext.current
 
     val toggleSelected = { selected = !selected }
 
@@ -118,10 +128,10 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                     Text("Ends ${Date(eventModel.endDate.toLong()).toFormattedString()}",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.LightGray)
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text("${eventModel.numUsers}${if (eventModel.maxUsersSet) "/${eventModel.maxUsers}" else ""} Participants",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.LightGray)
+//                    Spacer(modifier = Modifier.height(3.dp))
+//                    Text("${eventModel.numUsers}${if (eventModel.maxUsersSet) "/${eventModel.maxUsers}" else ""} Participants",
+//                        style = MaterialTheme.typography.titleMedium,
+//                        color = Color.LightGray)
                 }
             }
         }
@@ -146,6 +156,15 @@ fun EventCard(eventModel: EventModel, onAction: (EventAction) -> Unit, onClickAc
                 }
                 // TODO: Add in the sharing feature so ppl can actually share the event and others can join
                 //  @Fares, can you add this in with a QR code of the event id
+                TextButton(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(eventModel.id))
+                        Toast.makeText(context, "Copied Event ID to Clipboard!", Toast.LENGTH_LONG).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Outlined.Share, "Share")
+                }
 
                 TextButton(
                     onClick = onClickAction,
