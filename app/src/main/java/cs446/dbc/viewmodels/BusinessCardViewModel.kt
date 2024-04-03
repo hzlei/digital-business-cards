@@ -1,6 +1,5 @@
 package cs446.dbc.viewmodels
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -8,11 +7,7 @@ import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import cs446.dbc.DBCApplication
 import cs446.dbc.api.ApiFunctions
 import cs446.dbc.bluetooth.BluetoothActionActivity
 import cs446.dbc.models.BusinessCardModel
@@ -178,7 +173,7 @@ class BusinessCardViewModel @Inject constructor(
         savedStateHandle["currCardViewId"] = id
     }
     private fun requestCard(newCard: BusinessCardModel, appViewModel: AppViewModel) {
-        val job = viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             if (newCard.front != "") {
                 // download image
                 Log.e("front image", newCard.front)
@@ -196,8 +191,8 @@ class BusinessCardViewModel @Inject constructor(
                 savedStateHandle.get<MutableList<BusinessCardModel>>(sharedBusinessCardsContext)!!
             sharedCardsList.add(newCard)
             sharedCardsList.sortWith(compareBy({ !it.favorite }, { it.front }))
-            sharedCardsSnapshotList?.clear()
-            sharedCardsSnapshotList?.addAll(sharedCardsList)
+//            sharedCardsSnapshotList?.clear()
+//            sharedCardsSnapshotList?.addAll(sharedCardsList)
             appViewModel.saveCardToLocalStorage(newCard, appContext, "businessCards")
         }
     }

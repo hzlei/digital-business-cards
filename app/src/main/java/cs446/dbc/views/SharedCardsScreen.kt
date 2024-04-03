@@ -2,7 +2,6 @@ package cs446.dbc.views
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,14 +41,13 @@ fun SharedCardsScreen(appViewModel: AppViewModel,
     val sharedCards by sharedCardViewModel.sharedBusinessCards.collectAsStateWithLifecycle()
     val loadedSharedCards by appViewModel.loadedSharedCards.collectAsStateWithLifecycle()
     val userId by appViewModel.userId.collectAsStateWithLifecycle()
-    sharedCardViewModel.updateCardContext("sharedCards")
 
     val composeCards = remember {
         mutableStateListOf<BusinessCardModel>()
     }
 
     sharedCardViewModel.updateCardContext("sharedCards")
-
+    sharedCardViewModel.sharedCardsSnapshotList = composeCards
 
     // First load the cards
     LaunchedEffect(key1 = "load_cards") {
@@ -57,18 +55,9 @@ fun SharedCardsScreen(appViewModel: AppViewModel,
             sharedCardViewModel.updateCardContext("sharedCards")
             val cardList =
                 appViewModel.loadCardsFromDirectory(appContext, "businessCards", CardType.SHARED)
-            cardList.forEach {card ->
-                Log.d("shared card list", card.toString())
-            }
             sharedCardViewModel.performAction(BusinessCardAction.InsertCards(cardList, appViewModel))
-            composeCards.addAll(cardList)
         }
     }
-
-
-
-    sharedCardViewModel.sharedCardsSnapshotList = composeCards
-
 
     if (composeCards.isEmpty()) {
         composeCards.addAll(sharedCards)
