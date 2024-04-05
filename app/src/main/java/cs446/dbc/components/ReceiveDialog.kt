@@ -74,6 +74,7 @@ fun ReceiveDialog(snackbarHostState: SnackbarHostState, sharedCardViewModel: Bus
             val cardInfo = Json.decodeFromString<QRCodeCardInfo>(result.contents)
             Toast.makeText(context, cardInfo.toString(), Toast.LENGTH_LONG).show()
             val card = ApiFunctions.getUserCard(cardInfo.cardId, cardInfo.userId)
+            card.cardType = CardType.SHARED
             Log.d("Receive Card", card.toString())
 
             // download images

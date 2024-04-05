@@ -71,9 +71,6 @@ fun ShareDialog(
     var qrCodeBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     val context = LocalContext.current
 
-    cardModel.cardType = CardType.SHARED
-
-
     AlertDialog(
         icon = {
             Icon(Icons.Outlined.Share, "Share Card")
