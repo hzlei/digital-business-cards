@@ -9,6 +9,7 @@
 | 2024/02/25 | 4 | 4 | 4 | 4 | 4 | 4 | Online Meeting - Architecture & Feature Planning |
 | 2024/02/25 | 0 | 7 | 0 | 0 | 0 | 4 | Bluetooth Sharing Setup |
 | 2024/02/28 | 0 | 5 | 0 | 5 | 0 | 5 | Bluetooth Sharing Search |
+| 2024/02/28 | 0 | 0 | 0 | 0 | 0 | 11 | Bluetooth Nightmare |
 | 2024/02/29 | 5 | 0 | 0 | 5 | 0 | 0 | Repository setup - dependencies bug fixes |
 | 2024/03/01 | 0 | 0 | 0 | 6 | 0 | 0 | Get Jetpack Compose setup. Add Theme files. Add app bars and navigation. |
 | 2024/03/01 | 5 | 0 | 0 | 0 | 0 | 0 | Settings Screen |
@@ -16,7 +17,7 @@
 | 2024/03/02 | 0 | 0 | 0 | 6 | 0 | 0 | Build out the business card UI and add animations to the app. | 
 | 2024/03/02 | 6 | 0 | 0 | 0 | 0 | 0 | Prototype Demo presentation |
 | 2024/03/02 | 0 | 9 | 0 | 0 | 0 | 0 | User Cards UI + Share Menu + View Models and Models Foundations |
-| 2024/03/02 | 0 | 0 | 0 | 0 | 0 | 5 | Initial file storage setup and testing |
+| 2024/03/02 | 0 | 0 | 0 | 0 | 0 | 9 | Initial file storage setup and testing |
 | 2024/03/02 | 1 | 0 | 0 | 0 | 0 | 0 | Github Repo and Organization Maintenance |
 | 2024/03/02 | 4 | 0 | 0 | 4 | 4 | 0 | Business Card Templates and Model UI |
 | 2024/03/03 | 0 | 11 | 0 | 0 | 0 | 0 | User Cards UI + View Model Rework + Share Cards UI + Debugging |
@@ -59,6 +60,7 @@
 | 2024/03/31 | 0 | 0 | 0 | 0 | 8 | 0 | Worked on adjusting interaction in My Cards / Shared Cards screen, adding and implementing calls to view model to add / remove / edit business cards |
 | 2024/03/31 | 0 | 2 | 0 | 2 | 0 | 0 | Worked on fixing card storage issue (still not working), added API calls to event components) |
 | 2024/03/31 | 0 | 2 | 0 | 0 | 0 | 3 | Implemented settings for userId, fixed card loading and saving, added image rendering to cards for front and back |
+| 2024/04/31 | 0 | 0 | 0 | 0 | 0 | 7 | Creating image loading and saving functionality |
 | 2024/04/01 | 0 | 0 | 0 | 0 | 4 | 0 | Fixing image preview and card edit functionality |
 | 2024/04/01 | 0 | 6 | 0 | 5 | 0 | 0 | Implemented event loading and saving from local storage, fixed incorrect card loading and saving from local storage, added event join error dialog, added API function calls for create event, join event, delete event, exit event, add cards to event, upload image to server, download image from server (still needs testing), retrieve event information, corrected image cropping on the card. Fixed JSON encoding issue for creating event |
 | 2024/04/02 | 0 | 9 | 0 | 5 | 4 | 4 | Fixed bug with server errors for event hosting and event joining. Fixed bug with image upload and download. Added image upload and download for QR codes to fix card transfer issue. Fixed race condition with event rendering vs server checks, and did a ton of code cleanup, error checking, and end-to-end testing|
