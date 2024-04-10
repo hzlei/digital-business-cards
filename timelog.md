@@ -11,19 +11,27 @@
 | 2024/02/28 | 0 | 5 | 0 | 5 | 0 | 5 | Bluetooth Sharing Search |
 | 2024/02/28 | 0 | 0 | 0 | 0 | 0 | 11 | Bluetooth Nightmare |
 | 2024/02/29 | 5 | 0 | 0 | 5 | 0 | 0 | Repository setup - dependencies bug fixes |
+| 2024/02/29 | 0 | 0 | 3 | 0 | 0 | 0 | Bluetooth Demo Screen |
+| 2024/03/02 | 0 | 0 | 10 | 0 | 0 | 0 | Bluetooth Testing and Fixes On Single-Thread |
 | 2024/03/01 | 0 | 0 | 0 | 6 | 0 | 0 | Get Jetpack Compose setup. Add Theme files. Add app bars and navigation. |
 | 2024/03/01 | 5 | 0 | 0 | 0 | 0 | 0 | Settings Screen |
-| 2024/03/01 | 0 | 4 | 0 | 0 | 0 | 0 | Share Menu UI |
+| 2024/03/01 | 0 | 0 | 4 | 0 | 0 | 0 | Share Menu UI |
+| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Testing and Fixes On Single-Thread |
+| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-development |
 | 2024/03/02 | 0 | 0 | 0 | 6 | 0 | 0 | Build out the business card UI and add animations to the app. | 
-| 2024/03/02 | 6 | 0 | 0 | 0 | 0 | 0 | Prototype Demo presentation |
+| 2024/03/02 | 6 | 0 | 2 | 0 | 0 | 0 | Prototype Demo presentation |
 | 2024/03/02 | 0 | 9 | 0 | 0 | 0 | 0 | User Cards UI + Share Menu + View Models and Models Foundations |
 | 2024/03/02 | 0 | 0 | 0 | 0 | 0 | 9 | Initial file storage setup and testing |
 | 2024/03/02 | 1 | 0 | 0 | 0 | 0 | 0 | Github Repo and Organization Maintenance |
 | 2024/03/02 | 4 | 0 | 0 | 4 | 4 | 0 | Business Card Templates and Model UI |
+| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-work |
 | 2024/03/03 | 0 | 11 | 0 | 0 | 0 | 0 | User Cards UI + View Model Rework + Share Cards UI + Debugging |
 | 2024/03/03 | 0 | 0 | 0 | 11 | 0 | 6 | Clean up all of the UI for demo presentation. Debugging Parcelable issue. |
+| 2024/03/03 | 0 | 0 | 14 | 0 | 0 | 0 | Bluetooth Connection and Repository Development |
 | 2024/03/04 | 0 | 6 | 0 | 0 | 0 | 3 | Fixed several issues: file storage, file retrieval, render loaded files, and a few state management issues |
+| 2024/03/04 | 0 | 0 | 14 | 0 | 0 | 0 | Configuring Bluetooth Services |
 | 2024/03/05 | 0 | 2 | 0 | 0 | 0 | 0 | QR Code sharing issue (due to Parcel) |
+| 2024/03/05 | 0 | 0 | 14 | 0 | 0 | 0 | Testing and Debugging Bluetooth |
 | 2024/03/07 | 0 | 0 | 0 | 5 | 0 | 0 | Refactor Sharing Menu. Fix Parcelable error. Update packages. 
 | 2024/03/07 | 0 | 2 | 0 | 0 | 0 | 3 | Online Meeting - D3 (Component Diagram) |
 | 2024/03/12 | 0 | 2 | 0 | 0 | 0 | 0 | Backend setup for server with Firebase + learning Go (for server-side application) |
@@ -43,6 +51,7 @@
 | 2024/03/28 | 0 | 0 | 0 | 0 | 2 | 0 | Debugged some small visual bugs and interaction |
 | 2024/03/28 | 0 | 5 | 0 | 0 | 0 | 0 | Implemented saving for created/edited events via FAB (still some bugs), added error handling, created date picker dialog (still some bugs that need to be ironed out), added observable for form modification for create event, added overflow handling, and a few general UI changes |
 | 2024/03/28 | 0 | 1 | 0 | 0 | 0 | 0 | Deliverable 5 - worked on the Decorator pattern explanation and figure |
+| 2024/03/28 | 0 | 0 | 4 | 0 | 0 | 0 | Deliverable 5 - worked on the Observer pattern explanation and figure |
 | 2024/03/28 | 3 | 0 | 0 | 0 | 0 | 0 | Deliverable 5 - worked on the Factory method pattern explanation and figure, edit and submit overall document |
 | 2024/03/28 | 4 | 0 | 0 | 0 | 0 | 0 | Working on business card templates and creation process |
 | 2024/03/29 | 0 | 0 | 0 | 0 | 7 | 0 | Testing and debugging multiple components |
