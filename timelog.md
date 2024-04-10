@@ -16,34 +16,38 @@
 | 2024/03/01 | 0 | 0 | 0 | 6 | 0 | 0 | Get Jetpack Compose setup. Add Theme files. Add app bars and navigation. |
 | 2024/03/01 | 5 | 0 | 0 | 0 | 0 | 0 | Settings Screen |
 | 2024/03/01 | 0 | 0 | 4 | 0 | 0 | 0 | Share Menu UI |
-| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Testing and Fixes On Single-Thread |
-| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-development |
+| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-write to function fully multi-threaded |
+| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-write to function as a background service |
 | 2024/03/02 | 0 | 0 | 0 | 6 | 0 | 0 | Build out the business card UI and add animations to the app. | 
 | 2024/03/02 | 6 | 0 | 2 | 0 | 0 | 0 | Prototype Demo presentation |
 | 2024/03/02 | 0 | 9 | 0 | 0 | 0 | 0 | User Cards UI + Share Menu + View Models and Models Foundations |
 | 2024/03/02 | 0 | 0 | 0 | 0 | 0 | 9 | Initial file storage setup and testing |
 | 2024/03/02 | 1 | 0 | 0 | 0 | 0 | 0 | Github Repo and Organization Maintenance |
 | 2024/03/02 | 4 | 0 | 0 | 4 | 4 | 0 | Business Card Templates and Model UI |
-| 2024/03/02 | 0 | 0 | 13 | 0 | 0 | 0 | Bluetooth Re-work |
+| 2024/03/02 | 0 | 0 | 14 | 0 | 0 | 0 | Move Bluetooth into a Repository Pattern |
 | 2024/03/03 | 0 | 11 | 0 | 0 | 0 | 0 | User Cards UI + View Model Rework + Share Cards UI + Debugging |
 | 2024/03/03 | 0 | 0 | 0 | 11 | 0 | 6 | Clean up all of the UI for demo presentation. Debugging Parcelable issue. |
 | 2024/03/03 | 0 | 0 | 14 | 0 | 0 | 0 | Bluetooth Connection and Repository Development |
 | 2024/03/04 | 0 | 6 | 0 | 0 | 0 | 3 | Fixed several issues: file storage, file retrieval, render loaded files, and a few state management issues |
-| 2024/03/04 | 0 | 0 | 14 | 0 | 0 | 0 | Configuring Bluetooth Services |
+| 2024/03/04 | 0 | 0 | 14 | 0 | 0 | 0 | More Bluetooth Services Work |
 | 2024/03/05 | 0 | 2 | 0 | 0 | 0 | 0 | QR Code sharing issue (due to Parcel) |
 | 2024/03/05 | 0 | 0 | 14 | 0 | 0 | 0 | Testing and Debugging Bluetooth |
 | 2024/03/07 | 0 | 0 | 0 | 5 | 0 | 0 | Refactor Sharing Menu. Fix Parcelable error. Update packages. 
 | 2024/03/07 | 0 | 2 | 0 | 0 | 0 | 3 | Online Meeting - D3 (Component Diagram) |
+| 2024/03/08 | 0 | 0 | 6 | 0 | 0 | 0 | Testing Nearby Share Prototype (It didn't work) |
 | 2024/03/12 | 0 | 2 | 0 | 0 | 0 | 0 | Backend setup for server with Firebase + learning Go (for server-side application) |
 | 2024/03/13 | 0 | 2 | 0 | 2 | 0 | 0 | Backend setup for Firebase/Firestore + planning session for routing/auth |
 | 2024/03/23 | 0 | 0 | 0 | 12 | 0 | 0 | Create Middlewares + Develop route handlers for backend server + learn Gorilla mux |
 | 2024/03/22 | 2 | 2 | 2 | 2 | 2 | 2 | Online Meeting - D4: Architecture Style Diagrams & Explanations |
 | 2024/03/22 | 2 | 0 | 2 | 0 | 2 | 3 | Deliverable 4 Content |
 | 2024/03/23 | 3 | 0 | 0 | 0 | 5 | 0 | Business card templates and creation |
+| 2024/03/23 | 0 | 0 | 15 | 0 | 0 | 0 | Merging Bluetooth with rest of App and adding new protocol for data transfer |
 | 2024/03/24 | 0 | 6 | 0 | 0 | 0 | 0 | Event UI - created events list & menu screen, create events screen + event model + event view model + routing & data passing (and debugging for it) |
+| 2024/03/24 | 0 | 0 | 15 | 0 | 0 | 0 | Remove Bluetooth Test UI, connect Bluetooth with rest of app with new activity to start Bluetooth Sharing of Card |
 | 2024/03/25 | 0 | 4 | 0 | 0 | 0 | 0 | Created mock event data, reworked Business Card to incorporate events (debugging issues with displaying field data), created event card template, populated event menu screen, reworked view models and card models |
 | 2024/03/26 | 0 | 2 | 0 | 0 | 0 | 0 | Modified state handling to fix render issue with the business cards and events lists not being updated visually |
 | 2024/03/26 | 5 | 0 | 0 | 0 | 5 | 0 | Working on business card creation functionality code |
+| 2024/03/26 | 0 | 0 | 16 | 0 | 0 | 0 | Fixing Bluetooth to fully function as an Android foreground services |
 | 2024/03/27 | 0 | 7 | 0 | 0 | 0 | 0 | Created events creation page (form data + date picker dialog + some issues attaching an interaction source to other composables like textfield), fixed duplication issues with the new state handling changes from yesterday, some QOL (for development) improvements as well with code structuring |
 | 2024/03/27 | 0 | 0 | 0 | 7 | 0 | 0 | Develop handlers for Card management CRUD on backend server + Add in handler for saving card images. |
 | 2024/03/28 | 0 | 0 | 0 | 5 | 0 | 0 | Develop handlers for Event management. |
@@ -65,13 +69,17 @@
 | 2024/03/30 | 0 | 6 | 0 | 2 | 0 | 0 | Created join dialog, added card selection to event creation, fixed event creation bug with information copying. Created API functions to handle HTTP requests, looked into websocket handling. |
 | 2024/03/30 | 0 | 0 | 0 | 3 | 0 | 0 | Figure out websocket handler for management of event cards + Testing websocket connection |
 | 2024/03/30 | 0 | 3 | 0 | 0 | 0 | 0 | Created Business Card Creation Screen + data handling |
+| 2024/03/30 | 0 | 0 | 6 | 0 | 0 | 0 | Fix Bluetooth to work with created cards |
 | 2024/03/31 | 0 | 1 | 0 | 0 | 0 | 0 | Fixed join event dialog rendering, and BusinessCardMultiSelect |
 | 2024/03/31 | 0 | 0 | 0 | 0 | 8 | 0 | Worked on adjusting interaction in My Cards / Shared Cards screen, adding and implementing calls to view model to add / remove / edit business cards |
 | 2024/03/31 | 0 | 2 | 0 | 2 | 0 | 0 | Worked on fixing card storage issue (still not working), added API calls to event components) |
 | 2024/03/31 | 0 | 2 | 0 | 0 | 0 | 3 | Implemented settings for userId, fixed card loading and saving, added image rendering to cards for front and back |
-| 2024/04/31 | 0 | 0 | 0 | 0 | 0 | 7 | Creating image loading and saving functionality |
+| 2024/03/31 | 0 | 0 | 0 | 0 | 0 | 7 | Creating image loading and saving functionality |
+| 2024/03/31 | 0 | 0 | 10 | 0 | 0 | 0 | Rewrite Bluetooth Sharing and Receiving to fix the send protocol to send extremely large amount of bytes for image support |
 | 2024/04/01 | 0 | 0 | 0 | 0 | 4 | 0 | Fixing image preview and card edit functionality |
 | 2024/04/01 | 0 | 6 | 0 | 5 | 0 | 0 | Implemented event loading and saving from local storage, fixed incorrect card loading and saving from local storage, added event join error dialog, added API function calls for create event, join event, delete event, exit event, add cards to event, upload image to server, download image from server (still needs testing), retrieve event information, corrected image cropping on the card. Fixed JSON encoding issue for creating event |
+| 2024/04/01 | 0 | 0 | 13 | 0 | 0 | 0 | Finalizing Bluetooth Changes To Support Images and Background Sharing |
 | 2024/04/02 | 0 | 9 | 0 | 5 | 4 | 4 | Fixed bug with server errors for event hosting and event joining. Fixed bug with image upload and download. Added image upload and download for QR codes to fix card transfer issue. Fixed race condition with event rendering vs server checks, and did a ton of code cleanup, error checking, and end-to-end testing|
+| 2024/04/02 | 0 | 0 | 3 | 0 | 0 | 0 | Final Testing of Bluetooth with various cards and files before demo |
 | 2024/04/04 | 0 | 6 | 0 | 6 | 0 | 0 | D6 - Created Deployment Diagram, added Client-Server content onto Component Diagram, wrote out Client-Server Architecture style | 
 | 2024/04/05 | 0 | 3 | 3 | 0 | 3 | 3 | D6 - Created class diagram, explained Coupling, wrote out project design, and wrapped up deliverable with general edits | 
